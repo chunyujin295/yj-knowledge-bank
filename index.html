@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YJ Knowledge Bank — 技术知识库</title>
+<style>
+/* ===== Reset & Variables ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text: #1E293B;
+  --text-secondary: #64748B;
+  --border: #E2E8F0;
+  --primary: #2563EB;
+  --primary-light: #DBEAFE;
+  --secondary: #7C3AED;
+  --secondary-light: #EDE9FE;
+  --accent: #EA580C;
+  --accent-light: #FFF7ED;
+  --success: #059669;
+  --success-light: #ECFDF5;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Navigation ===== */
+.nav {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.nav-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-brand .icon { font-size: 1.5rem; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.nav-links a.gh-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.nav-links a.gh-link:hover {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
+}
+
+/* ===== Hero ===== */
+.hero {
+  text-align: center;
+  padding: 72px 24px 48px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+
+.hero .subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== Section ===== */
+.section {
+  max-width: 1100px;
+  margin: 0 auto 64px;
+  padding: 0 24px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+/* ===== Cards Grid ===== */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.card-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.tag-network { background: var(--primary-light); color: var(--primary); }
+.tag-ai { background: var(--secondary-light); color: var(--secondary); }
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.card-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.card-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ===== Footer ===== */
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.footer a:hover { text-decoration: underline; }
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.8rem; }
+  .nav-inner { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 8px; }
+  .cards { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="index.html">
+      <span class="icon">📚</span> YJ Knowledge Bank
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">首页</a></li>
+      <li><a href="doc/frp-nginx-networking-guide.html">内网穿透</a></li>
+      <li><a href="doc/llm-tutorial.html">LLM 入门</a></li>
+      <li><a class="gh-link" href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>技术知识库</h1>
+  <p class="subtitle">
+    深入理解计算机底层原理与工程实践。<br>
+    每篇指南从基本概念出发，逐步构建完整心智模型。
+  </p>
+</section>
+
+<!-- Knowledge Guides -->
+<section class="section">
+  <div class="section-title">知识指南</div>
+  <div class="cards">
+
+    <!-- Card: 内网穿透 -->
+    <a class="card" href="doc/frp-nginx-networking-guide.html">
+      <span class="card-tag tag-network">网络</span>
+      <div class="card-title">内网穿透 + Nginx HTTPS 详解</div>
+      <div class="card-desc">
+        从公网到内网的完整网络链路：frp 隧道原理、Nginx 反向代理、SSL/TLS 终止、防火墙与 NAT 穿透。
+      </div>
+      <div class="card-meta">📄 约 68 KB · 中文</div>
+    </a>
+
+    <!-- Card: LLM -->
+    <a class="card" href="doc/llm-tutorial.html">
+      <span class="card-tag tag-ai">AI / ML</span>
+      <div class="card-title">大模型（LLM）完全入门指南</div>
+      <div class="card-desc">
+        从 Transformer 架构到 Prompt Engineering，全面理解大语言模型的工作原理与实践技巧。
+      </div>
+      <div class="card-meta">📄 中文</div>
+    </a>
+
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>
+    <a href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">github.com/chunyujin295/yj-knowledge-bank</a>
+    &nbsp;·&nbsp; Built with ❤️ by YJ
+  </p>
+</footer>
+
+</body>
+</html>

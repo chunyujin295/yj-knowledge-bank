@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大模型（LLM）完全入门指南 — yj-knowledge-bank</title>
+<style>
+/* ===== CSS Variables & Theme ===== */
+:root {
+  --bg: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-card-alt: #F1F5F9;
+  --text: #1E293B;
+  --text-secondary: #64748B;
+  --border: #E2E8F0;
+  --primary: #2563EB;
+  --primary-light: #DBEAFE;
+  --secondary: #7C3AED;
+  --secondary-light: #EDE9FE;
+  --accent: #EA580C;
+  --accent-light: #FFF7ED;
+  --success: #059669;
+  --success-light: #ECFDF5;
+  --warning: #D97706;
+  --warning-light: #FFFBEB;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: 0.2s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F172A;
+    --bg-card: #1E293B;
+    --bg-card-alt: #334155;
+    --text: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --border: #334155;
+    --primary: #60A5FA;
+    --primary-light: #1E3A5F;
+    --secondary: #A78BFA;
+    --secondary-light: #2E1065;
+    --accent: #FB923C;
+    --accent-light: #431407;
+    --success: #34D399;
+    --success-light: #064E3B;
+    --warning: #FBBF24;
+    --warning-light: #451A03;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+  }
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===== Navigation ===== */
+.top-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.top-nav .logo {
+  font-size: 1.1rem; font-weight: 700; color: var(--primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.top-nav .logo svg { width: 28px; height: 28px; }
+
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tabs button {
+  padding: 8px 20px; border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-secondary);
+  font-size: 0.95rem; cursor: pointer; transition: var(--transition);
+  font-weight: 500; white-space: nowrap;
+}
+.nav-tabs button:hover { background: var(--bg-card-alt); color: var(--text); }
+.nav-tabs button.active { background: var(--primary); color: #FFFFFF; }
+
+.theme-toggle {
+  background: var(--bg-card-alt); border: 1px solid var(--border);
+  border-radius: 50%; width: 36px; height: 36px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; transition: var(--transition); color: var(--text);
+}
+.theme-toggle:hover { background: var(--border); }
+
+/* ===== Layout ===== */
+.container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+/* ===== Hero Section ===== */
+.hero {
+  text-align: center; padding: 48px 24px 36px;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
+  border-radius: var(--radius); margin-bottom: 32px;
+}
+.hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; color: var(--text); }
+.hero p { font-size: 1.1rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto 8px; }
+.hero .badge-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+.badge {
+  padding: 4px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+  background: var(--bg-card); color: var(--primary); border: 1px solid var(--border);
+}
+
+/* ===== Level Indicator ===== */
+.level-indicator {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin: 20px 0 32px;
+}
+.level-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--border); transition: var(--transition);
+}
+.level-dot.beginner { background: #22C55E; }
+.level-dot.medium { background: #F59E0B; }
+.level-dot.advanced { background: #EF4444; }
+.level-label {
+  font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);
+  padding: 6px 16px; border-radius: 20px; background: var(--bg-card-alt);
+}
+
+/* ===== Sections ===== */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.section {
+  margin-bottom: 36px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+.section:hover { box-shadow: var(--shadow-md); }
+.section h2 {
+  font-size: 1.5rem; font-weight: 700; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section h3 { font-size: 1.2rem; font-weight: 700; margin: 20px 0 10px; color: var(--primary); }
+.section h4 { font-size: 1.05rem; font-weight: 600; margin: 16px 0 8px; }
+.section p { margin-bottom: 12px; color: var(--text-secondary); }
+.section .icon-circle {
+  width: 40px; height: 40px; border-radius: 10px; display: flex;
+  align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;
+}
+.icon-blue { background: var(--primary-light); color: var(--primary); }
+.icon-purple { background: var(--secondary-light); color: var(--secondary); }
+.icon-orange { background: var(--accent-light); color: var(--accent); }
+.icon-green { background: var(--success-light); color: var(--success); }
+
+/* ===== Cards ===== */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 16px 0; }
+.card {
+  background: var(--bg-card-alt); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; transition: var(--transition);
+}
+.card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.card .card-icon { font-size: 1.8rem; margin-bottom: 8px; }
+.card h4 { font-size: 1rem; margin-bottom: 6px; }
+.card p { font-size: 0.9rem; color: var(--text-secondary); }
+
+/* ===== Info Boxes ===== */
+.info-box {
+  padding: 16px 20px; border-radius: var(--radius-sm); margin: 16px 0;
+  border-left: 4px solid var(--primary); background: var(--primary-light);
+}
+.info-box.tip { border-left-color: var(--success); background: var(--success-light); }
+.info-box.warn { border-left-color: var(--warning); background: var(--warning-light); }
+.info-box strong { color: var(--text); }
+
+/* ===== Comparison Table ===== */
+.comp-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+.comp-table th {
+  background: var(--primary-light); color: var(--text); font-weight: 700;
+  padding: 10px 14px; text-align: left; border: 1px solid var(--border);
+}
+.comp-table td {
+  padding: 10px 14px; border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.comp-table tr:hover td { background: var(--bg-card-alt); }
+
+/* ===== Timeline ===== */
+.timeline { position: relative; padding-left: 30px; margin: 16px 0; }
+.timeline::before {
+  content: ''; position: absolute; left: 12px; top: 0; bottom: 0;
+  width: 2px; background: var(--border);
+}
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item::before {
+  content: ''; position: absolute; left: -22px; top: 6px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--primary); border: 2px solid var(--bg-card);
+}
+.timeline-item h4 { margin-bottom: 4px; }
+.timeline-item p { font-size: 0.9rem; color: var(--text-secondary); }
+
+/* ===== SVG Diagrams ===== */
+.diagram-box {
+  background: var(--bg-card-alt); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin: 16px 0;
+  text-align: center; overflow-x: auto;
+}
+.diagram-box svg { max-width: 100%; height: auto; }
+.diagram-caption { font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px; text-align: center; }
+
+/* ===== Term Tooltip ===== */
+.term {
+  color: var(--primary); font-weight: 600; cursor: help;
+  border-bottom: 1px dashed var(--primary); position: relative;
+}
+.term:hover::after {
+  content: attr(data-tip);
+  position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 8px 14px;
+  border-radius: var(--radius-sm); font-size: 0.82rem; white-space: nowrap;
+  z-index: 10; font-weight: 400; pointer-events: none;
+}
+
+/* ===== Glossary ===== */
+.glossary { margin: 16px 0; }
+.glossary dt {
+  font-weight: 700; color: var(--primary); margin-top: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+}
+.glossary dt::before { content: '+'; font-weight: 700; width: 18px; text-align: center; transition: var(--transition); }
+.glossary dt.open::before { content: '−'; }
+.glossary dd {
+  display: none; padding: 10px 16px; margin: 4px 0 8px 20px;
+  background: var(--bg-card-alt); border-radius: var(--radius-sm);
+  font-size: 0.92rem; color: var(--text-secondary); border-left: 3px solid var(--primary);
+}
+.glossary dd.open { display: block; }
+
+/* ===== Image Card ===== */
+.img-card {
+  text-align: center; margin: 16px 0;
+}
+.img-card img {
+  max-width: 100%; border-radius: var(--radius); border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.img-card .caption { font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; }
+
+/* ===== Step List ===== */
+.step-list { counter-reset: step; list-style: none; margin: 16px 0; }
+.step-list li {
+  counter-increment: step; padding: 12px 16px 12px 52px; position: relative;
+  margin-bottom: 10px; background: var(--bg-card-alt);
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
+}
+.step-list li::before {
+  content: counter(step);
+  position: absolute; left: 12px; top: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary); color: #FFF; font-weight: 700; font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ===== Progress Bar ===== */
+.progress-bar {
+  height: 4px; background: var(--border); border-radius: 2px;
+  margin: 8px 0 24px; overflow: hidden;
+}
+.progress-bar .fill {
+  height: 100%; background: var(--primary); border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center; padding: 32px 24px; color: var(--text-secondary);
+  font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 48px;
+}
+
+/* ===== Scroll To Top ===== */
+.scroll-top {
+  position: fixed; bottom: 24px; right: 24px; z-index: 50;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--primary); color: #FFF; border: none; cursor: pointer;
+  font-size: 1.3rem; box-shadow: var(--shadow-lg); transition: var(--transition);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: translateY(20px); pointer-events: none;
+}
+.scroll-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.scroll-top:hover { filter: brightness(1.1); }
+
+/* ===== TOC Sidebar (desktop) ===== */
+@media (min-width: 1200px) {
+  .container { max-width: 900px; }
+}
+
+/* ===== Collapsible ===== */
+.collapsible-header {
+  cursor: pointer; user-select: none;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.collapsible-header::after {
+  content: '▸'; font-size: 0.9rem; transition: transform 0.2s; color: var(--text-secondary);
+}
+.collapsible-header.open::after { transform: rotate(90deg); }
+.collapsible-body { display: none; }
+.collapsible-body.open { display: block; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .container { padding: 16px; }
+  .section { padding: 20px 16px; }
+  .hero { padding: 32px 16px; }
+  .hero h1 { font-size: 1.6rem; }
+  .nav-tabs button { padding: 6px 12px; font-size: 0.82rem; }
+  .card-grid { grid-template-columns: 1fr; }
+  .top-nav { padding: 0 12px; }
+}
+
+/* ===== Print ===== */
+@media print {
+  .top-nav, .scroll-top, .theme-toggle, .site-nav { display: none; }
+  .tab-content { display: block !important; }
+  .section { break-inside: avoid; }
+}
+
+/* ===== Site Navigation Bar ===== */
+.site-nav {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 101;
+}
+[data-theme="dark"] .site-nav { background: rgba(15,23,42,0.9); }
+.site-nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+}
+.site-nav a {
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+.site-nav a:hover { color: var(--primary); }
+.site-nav .home-link { display: flex; align-items: center; gap: 4px; }
+.site-nav .gh-link {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+.site-nav .gh-link:hover { background: var(--text); color: #fff; border-color: var(--text); }
+@media (max-width: 640px) {
+  .site-nav-inner { padding: 0 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Site Navigation ===== -->
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="home-link" href="../index.html">← 返回首页</a>
+    <a class="gh-link" href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<!-- ===== Top Navigation (page tabs) ===== -->
+<nav class="top-nav">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+      <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+    </svg>
+    大模型知识库
+  </div>
+  <div class="nav-tabs">
+    <button class="active" data-tab="beginner">入门</button>
+    <button data-tab="medium">中等</button>
+    <button data-tab="advanced">进阶</button>
+  </div>
+  <button class="theme-toggle" title="切换主题" onclick="toggleTheme()">🌓</button>
+</nav>
+
+<!-- ===== Main Content ===== -->
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>大模型（LLM）完全入门指南</h1>
+    <p>从零开始，循序渐进地理解大语言模型是什么、怎么工作的、以及为什么它们正在改变世界。</p>
+    <p style="font-size:0.9rem;margin-top:4px;">专为非技术背景的同学设计 —— 不需要任何编程基础。</p>
+    <div class="badge-row">
+      <span class="badge">ChatGPT</span><span class="badge">GPT-4</span><span class="badge">Claude</span>
+      <span class="badge">Gemini</span><span class="badge">文心一言</span><span class="badge">通义千问</span>
+      <span class="badge">DeepSeek</span>
+    </div>
+  </div>
+
+  <!-- Level Indicator -->
+  <div class="level-indicator" id="levelIndicator">
+    <span class="level-dot beginner"></span>
+    <span class="level-label" id="levelLabel">入门 — 知其然</span>
+  </div>
+
+  <!-- ==================== BEGINNER TAB ==================== -->
+  <div class="tab-content active" id="tab-beginner">
+
+    <!-- Section B1: What is a Model -->
+    <div class="section">
+      <h2><span class="icon-circle icon-blue">1</span> 什么是"模型"？</h2>
+      <p>先别想人工智能。我们先从生活中最常见的"模型"说起。</p>
+
+      <p>你见过地球仪吗？地球仪就是一个<strong>模型</strong>。它不是一个真正的地球，但它<strong>抓住了地球最关键的特征</strong>——大陆的形状、海洋的位置、各国的边界——然后用一种缩小的、你可以拿在手里的方式呈现出来。它忽略了很多细节（比如地形高度、地下结构），但它足够帮助你理解"地球长什么样"。</p>
+
+      <p>在计算机的世界里，<strong>"模型"的意思也差不多</strong>：它是一个从大量数据中学到了某种"规律"或"模式"的东西。给它一个输入，它能根据自己学到的规律，产生一个输出。</p>
+
+      <div class="diagram-box">
+        <svg width="500" height="130" viewBox="0 0 500 130">
+          <rect x="20" y="30" width="120" height="60" rx="12" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="80" y="65" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="600">输入</text>
+          <line x1="140" y1="60" x2="190" y2="60" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowB)"/>
+          <rect x="195" y="20" width="110" height="80" rx="12" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <text x="250" y="55" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="600">模型</text>
+          <text x="250" y="75" text-anchor="middle" font-size="11" fill="var(--text-secondary)">（学到的规律）</text>
+          <line x1="305" y1="60" x2="355" y2="60" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowB)"/>
+          <rect x="360" y="30" width="120" height="60" rx="12" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="420" y="65" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="600">输出</text>
+          <defs>
+            <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--primary)"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">图：模型就是一个"输入 → 处理 → 输出"的黑盒子</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🌍</div>
+          <h4>地球仪</h4>
+          <p>输入：你想看某个国家的位置<br>输出：它在球面上给你标出来<br>规律：各大洲、各国的形状和相对位置</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📸</div>
+          <h4>人脸识别</h4>
+          <p>输入：一张照片<br>输出："这是张三"<br>规律：张三的面部特征（从很多张张三的照片中学到的）</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h4>大语言模型</h4>
+          <p>输入："解释一下什么是重力"<br>输出：一段关于重力的解释文字<br>规律：从海量文本中学到的语言模式、知识关联</p>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>关键理解：</strong>模型不是数据库，它不存储原文。它存储的是<strong>规律和模式</strong>。就像你学会了骑自行车之后，不是记住了每一次踩踏板的精确角度，而是掌握了"保持平衡"的感觉。模型也是如此——它学到的是语言背后的"感觉"。
+      </div>
+    </div>
+
+    <!-- Section B2: What Makes It "Large" -->
+    <div class="section">
+      <h2><span class="icon-circle icon-purple">2</span> 为什么叫"大"模型？</h2>
+      <p>你可能会问：模型就模型，为什么要叫<strong>大</strong>模型？"大"是什么意思？</p>
+
+      <h3>参数：模型脑细胞的数量</h3>
+      <p>如果把模型比作一个大脑，那么<strong>参数（Parameter）</strong>就是它的脑细胞。参数是模型内部一个个可以调整的数字旋钮，它们共同决定了"输入什么样的信息，就会产生什么样的输出"。</p>
+
+      <div class="diagram-box">
+        <svg width="700" height="180" viewBox="0 0 700 180">
+          <!-- Small model -->
+          <rect x="20" y="10" width="200" height="155" rx="12" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+          <text x="120" y="38" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">小模型（2018年以前）</text>
+          <circle cx="70" cy="70" r="14" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <circle cx="120" cy="65" r="14" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <circle cx="90" cy="95" r="14" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <circle cx="140" cy="90" r="14" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <circle cx="110" cy="115" r="14" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <text x="120" y="148" text-anchor="middle" font-size="12" fill="var(--text-secondary)">几百万 ∼ 几亿个参数</text>
+
+          <!-- Medium model -->
+          <rect x="250" y="10" width="200" height="155" rx="12" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+          <text x="350" y="38" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">大模型（2020年代）</text>
+          <circle cx="290" cy="58" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="320" cy="55" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="350" cy="58" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="380" cy="52" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="410" cy="55" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="300" cy="75" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="330" cy="72" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="360" cy="75" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="390" cy="70" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="310" cy="90" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="340" cy="88" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="370" cy="92" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="400" cy="88" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="320" cy="105" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="350" cy="108" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="380" cy="105" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="290" cy="110" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <circle cx="410" cy="108" r="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1"/>
+          <text x="350" y="148" text-anchor="middle" font-size="12" fill="var(--text-secondary)">几千亿 ∼ 几万亿个参数</text>
+
+          <!-- Arrow -->
+          <text x="230" y="90" text-anchor="middle" font-size="28" fill="var(--primary)">→</text>
+        </svg>
+        <div class="diagram-caption">图：模型参数数量的对比。参数越多，模型能学到的规律就越精细。</div>
+      </div>
+
+      <table class="comp-table">
+        <tr><th>模型</th><th>参数量（大约）</th><th>打个比方</th></tr>
+        <tr><td>早期聊天机器人</td><td>几百万</td><td>一本小册子的信息量</td></tr>
+        <tr><td>BERT (2018)</td><td>3.4 亿</td><td>一套百科全书</td></tr>
+        <tr><td>GPT-3 (2020)</td><td>1750 亿</td><td>一个大型图书馆</td></tr>
+        <tr><td>GPT-4 (2023)</td><td>约 1.8 万亿（推测）</td><td>几百个大型图书馆</td></tr>
+      </table>
+
+      <div class="info-box tip">
+        <strong>记住一句话：</strong>"大"指的是参数多。参数越多，模型能记住和理解的规律就越复杂、越精细。但代价是需要更多的计算资源和训练数据。
+      </div>
+    </div>
+
+    <!-- Section B3: What Can LLMs Do -->
+    <div class="section">
+      <h2><span class="icon-circle icon-orange">3</span> 大模型能做什么？</h2>
+      <p>大模型的能力范围远超很多人的想象。它不仅仅是一个"聊天机器人"。</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h4>对话与问答</h4>
+          <p>和人类进行自然的多轮对话，回答各种知识性问题，像一个知识渊博的朋友。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📝</div>
+          <h4>文本生成</h4>
+          <p>写文章、写邮件、写诗、写小说、写广告文案……几乎任何类型的文字内容。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💻</div>
+          <h4>代码编写</h4>
+          <p>根据自然语言描述生成代码、调试bug、解释代码逻辑、在不同语言间翻译代码。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <h4>翻译</h4>
+          <p>在几十种语言之间进行高质量翻译，甚至比很多专业翻译工具做得更好。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h4>信息总结</h4>
+          <p>把长篇大论浓缩成几个要点，快速抓住核心信息。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h4>推理与分析</h4>
+          <p>进行逻辑推理、数学计算、数据分析、法律分析等需要思考的任务。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section B4: Training - How Models Learn -->
+    <div class="section">
+      <h2><span class="icon-circle icon-green">4</span> 大模型是怎么"学会"知识的？</h2>
+      <p>大模型的学习过程，其实和人类学习有一些相似之处。我们把它分为几个大的阶段来理解。</p>
+
+      <h3>第一步：喂数据（就像婴儿听大人说话）</h3>
+      <p>研究人员把互联网上公开的、海量的文字内容（网页、书籍、论文、百科、代码……）收集起来，经过清洗和整理，作为模型的"教材"。这个过程叫<strong>数据收集</strong>。</p>
+
+      <div class="info-box">
+        <strong>数据量有多大？</strong>训练一个大模型可能要用到几万亿个词——相当于把几百万本书的内容全部读一遍。而且是每一种语言、每一个领域都尽量覆盖。
+      </div>
+
+      <h3>第二步：预训练（就像婴儿从"听"中学会语言）</h3>
+      <p>模型开始"阅读"这些文本。但它的阅读方式不是像我们一样逐字理解，而是玩一个<strong>"填字游戏"</strong>：</p>
+
+      <div class="diagram-box">
+        <svg width="500" height="130" viewBox="0 0 500 130">
+          <rect x="20" y="20" width="460" height="40" rx="8" fill="var(--bg-card)" stroke="var(--border)" stroke-width="1"/>
+          <text x="60" y="45" text-anchor="middle" font-size="14" fill="var(--text)">今天</text>
+          <text x="130" y="45" text-anchor="middle" font-size="14" fill="var(--text)">天气</text>
+          <text x="200" y="45" text-anchor="middle" font-size="14" fill="var(--text)">真</text>
+          <rect x="240" y="28" width="60" height="24" rx="4" fill="var(--warning-light)" stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="270" y="45" text-anchor="middle" font-size="14" fill="var(--warning)" font-weight="600">???</text>
+          <text x="320" y="45" text-anchor="middle" font-size="14" fill="var(--text-secondary)">模型要猜这个词</text>
+          <text x="250" y="85" text-anchor="middle" font-size="14" fill="var(--primary)" font-weight="600">"好" ← 正确答案</text>
+          <text x="180" y="110" text-anchor="middle" font-size="12" fill="var(--text-secondary)">猜错了就调整参数，猜对了就加强这个"经验"</text>
+        </svg>
+        <div class="diagram-caption">图：预训练的核心过程 —— 让模型做"完形填空"</div>
+      </div>
+
+      <p>每次猜测之后，模型会对比自己的猜测和正确答案。如果猜错了，它就<strong>反向调整自己的参数</strong>，下次遇到类似的情况就能猜得更准。这个调整过程在技术上叫<strong>反向传播（Backpropagation）</strong>——可以把它理解为"从错误中学习"的数学版本。</p>
+
+      <p>当这个过程重复了几万亿次之后（对，你没看错，几万亿次），模型就对语言的结构、词汇之间的关系、甚至一些常识和推理规则有了深刻的理解。</p>
+
+      <div class="info-box tip">
+        <strong>关键点：</strong>这个阶段模型学到的是"语言本身"——语法、词汇关系、常识、推理模式。它还没有学会"和人类对话"。这就像一个孩子学会了说话，但还不知道怎么有礼貌地和别人聊天。
+      </div>
+    </div>
+
+    <!-- Section B5: Model Types -->
+    <div class="section">
+      <h2><span class="icon-circle icon-blue">5</span> 大模型的主要类型</h2>
+      <p>你可能听到过很多不同的名字：大语言模型、视觉模型、多模态模型、世界模型……它们分别是什么？</p>
+
+      <div class="img-card">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Generative_AI_Landscape_2025.svg/800px-Generative_AI_Landscape_2025.svg.png"
+             alt="生成式AI模型全景图"
+             loading="lazy"
+             onerror="this.style.display='none'"
+             style="max-width:700px;">
+        <div class="caption">图：生成式AI领域的主要模型和公司全景图。从上到下分别是大语言模型、图像生成、视频生成、音频模型等不同类别。</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📝</div>
+          <h4>大语言模型（LLM）</h4>
+          <p><strong>处理文字</strong>。ChatGPT、Claude、文心一言、通义千问都属于这一类。输入文字，输出文字。它们是目前最主流、应用最广泛的类型。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🖼️</div>
+          <h4>视觉模型</h4>
+          <p><strong>处理图像</strong>。能识别图片里有什么、生成图片、编辑图片。比如 Midjourney、Stable Diffusion、DALL-E 就属于生成图像的模型。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎵</div>
+          <h4>语音模型</h4>
+          <p><strong>处理声音</strong>。能把语音转成文字、把文字转成语音、甚至生成音乐。比如 Whisper（语音识别）、VALL-E（语音合成）。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <h4>多模态模型</h4>
+          <p><strong>同时处理多种信息</strong>。能看懂图片+文字，能用语音+文字交流。GPT-4V、Gemini 就是多模态模型——你可以给它一张图片，问它图片里有什么。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎮</div>
+          <h4>世界模型</h4>
+          <p><strong>理解物理世界的运作规律</strong>。比如预测"把杯子推下桌子会怎样"。这是最前沿的方向之一，目标是让 AI 具备对真实物理世界的认知能力。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🧬</div>
+          <h4>科学模型</h4>
+          <p><strong>专门用于科学发现</strong>。比如 AlphaFold 预测蛋白质结构、气象大模型预测天气、药物分子设计模型等。</p>
+        </div>
+      </div>
+
+      <h3>重点：什么是"世界模型"？</h3>
+      <p>这是一个比较前沿的概念，但理解它并不难：</p>
+      <p><strong>世界模型（World Model）</strong>是一种试图理解"世界是如何运作的"的 AI 模型。它不只是处理文字或图片，而是尝试建立一个<strong>对物理世界规律的内部表示（Internal Representation）</strong>——可以把它理解为模型在"脑袋里"构建了一个模拟真实世界的沙盘。</p>
+
+      <div class="info-box">
+        <strong>举个例子：</strong>你问一个普通的语言模型"如果我松手，手里的杯子会怎样？"，它可能回答"会掉在地上"——因为它在文本中读到过这个描述。但一个世界模型要做的是，它内部有一个对"重力"的理解，能<strong>推理出</strong>这个结果，而不只是"背诵"答案。世界模型是走向通用人工智能（AGI）的重要方向之一。
+      </div>
+    </div>
+
+    <!-- Section B6: How We Use LLMs -->
+    <div class="section">
+      <h2><span class="icon-circle icon-purple">6</span> 我们怎么使用大模型？</h2>
+      <p>了解了模型是什么之后，我们来看一下：在实际项目中，人们是怎么使用这些模型的？</p>
+
+      <h3>方式一：直接调用（API）</h3>
+      <p>最简单的方式。就像你打开 ChatGPT 的网页，输入问题，得到回答。开发者也可以通过<strong>API（应用程序编程接口）</strong>来做同样的事情——API 就像一个"技术服务窗口"，你把问题发给它，它把答案还给你。你不需要知道模型怎么运行，只需要知道怎么"提问"。</p>
+
+      <h3>方式二：提示工程（Prompt Engineering）</h3>
+      <p>向模型提问也是一门学问。好的提问方式能显著提高回答质量。比如：</p>
+      <table class="comp-table">
+        <tr><th>差的提问</th><th>好的提问</th></tr>
+        <tr><td>"写一篇关于环保的文章"</td><td>"你是一位环保专家，请写一篇面向中学生的800字科普文章，介绍塑料污染的三大危害，语言要生动有趣，多举生活化的例子"</td></tr>
+        <tr><td>"这段代码有什么问题"</td><td>"请作为代码审查员，审查下面这段 Python 代码。重点关注：1) 安全问题 2) 性能问题 3) 代码风格。对每个问题给出具体的修改建议"</td></tr>
+      </table>
+
+      <h3>方式三：微调（Fine-tuning）</h3>
+      <p>如果基础的模型在某些特定领域表现不够好，可以用自己领域的数据对它进行"再教育"，让它在某个特定任务上更专业。比如用医疗文献微调后的模型，在看病问诊方面会更准确。</p>
+
+      <h3>方式四：RAG（检索增强生成）</h3>
+      <p>这是目前<strong>企业级项目最常用</strong>的方式。简单来说就是：在问模型问题之前，先从一个知识库中检索出相关信息，然后把这些信息连同问题一起喂给模型。这样模型就能基于"最新、最准确"的资料来回答，而不是仅靠训练时记住的东西。</p>
+
+      <div class="diagram-box">
+        <svg width="600" height="200" viewBox="0 0 600 200">
+          <rect x="15" y="10" width="140" height="60" rx="10" fill="var(--bg-card)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="85" y="40" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">用户提问</text>
+          <text x="85" y="58" text-anchor="middle" font-size="11" fill="var(--text-secondary)">"公司去年营收多少？"</text>
+
+          <line x1="155" y1="40" x2="195" y2="40" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowR)"/>
+
+          <rect x="200" y="5" width="140" height="70" rx="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <text x="270" y="32" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">第一步：检索</text>
+          <text x="270" y="50" text-anchor="middle" font-size="11" fill="var(--text-secondary)">在知识库中搜索</text>
+          <text x="270" y="65" text-anchor="middle" font-size="11" fill="var(--text-secondary)">"去年营收"相关信息</text>
+
+          <line x1="340" y1="40" x2="380" y2="40" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowR)"/>
+
+          <rect x="385" y="5" width="140" height="70" rx="10" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="2"/>
+          <text x="455" y="32" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">第二步：生成</text>
+          <text x="455" y="50" text-anchor="middle" font-size="11" fill="var(--text-secondary)">把检索结果+问题</text>
+          <text x="455" y="65" text-anchor="middle" font-size="11" fill="var(--text-secondary)">一起发给大模型</text>
+
+          <line x1="525" y1="40" x2="565" y2="40" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowR)"/>
+
+          <rect x="15" y="120" width="555" height="65" rx="10" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="290" y="148" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="600">大模型回答（基于检索到的真实数据，而非"记忆"）</text>
+          <text x="290" y="170" text-anchor="middle" font-size="12" fill="var(--text-secondary)">"根据最新财报，公司去年全年营收为XX亿元，同比增长XX%……"</text>
+
+          <defs>
+            <marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--primary)"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">图：RAG（检索增强生成）的基本流程 —— 先查资料，再回答问题</div>
+      </div>
+
+      <h3>方式五：Agent（智能体）</h3>
+      <p>这是更高级的用法。让模型不仅仅回答问题，还能<strong>采取行动</strong>——比如自动调用搜索引擎查资料、自动写代码并运行、自动发邮件、自动操作软件。模型就像一个有"手"有"脚"的助手，而不仅是一个"会说话的脑袋"。</p>
+    </div>
+
+    <!-- Beginner Summary -->
+    <div class="section" style="background: linear-gradient(135deg, var(--primary-light), var(--success-light));">
+      <h2><span class="icon-circle icon-green">✓</span> 入门总结</h2>
+      <p>恭喜你完成了入门阶段！现在你应该理解了：</p>
+      <ul style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;"><strong>模型</strong> = 从数据中学到了规律的东西，给输入就能产生输出</li>
+        <li style="margin-bottom: 6px;"><strong>大模型</strong> = 参数特别多（几百亿到几万亿）的模型，能学到更复杂的规律</li>
+        <li style="margin-bottom: 6px;"><strong>预训练</strong> = 让模型在海量文本上做"完形填空"，从而学会语言和知识</li>
+        <li style="margin-bottom: 6px;"><strong>大模型的类型</strong> = 语言模型、视觉模型、语音模型、多模态模型、世界模型等</li>
+        <li style="margin-bottom: 6px;"><strong>使用方式</strong> = API直接调用、提示工程、微调、RAG、Agent</li>
+      </ul>
+      <p style="margin-top: 12px;"><strong>接下来，在中等阶段，我们会深入了解：大模型内部到底是怎么运作的。</strong></p>
+    </div>
+  </div>
+
+  <!-- ==================== MEDIUM TAB ==================== -->
+  <div class="tab-content" id="tab-medium">
+
+    <!-- Section M1: Neural Networks -->
+    <div class="section">
+      <h2><span class="icon-circle icon-blue">1</span> 神经网络：模型的"身体构造"</h2>
+      <p>要理解大模型怎么运作的，我们需要先了解它的基本构造——<strong>神经网络（Neural Network）</strong>。</p>
+
+      <h3>什么是神经元？</h3>
+      <p>这个名字确实来自对人脑的模仿，但<strong>它和人脑的相似度其实很有限</strong>。在计算机里，一个"神经元"就是一个简单的<strong>计算单元</strong>：</p>
+
+      <div class="diagram-box">
+        <svg width="500" height="200" viewBox="0 0 500 200">
+          <!-- Inputs -->
+          <circle cx="60" cy="50" r="18" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="60" y="55" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">x₁</text>
+          <circle cx="60" cy="100" r="18" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="60" y="105" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">x₂</text>
+          <circle cx="60" cy="150" r="18" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="60" y="155" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">x₃</text>
+
+          <!-- Weights -->
+          <text x="130" y="44" font-size="11" fill="var(--accent)">× w₁</text>
+          <text x="130" y="98" font-size="11" fill="var(--accent)">× w₂</text>
+          <text x="130" y="148" font-size="11" fill="var(--accent)">× w₃</text>
+
+          <!-- Arrows to neuron -->
+          <line x1="175" y1="50" x2="230" y2="90" stroke="var(--secondary)" stroke-width="1.5"/>
+          <line x1="175" y1="100" x2="230" y2="100" stroke="var(--secondary)" stroke-width="1.5"/>
+          <line x1="175" y1="150" x2="230" y2="110" stroke="var(--secondary)" stroke-width="1.5"/>
+
+          <!-- Neuron -->
+          <circle cx="270" cy="100" r="35" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2.5"/>
+          <text x="270" y="96" text-anchor="middle" font-size="11" fill="var(--text)" font-weight="600">求和</text>
+          <text x="270" y="112" text-anchor="middle" font-size="11" fill="var(--text)" font-weight="600">+ 激活</text>
+
+          <!-- Output -->
+          <line x1="305" y1="100" x2="360" y2="100" stroke="var(--primary)" stroke-width="2" marker-end="url(#arrowM)"/>
+          <circle cx="395" cy="100" r="22" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="395" y="105" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="700">y</text>
+
+          <!-- Formula -->
+          <rect x="55" y="0" width="80" height="0" rx="0" fill="none"/>
+          <text x="250" y="175" text-anchor="middle" font-size="12" fill="var(--text-secondary)">y = 激活函数( x₁·w₁ + x₂·w₂ + x₃·w₃ + 偏置 )</text>
+
+          <defs>
+            <marker id="arrowM" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--primary)"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">图：一个人工神经元的工作方式。输入加权求和 → 激活函数处理 → 输出。</div>
+      </div>
+
+      <p>简单理解：一个神经元接收几个数字输入，每个输入有一个<strong>权重（w，就是参数）</strong>表示这个输入有多"重要"。把加权后的输入加起来，再经过一个<strong>激活函数</strong>（决定"要不要对这个信息做出反应"），就得到输出。</p>
+
+      <h3>从神经元到网络</h3>
+      <p>把很多神经元排成一层一层的结构，前一层的输出作为后一层的输入，就形成了一个<strong>神经网络</strong>。当这个网络有很多层（几十层、几百层），我们就叫它<strong>深度神经网络（Deep Neural Network）</strong>，"深度学习"中的"深度"就是指这个层数多。</p>
+
+      <div class="diagram-box">
+        <svg width="500" height="250" viewBox="0 0 500 250">
+          <!-- Input layer -->
+          <text x="70" y="18" text-anchor="middle" font-size="11" fill="var(--text-secondary)">输入层</text>
+          <circle cx="70" cy="40" r="12" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <circle cx="70" cy="80" r="12" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <circle cx="70" cy="120" r="12" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <circle cx="70" cy="160" r="12" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <circle cx="70" cy="200" r="12" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+
+          <!-- Hidden layers -->
+          <text x="185" y="18" text-anchor="middle" font-size="11" fill="var(--text-secondary)">隐藏层 1</text>
+          <circle cx="185" cy="55" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="185" cy="90" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="185" cy="125" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="185" cy="160" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="185" cy="195" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+
+          <text x="300" y="18" text-anchor="middle" font-size="11" fill="var(--text-secondary)">隐藏层 2</text>
+          <circle cx="300" cy="55" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="300" cy="90" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="300" cy="125" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="300" cy="160" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <circle cx="300" cy="195" r="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+
+          <text x="400" y="18" text-anchor="middle" font-size="11" fill="var(--text-secondary)">输出层</text>
+          <circle cx="400" cy="80" r="12" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <circle cx="400" cy="140" r="12" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+
+          <!-- Connections (representative) -->
+          <line x1="82" y1="40" x2="175" y2="55" stroke="var(--border)" stroke-width="0.5" opacity="0.5"/>
+          <line x1="82" y1="80" x2="175" y2="90" stroke="var(--border)" stroke-width="0.5" opacity="0.5"/>
+          <line x1="195" y1="55" x2="290" y2="55" stroke="var(--border)" stroke-width="0.5" opacity="0.5"/>
+          <line x1="195" y1="125" x2="290" y2="125" stroke="var(--border)" stroke-width="0.5" opacity="0.5"/>
+          <line x1="310" y1="80" x2="388" y2="80" stroke="var(--border)" stroke-width="0.5" opacity="0.5"/>
+          <line x1="310" y1="140" x2="388" y2="140" stroke="var(--border)" stroke-width="0.5" opacity="0.5"/>
+        </svg>
+        <div class="diagram-caption">图：一个有多个隐藏层的神经网络。在真实的大模型中，可能有几十到上百层。</div>
+      </div>
+
+      <div class="info-box">
+        <strong>关键理解：</strong>网络中的每一层都会把输入信息<strong>变换</strong>成一种新的表示形式。浅层学到的是简单的模式（比如词与词的搭配），深层学到的则是更抽象的概念（比如语义、意图、逻辑关系）。这和人类理解语言的方式有类似之处——先听懂单词，再理解句子，最后把握整段话的主旨。
+      </div>
+
+      <div class="img-card">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Colored_neural_network.svg/800px-Colored_neural_network.svg.png"
+             alt="深度神经网络示意图"
+             loading="lazy"
+             onerror="this.style.display='none'"
+             style="max-width:500px;">
+        <div class="caption">图：深度神经网络的可视化示意（来源：Wikimedia Commons）。每一列是一层，每条连线都是一个参数（权重）。</div>
+      </div>
+    </div>
+
+    <!-- Section M2: Transformer Architecture -->
+    <div class="section">
+      <h2><span class="icon-circle icon-purple">2</span> Transformer：大模型的"灵魂架构"</h2>
+      <p>2017年，Google的研究人员发表了一篇论文叫<strong>《Attention Is All You Need》</strong>（注意力是你所需要的一切），提出了一个叫<strong>Transformer</strong>的架构。今天几乎所有的著名大模型——GPT系列、Claude、Gemini、LLaMA、文心一言、通义千问——都基于Transformer架构。</p>
+
+      <h3>在Transformer之前，有什么问题？</h3>
+      <p>在Transformer出现之前，计算机处理文字的主要方式是一种叫<strong>RNN（循环神经网络）</strong>的方法，它像人读书一样，一个词一个词地按顺序处理。但这种方式有两个致命问题：</p>
+      <ol style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;"><strong>速度慢：</strong>必须按顺序处理，不能并行。处理第1000个词必须等前面999个处理完。</li>
+        <li style="margin-bottom: 6px;"><strong>记性差：</strong>读到后面就忘了前面。一句话很长的时候，它就"忘记"了开头说了什么。</li>
+      </ol>
+
+      <h3>Transformer的革命：注意力机制</h3>
+      <p>Transformer的核心创新是<strong>自注意力机制（Self-Attention）</strong>。它让模型在处理一个词的时候，可以<strong>同时关注句子中所有其他词</strong>，并判断哪些词和当前这个词关系最密切。</p>
+
+      <div class="diagram-box">
+        <svg width="650" height="280" viewBox="0 0 650 280">
+          <!-- Sentence -->
+          <rect x="20" y="15" width="610" height="50" rx="8" fill="var(--bg-card)" stroke="var(--border)" stroke-width="1"/>
+          <text x="60" y="45" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="600">我</text>
+          <text x="130" y="45" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="600">昨天</text>
+          <text x="210" y="45" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="600">在</text>
+          <text x="270" y="45" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="600">河边</text>
+          <text x="340" y="45" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="600">看到</text>
+          <text x="420" y="45" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="600">一只</text>
+          <text x="490" y="45" text-anchor="middle" font-size="15" fill="var(--primary)" font-weight="700">猫</text>
+          <text x="550" y="45" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="600">。</text>
+
+          <text x="330" y="85" text-anchor="middle" font-size="12" fill="var(--text-secondary)">↑ 模型正在理解"猫"这个词，它同时关注了句子中所有其他词 ↑</text>
+
+          <!-- Attention weights (bars) -->
+          <text x="60" y="115" text-anchor="middle" font-size="11" fill="var(--text-secondary)">我</text>
+          <rect x="30" y="122" width="60" height="16" rx="4" fill="var(--primary-light)" opacity="0.3"/>
+          <text x="60" y="136" text-anchor="middle" font-size="9" fill="var(--text-secondary)">弱关联</text>
+
+          <text x="130" y="115" text-anchor="middle" font-size="11" fill="var(--text-secondary)">昨天</text>
+          <rect x="100" y="122" width="60" height="16" rx="4" fill="var(--primary-light)" opacity="0.2"/>
+          <text x="130" y="136" text-anchor="middle" font-size="9" fill="var(--text-secondary)">弱关联</text>
+
+          <text x="210" y="115" text-anchor="middle" font-size="11" fill="var(--text-secondary)">在</text>
+          <rect x="180" y="122" width="60" height="16" rx="4" fill="var(--primary-light)" opacity="0.25"/>
+          <text x="210" y="136" text-anchor="middle" font-size="9" fill="var(--text-secondary)">弱关联</text>
+
+          <text x="270" y="115" text-anchor="middle" font-size="11" fill="var(--text-secondary)">河边</text>
+          <rect x="240" y="122" width="60" height="16" rx="4" fill="var(--accent-light)" opacity="0.5"/>
+          <text x="270" y="136" text-anchor="middle" font-size="9" fill="var(--text-secondary)">中等关联</text>
+
+          <text x="340" y="115" text-anchor="middle" font-size="11" fill="var(--secondary)">看到</text>
+          <rect x="310" y="122" width="60" height="20" rx="4" fill="var(--secondary-light)" opacity="0.7"/>
+          <text x="340" y="138" text-anchor="middle" font-size="9" fill="var(--text-secondary)">强关联（动词）</text>
+
+          <text x="420" y="115" text-anchor="middle" font-size="11" fill="var(--secondary)">一只</text>
+          <rect x="390" y="122" width="60" height="20" rx="4" fill="var(--secondary-light)" opacity="0.7"/>
+          <text x="420" y="138" text-anchor="middle" font-size="9" fill="var(--text-secondary)">强关联（量词）</text>
+
+          <text x="490" y="115" text-anchor="middle" font-size="11" fill="var(--primary)" font-weight="700">猫</text>
+          <rect x="460" y="122" width="60" height="28" rx="4" fill="var(--primary)" opacity="0.2"/>
+          <text x="490" y="140" text-anchor="middle" font-size="9" fill="var(--text-secondary)">自己（目标词）</text>
+
+          <text x="550" y="115" text-anchor="middle" font-size="11" fill="var(--text-secondary)">。</text>
+          <rect x="520" y="122" width="60" height="16" rx="4" fill="var(--primary-light)" opacity="0.1"/>
+
+          <!-- Explanation -->
+          <rect x="60" y="170" width="530" height="95" rx="10" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+          <text x="325" y="195" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">注意力权重的含义</text>
+          <text x="325" y="218" text-anchor="middle" font-size="12" fill="var(--text-secondary)">模型认为"猫"和"看到""一只"的关系最紧密，</text>
+          <text x="325" y="238" text-anchor="middle" font-size="12" fill="var(--text-secondary)">和"河边"有一定关系（地点），和"我""昨天""在"关系较弱。</text>
+          <text x="325" y="258" text-anchor="middle" font-size="12" fill="var(--text-secondary)">这种能力让模型能真正"理解"词语之间的语法和语义关系。</text>
+        </svg>
+        <div class="diagram-caption">图：自注意力机制示意。模型在处理"猫"时，会给句子中的其他词分配不同的"注意力权重"。</div>
+      </div>
+
+      <div class="info-box tip">
+        <strong>这就是Transformer成功的秘密：</strong>它不再一个词一个词地按顺序读，而是一次性看完整句话，同时判断每个词和其他所有词的关系。这让它既能并行处理（速度快），又不会"忘记"远处的词（记性好）。
+      </div>
+
+      <div class="img-card">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Transformer_architecture_from_Attention_Is_All_You_Need_paper.png/800px-Transformer_architecture_from_Attention_Is_All_You_Need_paper.png"
+             alt="Transformer架构图（来自2017年原始论文）"
+             loading="lazy"
+             onerror="this.style.display='none'"
+             style="max-width:400px;">
+        <div class="caption">图：Transformer架构原始论文中的结构图（来源：Vaswani et al., 2017）。虽然看起来很复杂，但核心就是我们讲的"注意力机制"那一块。</div>
+      </div>
+    </div>
+
+    <!-- Section M3: Tokenization -->
+    <div class="section">
+      <h2><span class="icon-circle icon-green">3</span> Token化：模型是怎么"读"文字的？</h2>
+      <p>你可能以为模型是一个字一个字地读文字。其实不是——模型读的是<strong>token（词元）</strong>。</p>
+
+      <h3>什么是Token？</h3>
+      <p>Token是模型处理文本的最小单位。它不是完整的单词，也不是单个字母，而是介于两者之间——你可以把它理解为<strong>模型词汇表中的"基础词汇"</strong>。</p>
+
+      <div class="diagram-box">
+        <svg width="550" height="140" viewBox="0 0 550 140">
+          <text x="20" y="30" font-size="14" fill="var(--text)" font-weight="600">原始文本：</text>
+          <text x="120" y="30" font-size="15" fill="var(--primary)" font-weight="600">"我爱吃苹果"</text>
+
+          <!-- Tokenization arrow -->
+          <text x="30" y="65" font-size="13" fill="var(--text-secondary)">分词后 →</text>
+
+          <!-- Tokens as colored blocks -->
+          <rect x="120" y="48" width="60" height="30" rx="6" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1.5"/>
+          <text x="150" y="68" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">我</text>
+          <text x="150" y="92" text-anchor="middle" font-size="10" fill="var(--text-secondary)">token 1</text>
+
+          <rect x="195" y="48" width="60" height="30" rx="6" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="1.5"/>
+          <text x="225" y="68" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">爱</text>
+          <text x="225" y="92" text-anchor="middle" font-size="10" fill="var(--text-secondary)">token 2</text>
+
+          <rect x="270" y="48" width="60" height="30" rx="6" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <text x="300" y="68" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">吃</text>
+          <text x="300" y="92" text-anchor="middle" font-size="10" fill="var(--text-secondary)">token 3</text>
+
+          <rect x="345" y="48" width="60" height="30" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="375" y="68" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">苹果</text>
+          <text x="375" y="92" text-anchor="middle" font-size="10" fill="var(--text-secondary)">token 4</text>
+
+          <text x="440" y="70" font-size="12" fill="var(--text-secondary)">→ 4个token</text>
+        </svg>
+        <div class="diagram-caption">图：中文token化示例。中文中通常1-2个字就是一个token，英文中常见的单词可能被拆分成更小的部分。</div>
+      </div>
+
+      <p>每个token在模型内部都有一个<strong>唯一的数字编号（ID）</strong>，以及一个对应的<strong>词向量（Embedding）</strong>——词向量是一串数字，用来表示这个token的"含义"。含义相近的token，它们的词向量也相近。</p>
+
+      <div class="info-box">
+        <strong>为什么用token而不是字？</strong>因为用token可以大大减少模型需要处理的基本单元数量。如果把每一个汉字都当成一个基本单元，中文有上万个汉字，每个都需要单独学习。但如果用更智能的方式切分成"词级"的token，模型可以把"苹果"当成一个语义单元来学习，效率高得多。
+      </div>
+    </div>
+
+    <!-- Section M4: Training Details -->
+    <div class="section">
+      <h2><span class="icon-circle icon-orange">4</span> 训练过程的三个阶段</h2>
+      <p>在入门阶段我们简单提到了"预训练"，但实际的训练过程通常有三个阶段。理解这三个阶段，你就能理解为什么同样是"大模型"，有的很聪明，有的比较笨。</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <h4>第一阶段：预训练（Pre-training）—— 学会语言</h4>
+          <p>用几万亿个词的海量文本训练，让模型学会语言的基本规律。这个阶段<strong>最贵、最耗时</strong>，训练一个大模型可能需要几千万美元的算力成本，运行几个月。训练完成后得到一个<strong>基座模型（Base Model）</strong>。这时候的模型会"接话"但不太会"聊天"——你问它问题，它可能会接着你的话说下去，但不一定会回答你。</p>
+        </div>
+        <div class="timeline-item">
+          <h4>第二阶段：有监督微调（SFT, Supervised Fine-Tuning）—— 学会对话</h4>
+          <p>用几万到几十万条<strong>人工标注的高质量对话示例</strong>来训练模型。这些对话示例是人类写的"标准答案"——教模型如何以助手的方式回答问题，如何遵循指令，如何说"我不知道"而不是胡说八道。这个阶段的成本相对较低，但对模型的<strong>可用性</strong>影响巨大。</p>
+        </div>
+        <div class="timeline-item">
+          <h4>第三阶段：基于人类反馈的强化学习（RLHF）—— 学会"价值观"</h4>
+          <p>让人类标注员对不同模型的回答进行<strong>打分排名</strong>，然后训练一个"奖励模型"来预测人类会给什么样的回答打高分。最后用这个奖励模型来指导大模型的优化。这一阶段让模型学会什么回答<strong>更有用、更安全、更符合人类偏好</strong>。</p>
+        </div>
+      </div>
+
+      <div class="diagram-box">
+        <svg width="700" height="150" viewBox="0 0 700 150">
+          <!-- Stage 1 -->
+          <rect x="10" y="15" width="210" height="120" rx="12" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="115" y="42" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">预训练</text>
+          <text x="115" y="62" text-anchor="middle" font-size="11" fill="var(--text-secondary)">海量互联网文本</text>
+          <text x="115" y="80" text-anchor="middle" font-size="11" fill="var(--text-secondary)">几万亿词</text>
+          <text x="115" y="98" text-anchor="middle" font-size="11" fill="var(--text-secondary)">成本：千万美元级</text>
+          <text x="115" y="125" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="700">→ 基座模型</text>
+
+          <text x="235" y="80" text-anchor="middle" font-size="20" fill="var(--text-secondary)">→</text>
+
+          <!-- Stage 2 -->
+          <rect x="255" y="15" width="210" height="120" rx="12" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <text x="360" y="42" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">有监督微调</text>
+          <text x="360" y="62" text-anchor="middle" font-size="11" fill="var(--text-secondary)">人工标注对话示例</text>
+          <text x="360" y="80" text-anchor="middle" font-size="11" fill="var(--text-secondary)">几万∼几十万条</text>
+          <text x="360" y="98" text-anchor="middle" font-size="11" fill="var(--text-secondary)">成本：万美元级</text>
+          <text x="360" y="125" text-anchor="middle" font-size="13" fill="var(--secondary)" font-weight="700">→ 对话模型</text>
+
+          <text x="480" y="80" text-anchor="middle" font-size="20" fill="var(--text-secondary)">→</text>
+
+          <!-- Stage 3 -->
+          <rect x="500" y="15" width="190" height="120" rx="12" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="595" y="42" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">RLHF</text>
+          <text x="595" y="62" text-anchor="middle" font-size="11" fill="var(--text-secondary)">人类偏好标注</text>
+          <text x="595" y="80" text-anchor="middle" font-size="11" fill="var(--text-secondary)">打分排名</text>
+          <text x="595" y="98" text-anchor="middle" font-size="11" fill="var(--text-secondary)">成本：万美元级</text>
+          <text x="595" y="125" text-anchor="middle" font-size="13" fill="var(--success)" font-weight="700">→ 对齐模型</text>
+        </svg>
+        <div class="diagram-caption">图：从原始文本到可用对话助手的三个训练阶段</div>
+      </div>
+    </div>
+
+    <!-- Section M5: Model Types Deep Dive -->
+    <div class="section">
+      <h2><span class="icon-circle icon-blue">5</span> 主流大模型家族一览</h2>
+      <p>了解了架构和训练方式之后，我们来看看目前市面上有哪些主要的模型家族。这能帮助你在技术大会上胸有成竹地讨论"为什么选这个模型而不是那个"。</p>
+
+      <table class="comp-table">
+        <tr>
+          <th>模型系列</th><th>开发公司</th><th>特点</th><th>适合场景</th>
+        </tr>
+        <tr>
+          <td><strong>GPT 系列</strong></td>
+          <td>OpenAI</td>
+          <td>最早的大规模语言模型，GPT-4是目前综合能力最强的闭源模型之一</td>
+          <td>通用对话、代码、创意写作</td>
+        </tr>
+        <tr>
+          <td><strong>Claude 系列</strong></td>
+          <td>Anthropic</td>
+          <td>注重安全性和有用性，长上下文能力突出（支持超长文档）</td>
+          <td>长文档分析、安全敏感场景</td>
+        </tr>
+        <tr>
+          <td><strong>Gemini 系列</strong></td>
+          <td>Google</td>
+          <td>原生多模态，在推理和多模态理解上表现突出</td>
+          <td>多模态分析、复杂推理</td>
+        </tr>
+        <tr>
+          <td><strong>LLaMA 系列</strong></td>
+          <td>Meta</td>
+          <td>开源模型的标杆，任何人都可以下载和使用</td>
+          <td>私有部署、二次开发</td>
+        </tr>
+        <tr>
+          <td><strong>DeepSeek 系列</strong></td>
+          <td>深度求索</td>
+          <td>开源、高性价比，在数学和代码方面表现出色</td>
+          <td>代码、数学推理、中文场景</td>
+        </tr>
+        <tr>
+          <td><strong>通义千问 (Qwen)</strong></td>
+          <td>阿里巴巴</td>
+          <td>国内领先的开源模型，中文能力强</td>
+          <td>中文场景、企业应用</td>
+        </tr>
+        <tr>
+          <td><strong>文心一言</strong></td>
+          <td>百度</td>
+          <td>国内最早的对话大模型之一，中文理解深入</td>
+          <td>中文场景、知识问答</td>
+        </tr>
+      </table>
+
+      <h3>开源 vs 闭源：该怎么选？</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔐</div>
+          <h4>闭源模型（如GPT-4、Claude）</h4>
+          <p><strong>优势：</strong>性能最强、开箱即用、有专业团队维护<br>
+          <strong>劣势：</strong>需要付费、数据要传给外部、不能自己修改</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔓</div>
+          <h4>开源模型（如LLaMA、Qwen）</h4>
+          <p><strong>优势：</strong>数据安全（可本地部署）、可自由修改、成本可控<br>
+          <strong>劣势：</strong>需要自己部署和维护、巅峰性能略低于顶级闭源模型</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section M6: Generation Process -->
+    <div class="section">
+      <h2><span class="icon-circle icon-purple">6</span> 模型是怎么"一个字一个字"写出来的？</h2>
+      <p>你可能会好奇：模型是怎么生成文字的？它是不是一次性把整段话想好了再写出来？</p>
+      <p>答案是：<strong>不是的</strong>。大模型生成文字是一个token一个token地"蹦"出来的。这个过程叫<strong>自回归生成（Autoregressive Generation）</strong>。</p>
+
+      <div class="diagram-box">
+        <svg width="600" height="220" viewBox="0 0 600 220">
+          <text x="20" y="28" font-size="14" fill="var(--text)" font-weight="700">自回归生成过程演示：</text>
+
+          <!-- Step 1 -->
+          <rect x="20" y="48" width="170" height="55" rx="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1.5"/>
+          <text x="105" y="72" text-anchor="middle" font-size="12" fill="var(--text-secondary)">输入："今天天气"</text>
+          <text x="105" y="92" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">→ 预测下一个token："真"</text>
+
+          <text x="205" y="78" text-anchor="middle" font-size="18" fill="var(--primary)">→</text>
+
+          <!-- Step 2 -->
+          <rect x="225" y="48" width="170" height="55" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="1.5"/>
+          <text x="310" y="72" text-anchor="middle" font-size="12" fill="var(--text-secondary)">输入："今天天气真"</text>
+          <text x="310" y="92" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">→ 预测下一个token："好"</text>
+
+          <text x="410" y="78" text-anchor="middle" font-size="18" fill="var(--primary)">→</text>
+
+          <!-- Step 3 -->
+          <rect x="430" y="48" width="155" height="55" rx="8" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <text x="507" y="72" text-anchor="middle" font-size="12" fill="var(--text-secondary)">输入："今天天气真好"</text>
+          <text x="507" y="92" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">→ 预测下一个token："！"</text>
+
+          <!-- Summary -->
+          <rect x="80" y="130" width="440" height="75" rx="10" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+          <text x="300" y="155" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">关键理解</text>
+          <text x="300" y="175" text-anchor="middle" font-size="12" fill="var(--text-secondary)">每一步生成时，模型都会计算出词汇表中每个可能的token的"概率"，</text>
+          <text x="300" y="195" text-anchor="middle" font-size="12" fill="var(--text-secondary)">然后选一个最合适的。每次只生成一个token，然后把它拼到输入后面，继续生成下一个。</text>
+        </svg>
+        <div class="diagram-caption">图：自回归生成 —— 一步一个token地"续写"</div>
+      </div>
+
+      <p>这个机制也是为什么有时候模型会"越跑越偏"——如果某一步选了一个不太好的token，这个token又会作为下一步的输入，影响后续所有内容的生成。</p>
+    </div>
+
+    <!-- Medium Summary -->
+    <div class="section" style="background: linear-gradient(135deg, var(--secondary-light), var(--accent-light));">
+      <h2><span class="icon-circle icon-orange">✓</span> 中等阶段总结</h2>
+      <p>很好！现在你了解了模型的"内部结构"：</p>
+      <ul style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;"><strong>神经网络</strong> = 由很多"神经元"按层排列组成的计算结构，参数就是连接的权重</li>
+        <li style="margin-bottom: 6px;"><strong>Transformer</strong> = 当前所有大模型的底层架构，核心是"注意力机制"</li>
+        <li style="margin-bottom: 6px;"><strong>注意力机制</strong> = 让模型在处理每个词时都能关注到句子中所有其他词</li>
+        <li style="margin-bottom: 6px;"><strong>Token</strong> = 模型处理文本的基本单位，介于字和词之间</li>
+        <li style="margin-bottom: 6px;"><strong>三阶段训练</strong> = 预训练（学语言）→ 微调（学对话）→ RLHF（学对齐）</li>
+        <li style="margin-bottom: 6px;"><strong>自回归生成</strong> = 模型一个token一个token地生成内容</li>
+      </ul>
+      <p style="margin-top: 12px;"><strong>接下来，在进阶阶段，我们会深入更底层的原理和前沿话题。</strong></p>
+    </div>
+  </div>
+
+  <!-- ==================== ADVANCED TAB ==================== -->
+  <div class="tab-content" id="tab-advanced">
+
+    <!-- Section A1: Attention Deep Dive -->
+    <div class="section">
+      <h2><span class="icon-circle icon-blue">1</span> 注意力机制的数学本质：Q、K、V</h2>
+      <p>在中等阶段，我们理解了注意力机制的基本思想——"关注相关的词"。现在让我们用更精确的方式理解它。</p>
+
+      <h3>三个关键概念：Query、Key、Value</h3>
+      <p>注意力机制使用三个矩阵来计算每个词应该"关注"哪些其他词：</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <h4>Query（查询，Q）</h4>
+          <p>"我在找什么？"<br>当前词的一个"搜索请求"。就像你在百度搜索框里输入的关键词，代表了当前词想要寻找的信息类型。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔑</div>
+          <h4>Key（键，K）</h4>
+          <p>"我是什么？"<br>每个词的一个"标签"。就像每篇文章的关键词标签，代表了这个词能提供什么类型的信息。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📦</div>
+          <h4>Value（值，V）</h4>
+          <p>"我的实际内容是什么？"<br>每个词携带的"实际信息"。当注意力确定了要关注哪些词之后，就从这些词的Value中提取实际内容。</p>
+        </div>
+      </div>
+
+      <p>工作机制非常直观：</p>
+      <ol style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;">用<strong>Query</strong>去和每个词的<strong>Key</strong>计算"匹配度"——越匹配，说明这个词越值得关注</li>
+        <li style="margin-bottom: 6px;">把所有匹配度转化为<strong>注意力权重</strong>（加起来等于100%）</li>
+        <li style="margin-bottom: 6px;">用这些权重对各个词的<strong>Value</strong>进行加权平均，得到最终的"关注结果"</li>
+      </ol>
+
+      <div class="diagram-box">
+        <svg width="650" height="260" viewBox="0 0 650 260">
+          <text x="20" y="25" font-size="14" fill="var(--text)" font-weight="700">注意力计算流程：</text>
+
+          <!-- Q -->
+          <rect x="20" y="45" width="100" height="50" rx="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="70" y="75" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">Query</text>
+          <text x="140" y="60" text-anchor="middle" font-size="11" fill="var(--text-secondary)">当前词的<br>"搜索意图"</text>
+
+          <!-- K -->
+          <rect x="190" y="45" width="100" height="50" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <text x="240" y="75" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">Key</text>
+          <text x="310" y="60" text-anchor="middle" font-size="11" fill="var(--text-secondary)">每个词的<br>"标签"</text>
+
+          <!-- Step 1: Score -->
+          <rect x="370" y="35" width="130" height="70" rx="8" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="2"/>
+          <text x="435" y="60" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">① 计算匹配度</text>
+          <text x="435" y="78" text-anchor="middle" font-size="11" fill="var(--text-secondary)">Q · K → 分数</text>
+          <text x="435" y="95" text-anchor="middle" font-size="10" fill="var(--text-secondary)">（点积运算）</text>
+
+          <text x="515" y="70" text-anchor="middle" font-size="20" fill="var(--primary)">→</text>
+
+          <!-- Step 2: Softmax -->
+          <rect x="20" y="140" width="130" height="55" rx="8" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="85" y="162" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">② 归一化</text>
+          <text x="85" y="182" text-anchor="middle" font-size="11" fill="var(--text-secondary)">Softmax → 权重</text>
+
+          <text x="165" y="168" text-anchor="middle" font-size="20" fill="var(--primary)">→</text>
+
+          <!-- Step 3: Weighted Sum -->
+          <rect x="190" y="140" width="150" height="55" rx="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="265" y="162" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">③ 加权求和</text>
+          <text x="265" y="182" text-anchor="middle" font-size="11" fill="var(--text-secondary)">权重 × V → 输出</text>
+
+          <text x="355" y="168" text-anchor="middle" font-size="20" fill="var(--primary)">→</text>
+
+          <!-- Output -->
+          <rect x="380" y="140" width="120" height="55" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <text x="440" y="172" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="700">注意力输出</text>
+
+          <!-- V input -->
+          <rect x="530" y="45" width="100" height="50" rx="8" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="580" y="75" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">Value</text>
+          <line x1="580" y1="95" x2="500" y2="155" stroke="var(--success)" stroke-width="1.5" stroke-dasharray="4,2"/>
+
+          <!-- Key insight -->
+          <rect x="60" y="215" width="530" height="32" rx="8" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+          <text x="325" y="237" text-anchor="middle" font-size="12" fill="var(--primary)" font-weight="600">关键：Q和K都来自同一个输入（所以叫"自"注意力），但经过不同的变换矩阵来产生不同的"角色"</text>
+        </svg>
+        <div class="diagram-caption">图：注意力机制的完整计算流程</div>
+      </div>
+
+      <h3>多头注意力（Multi-Head Attention）</h3>
+      <p>在实际的Transformer中，不是只有一套Q、K、V，而是有<strong>多套</strong>（通常8到64个"头"）。每个"头"可以关注不同的语言特征：</p>
+      <ul style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 4px;">一个"头"可能关注<strong>语法关系</strong>（主谓宾结构）</li>
+        <li style="margin-bottom: 4px;">另一个"头"可能关注<strong>位置关系</strong>（谁在谁前面）</li>
+        <li style="margin-bottom: 4px;">还有一个"头"可能关注<strong>语义关系</strong>（谁是动作的发出者）</li>
+      </ul>
+      <p>这就像让多个专家同时从不同角度分析同一句话，最后综合所有专家的意见。</p>
+    </div>
+
+    <!-- Section A2: Scaling Laws -->
+    <div class="section">
+      <h2><span class="icon-circle icon-purple">2</span> Scaling Laws：为什么"更大"就"更好"？</h2>
+      <p>2020年，OpenAI的研究人员发现了一个重要规律，后来被称为<strong>Scaling Laws（规模定律）</strong>。这个发现直接推动了大模型时代的到来。</p>
+
+      <h3>Scaling Laws 说了什么？</h3>
+      <p>简单来说：<strong>模型的性能与三个因素之间存在可预测的幂律关系（Power Law）</strong>——就是画在对数坐标系里，它们的关系是一条直线：</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h4>模型参数数量（N）</h4>
+          <p>参数越多，模型越聪明。增加参数是提升性能最直接的方式。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📚</div>
+          <h4>训练数据量（D）</h4>
+          <p>喂给模型的数据越多，模型学到的就越多。不能只有大模型没有大数据。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h4>计算量（C）</h4>
+          <p>训练时使用的计算资源越多（GPU越多、训练时间越长），效果越好。</p>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <strong>Scaling Laws 的深远影响：</strong>这个发现意味着，只要你愿意投入更多资源（更多GPU、更多数据），你就能<strong>提前预测</strong>模型性能会提升多少。这让大型科技公司愿意投入数亿美元来训练更大的模型——因为投资回报是可预期的。这也是为什么2020年之后模型规模"爆炸式"增长的根本原因。
+      </div>
+
+      <div class="img-card">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Model_size_over_time.svg/800px-Model_size_over_time.svg.png"
+             alt="AI模型规模随时间的增长趋势"
+             loading="lazy"
+             onerror="this.style.display='none'"
+             style="max-width:650px;">
+        <div class="caption">图：近年来AI模型的参数量呈指数级增长（来源：Wikimedia Commons）。注意看纵轴，这是一个对数坐标——意味着增长是非常陡峭的。</div>
+      </div>
+    </div>
+
+    <!-- Section A3: Emergence -->
+    <div class="section">
+      <h2><span class="icon-circle icon-orange">3</span> 涌现能力：当模型"突然开窍"</h2>
+      <p>大模型最令人惊叹的现象之一就是<strong>涌现（Emergence）</strong>：当模型规模超过某个阈值后，它会突然展现出一些<strong>在小模型中完全没有</strong>的能力。</p>
+
+      <div class="diagram-box">
+        <svg width="600" height="200" viewBox="0 0 600 200">
+          <!-- Axes -->
+          <line x1="70" y1="160" x2="560" y2="160" stroke="var(--text)" stroke-width="1.5"/>
+          <line x1="70" y1="160" x2="70" y2="20" stroke="var(--text)" stroke-width="1.5"/>
+          <text x="300" y="190" text-anchor="middle" font-size="13" fill="var(--text)">模型规模（参数量）→</text>
+          <text x="20" y="95" text-anchor="middle" font-size="13" fill="var(--text)" transform="rotate(-90, 20, 95)">任务表现 ↑</text>
+
+          <!-- Emergence curve -->
+          <path d="M70,155 L200,150 L280,140 L320,130 L340,100 L370,60 L420,35 L500,25 L560,20" fill="none" stroke="var(--primary)" stroke-width="3"/>
+
+          <!-- Threshold line -->
+          <line x1="320" y1="160" x2="320" y2="20" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6,3"/>
+          <text x="320" y="14" text-anchor="middle" font-size="12" fill="var(--accent)" font-weight="700">涌现阈值</text>
+
+          <!-- Annotations -->
+          <text x="180" y="140" text-anchor="middle" font-size="11" fill="var(--text-secondary)">小模型阶段：<br>表现接近随机</text>
+          <text x="430" y="50" text-anchor="middle" font-size="11" fill="var(--text-secondary)">大模型阶段：<br>表现突飞猛进</text>
+        </svg>
+        <div class="diagram-caption">图：涌现现象示意 —— 模型性能在某个规模阈值处出现跳跃式提升</div>
+      </div>
+
+      <p>一些典型的涌现能力包括：</p>
+      <ul style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;"><strong>思维链推理（Chain-of-Thought）</strong>：模型学会"一步步思考"，把复杂问题拆解成小步骤</li>
+        <li style="margin-bottom: 6px;"><strong>少样本学习（Few-shot Learning）</strong>：只给几个例子，模型就能学会一个新任务</li>
+        <li style="margin-bottom: 6px;"><strong>代码执行模拟</strong>：模型可以在"脑中"模拟运行一段代码的结果</li>
+        <li style="margin-bottom: 6px;"><strong>理论心智（Theory of Mind）</strong>：模型似乎能理解他人的信念和意图</li>
+      </ul>
+
+      <div class="info-box">
+        <strong>为什么涌现会发生？</strong>目前还没有确定的答案。一种假说是：当模型足够大时，它能学到更抽象的"元模式"——不是某个具体的语法规则，而是"学习如何学习"的能力。就像一个人读了很多书之后，不仅仅是记住了很多事实，而是发展出了"融会贯通"的思维能力。这是当前AI研究最热门的开放问题之一。
+      </div>
+    </div>
+
+    <!-- Section A4: Chain of Thought -->
+    <div class="section">
+      <h2><span class="icon-circle icon-green">4</span> 思维链（Chain-of-Thought）：让模型"想清楚再说"</h2>
+      <p>思维链是目前提升大模型推理能力最有效的方法之一。它的思想极其简单：<strong>让模型在给出最终答案之前，先写出一步步的推理过程。</strong></p>
+
+      <table class="comp-table">
+        <tr><th>方式</th><th>例子</th></tr>
+        <tr>
+          <td><strong>普通提问</strong></td>
+          <td>"小明有5个苹果，吃掉2个，又买了3个，现在有几个？"<br>模型直接回答："6个"（可能对，可能错）</td>
+        </tr>
+        <tr>
+          <td><strong>思维链提问</strong></td>
+          <td>"小明有5个苹果，吃掉2个，又买了3个，现在有几个？请一步步思考。"<br>模型回答："开始时5个。吃掉2个后剩下5-2=3个。又买了3个后变成3+3=6个。答案是6个。"</td>
+        </tr>
+      </table>
+
+      <p>这个方法的神奇之处在于：<strong>模型的参数没有变，训练数据也没有变，只是换了一种提问方式，正确率就大幅提升。</strong>这说明了模型内部其实有推理能力，只是需要合适的"引导"才能发挥出来。</p>
+    </div>
+
+    <!-- Section A5: RAG and Agent -->
+    <div class="section">
+      <h2><span class="icon-circle icon-blue">5</span> RAG 与 Agent：大模型落地的关键技术</h2>
+
+      <h3>RAG（检索增强生成）深入</h3>
+      <p>我们在入门阶段简单提过RAG。现在来深入理解它的原理和价值。</p>
+
+      <div class="info-box">
+        <strong>RAG 解决的核心问题：</strong>大模型的训练数据有时效性——GPT-4的知识截止到2023年某个时间点。而且模型有时会产生"幻觉"（编造不存在的事实）。RAG通过<strong>在回答问题前先找资料</strong>，让模型基于真实、最新的信息来回答。
+      </div>
+
+      <h4>RAG的工作步骤：</h4>
+      <ol class="step-list">
+        <li><strong>文档分块（Chunking）</strong>：把知识库中的文档切成小段（比如每段500字），每一段是一个"知识片段"</li>
+        <li><strong>向量化（Embedding）</strong>：把每个知识片段转换成一串数字（向量），相似的片段会有相似的向量</li>
+        <li><strong>建索引</strong>：把所有向量存储到向量数据库中，可以快速搜索</li>
+        <li><strong>检索（Retrieval）</strong>：当用户提问时，先把问题也转成向量，然后在向量数据库中找最相似的几个片段</li>
+        <li><strong>增强生成（Augmented Generation）</strong>：把找到的片段和用户问题一起发给大模型，让模型基于这些资料来回答</li>
+      </ol>
+
+      <h3>Agent（智能体）深入</h3>
+      <p>Agent 是让大模型从"只会说话"变成"能做事"的关键技术。一个Agent的基本结构是：</p>
+
+      <div class="diagram-box">
+        <svg width="550" height="240" viewBox="0 0 550 240">
+          <!-- Agent core -->
+          <rect x="175" y="20" width="200" height="60" rx="14" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="3"/>
+          <text x="275" y="48" text-anchor="middle" font-size="15" fill="var(--text)" font-weight="700">大模型（大脑）</text>
+          <text x="275" y="66" text-anchor="middle" font-size="12" fill="var(--text-secondary)">思考、规划、决策</text>
+
+          <!-- Tools on left -->
+          <rect x="20" y="25" width="120" height="42" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="1.5"/>
+          <text x="80" y="50" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">🔍 搜索引擎</text>
+          <line x1="140" y1="46" x2="175" y2="46" stroke="var(--secondary)" stroke-width="1.5" marker-end="url(#arrowA)"/>
+
+          <rect x="20" y="80" width="120" height="42" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="1.5"/>
+          <text x="80" y="105" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">💻 代码执行器</text>
+          <line x1="140" y1="101" x2="175" y2="55" stroke="var(--secondary)" stroke-width="1.5" marker-end="url(#arrowA)"/>
+
+          <rect x="20" y="135" width="120" height="42" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="1.5"/>
+          <text x="80" y="160" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">📧 邮件/日历</text>
+          <line x1="140" y1="156" x2="175" y2="64" stroke="var(--secondary)" stroke-width="1.5"/>
+
+          <rect x="20" y="190" width="120" height="42" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="1.5"/>
+          <text x="80" y="215" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">🗄️ 数据库查询</text>
+          <line x1="140" y1="211" x2="175" y2="73" stroke="var(--secondary)" stroke-width="1.5"/>
+
+          <!-- Outputs on right -->
+          <rect x="410" y="25" width="120" height="42" rx="8" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <text x="470" y="50" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">观察结果</text>
+          <line x1="375" y1="46" x2="410" y2="46" stroke="var(--success)" stroke-width="1.5" marker-end="url(#arrowA)"/>
+
+          <rect x="410" y="80" width="120" height="42" rx="8" fill="var(--success-light)" stroke="var(--success)" stroke-width="1.5"/>
+          <text x="470" y="105" text-anchor="middle" font-size="12" fill="var(--text)" font-weight="600">下一步行动</text>
+          <line x1="375" y1="55" x2="410" y2="101" stroke="var(--success)" stroke-width="1.5"/>
+
+          <!-- Loop -->
+          <path d="M470,156 L470,175 L275,175 L275,80" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowA)"/>
+          <text x="370" y="195" text-anchor="middle" font-size="11" fill="var(--accent)">循环：思考→行动→观察→思考→……</text>
+
+          <defs>
+            <marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--secondary)"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">图：Agent的基本架构 —— 大模型作为"大脑"，调用各种工具来完成任务</div>
+      </div>
+
+      <p>Agent的工作模式叫<strong>ReAct（推理+行动循环）</strong>：模型先思考应该做什么（Reasoning），然后执行一个工具调用（Action），观察结果（Observation），再决定下一步做什么。这个循环一直持续到任务完成。</p>
+    </div>
+
+    <!-- Section A6: Hallucination & Safety -->
+    <div class="section">
+      <h2><span class="icon-circle icon-orange">6</span> 幻觉、偏见与安全：大模型的问题与挑战</h2>
+
+      <h3>幻觉（Hallucination）</h3>
+      <p>大模型有时会<strong>自信地生成完全虚假的内容</strong>，这在行业中被称为"幻觉"。比如编造不存在的论文、虚构的法律条文、捏造历史事件。</p>
+
+      <div class="info-box warn">
+        <strong>为什么会产生幻觉？</strong>从根本上说，大模型是一个"预测下一个token"的系统，而不是一个"事实核查"系统。它被训练来生成<strong>流畅、合理</strong>的文本，但不一定是<strong>真实</strong>的文本。当它遇到知识盲区时，它会基于学到的语言模式"编造"一个听起来合理的答案。这就像让一个擅长讲故事的人回答科学问题——他会讲得头头是道，但不一定对。
+      </div>
+
+      <h3>偏见（Bias）</h3>
+      <p>大模型的训练数据来自互联网，而互联网上存在大量偏见。模型可能会学到并放大这些偏见——包括性别偏见、种族偏见、地域偏见等。这是RLHF阶段试图缓解的核心问题之一。</p>
+
+      <h3>安全对齐（Safety Alignment）</h3>
+      <p>RLHF和其他对齐技术的核心目标之一就是：<strong>让模型"想做好事"</strong>。对齐不仅是让模型拒绝回答危险问题，更是让模型的价值观和意图与人类保持一致。这也是Anthropic（开发Claude的公司）最核心的研究方向。</p>
+    </div>
+
+    <!-- Section A7: Hardware & Infrastructure -->
+    <div class="section">
+      <h2><span class="icon-circle icon-purple">7</span> 训练一个大模型需要什么？—— 基础设施概览</h2>
+      <p>训练一个大模型不仅仅是算法问题，更是一个<strong>工程挑战</strong>。下面是训练大模型需要的核心基础设施。</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🖥️</div>
+          <h4>GPU 集群</h4>
+          <p>训练大模型需要成千上万颗GPU（比如英伟达的H100或A100）协同工作。单颗GPU的价格在2-4万美元，一个大型训练集群可能有上万颗。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔗</div>
+          <h4>高速互联网络</h4>
+          <p>数千颗GPU之间需要极高速的网络连接（如InfiniBand），让它们能像一个整体一样协同计算。网络带宽通常达到每节点400Gbps以上。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💾</div>
+          <h4>海量存储</h4>
+          <p>训练数据可能达到几十TB甚至PB级别（1PB=1024TB），需要分布式文件系统来管理和读取。模型检查点也要定期保存。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h4>电力与冷却</h4>
+          <p>一个万卡GPU集群的功耗可能超过10兆瓦，相当于一个小型城镇的用电量。需要专门的冷却系统（风冷甚至液冷）来散热。</p>
+        </div>
+      </div>
+
+      <h3>分布式训练的基本思想</h3>
+      <p>当一个GPU装不下整个模型时，需要把模型<strong>切分</strong>到多个GPU上。主要有两种切分方式：</p>
+      <ul style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;"><strong>数据并行：</strong>每个GPU上都有完整的模型副本，但处理不同的数据批次。训练后同步梯度。</li>
+        <li style="margin-bottom: 6px;"><strong>模型并行：</strong>把模型本身切成几块，每个GPU负责模型的一部分。不同GPU之间需要频繁通信。</li>
+      </ul>
+
+      <table class="comp-table">
+        <tr><th>模型</th><th>训练GPU数量（估计）</th><th>训练时间（估计）</th><th>训练成本（估计）</th></tr>
+        <tr><td>GPT-3 (1750亿参数)</td><td>约 10,000 颗 V100</td><td>几个月</td><td>约 460万美元</td></tr>
+        <tr><td>GPT-4 (约1.8万亿参数)</td><td>约 25,000 颗 A100</td><td>90-100天</td><td>约 6300万美元</td></tr>
+        <tr><td>LLaMA 2 (700亿参数)</td><td>约 2,000 颗 A100</td><td>约 30天</td><td>约 400万美元</td></tr>
+      </table>
+    </div>
+
+    <!-- Section A8: Context Window & its Evolution -->
+    <div class="section">
+      <h2><span class="icon-circle icon-blue">8</span> 上下文窗口：为什么从 4K 到 1M 是一场技术革命</h2>
+      <p>在概念百科中我们解释了上下文窗口是什么。现在来理解它为什么是<strong>各模型厂商竞争最激烈的战场</strong>之一。</p>
+
+      <h3>上下文窗口的进化史</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <h4>2018: GPT-1 — 512 tokens</h4>
+          <p>只能处理一小段文字，大概相当于一条微博的长度。</p>
+        </div>
+        <div class="timeline-item">
+          <h4>2020: GPT-3 — 2048 tokens</h4>
+          <p>能处理一篇短文。但仍然无法处理长文档。</p>
+        </div>
+        <div class="timeline-item">
+          <h4>2022: GPT-3.5 — 4096 tokens</h4>
+          <p>ChatGPT 初代的上下文窗口。大约能处理一篇 3000 字的中文文章。</p>
+        </div>
+        <div class="timeline-item">
+          <h4>2023: GPT-4 Turbo — 128K tokens</h4>
+          <p>质的飞跃！可以一次性处理整本中篇小说（约 10 万字中文）。这开启了长文档分析的新时代。</p>
+        </div>
+        <div class="timeline-item">
+          <h4>2024: Claude 3 — 200K tokens</h4>
+          <p>约 15 万字中文。可以在一次对话中分析整部小说或完整代码库。</p>
+        </div>
+        <div class="timeline-item">
+          <h4>2024-2025: Gemini 1.5 Pro — 1M+ tokens</h4>
+          <p>百万 token 时代！可以一次性处理几小时的视频、几十万行的代码、所有哈利波特小说。</p>
+        </div>
+      </div>
+
+      <h3>为什么长上下文很难做？</h3>
+      <p>核心原因在于<strong>注意力机制的计算复杂度</strong>：</p>
+
+      <div class="info-box warn">
+        <strong>"平方复杂度"问题：</strong>在标准的注意力机制中，每个 token 都需要和所有其他 token 计算关联度。这意味着如果上下文长度翻倍，计算量会变成原来的<strong>四倍</strong>（不是两倍！）。如果长度增加到原来的 10 倍，计算量会变成<strong>100 倍</strong>。这就是为什么长上下文在技术上是一个巨大的挑战。
+      </div>
+
+      <p>为了突破这个限制，研究人员提出了很多优化方法：FlashAttention（一种更高效的计算方式）、稀疏注意力（不需要关注所有 token，只关注最重要的那些）、Ring Attention（把长序列分给多个 GPU 共同处理）等等。多亏了这些技术，我们才能用上百万 token 的上下文窗口。</p>
+
+      <h3>长上下文能做什么？</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📄</div>
+          <h4>全量文档分析</h4>
+          <p>把一整份上百页的 PDF 合同或法律文件全部丢给模型，让它帮你找关键条款、总结要点、发现风险。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💻</div>
+          <h4>全量代码库理解</h4>
+          <p>把整个项目的代码一次性给模型，它能理解全局结构，发现跨文件的 bug，进行全项目级别的重构。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎬</div>
+          <h4>视频理解</h4>
+          <p>百万 token 的上下文窗口可以容纳几小时的视频（以帧的形式），模型可以回答"视频第 45 分钟发生了什么"这种问题。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h4>超长对话记忆</h4>
+          <p>和同一个 AI 连续聊几天，它永远不会"忘记"你们聊过什么——因为在上下文窗口内它都能看到。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section A9: Quantization & Distillation -->
+    <div class="section">
+      <h2><span class="icon-circle icon-purple">9</span> 模型压缩：怎么让"大象"在手机上跳舞？</h2>
+      <p>大模型确实很强，但也很"重"——GPT-4 级别的模型需要多张高端 GPU 才能运行，一张显卡就要 2-4 万美元。但如果我们想让模型在手机、手表、甚至耳机上运行呢？这就需要<strong>模型压缩</strong>技术。</p>
+
+      <h3>量化（Quantization）—— 降低精度的艺术</h3>
+      <p>模型参数在计算机中存储为数字。默认情况下，每个参数用一个 32 位的浮点数（FP32）存储——这是一种高精度的数值表示方式。量化的思想是：<strong>能不能用更"粗糙"的数字来存？</strong></p>
+
+      <div class="diagram-box">
+        <svg width="500" height="150" viewBox="0 0 500 150">
+          <text x="20" y="28" font-size="14" fill="var(--text)" font-weight="700">参数存储精度的"降级"过程：</text>
+
+          <rect x="30" y="50" width="120" height="50" rx="8" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="90" y="72" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">FP32 (32位)</text>
+          <text x="90" y="90" text-anchor="middle" font-size="11" fill="var(--text-secondary)">原始精度，最准确</text>
+
+          <text x="165" y="78" text-anchor="middle" font-size="18" fill="var(--primary)">→</text>
+
+          <rect x="185" y="50" width="120" height="50" rx="8" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="2"/>
+          <text x="245" y="72" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">FP16 (16位)</text>
+          <text x="245" y="90" text-anchor="middle" font-size="11" fill="var(--text-secondary)">内存减半，几乎无损</text>
+
+          <text x="320" y="78" text-anchor="middle" font-size="18" fill="var(--primary)">→</text>
+
+          <rect x="340" y="50" width="130" height="50" rx="8" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="405" y="72" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">INT4 (4位)</text>
+          <text x="405" y="90" text-anchor="middle" font-size="11" fill="var(--text-secondary)">内存减至 1/8，有损失</text>
+
+          <text x="20" y="130" font-size="12" fill="var(--text-secondary)">核心思想：用更少的二进制位来近似表示每个参数，牺牲一点精度，换取巨大的内存和速度优势。</text>
+        </svg>
+        <div class="diagram-caption">图：从 32 位到 4 位 —— 量化就是把"高清照片"压缩成"缩略图"，虽然丢失了一些细节，但大体上还能认出来。</div>
+      </div>
+
+      <p>一个实际的例子：一个 70 亿参数的模型，用 FP16 存储需要约 14GB 显存——必须用高端 GPU。量化到 INT4 后只需要约 3.5GB——一部旗舰手机就能跑。虽然回答质量会有所下降，但对于很多场景来说已经足够好了。</p>
+
+      <h3>蒸馏（Distillation）—— "大老师教小学生"</h3>
+      <p>蒸馏的思想很巧妙：<strong>让一个大的、强的模型（叫 Teacher，老师模型）去"教"一个小的模型（叫 Student，学生模型）。</strong></p>
+
+      <div class="diagram-box">
+        <svg width="500" height="160" viewBox="0 0 500 160">
+          <!-- Teacher -->
+          <rect x="20" y="15" width="180" height="55" rx="10" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="3"/>
+          <text x="110" y="38" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">Teacher（老师模型）</text>
+          <text x="110" y="58" text-anchor="middle" font-size="11" fill="var(--text-secondary)">GPT-4 级别，几千亿参数</text>
+
+          <!-- Arrow -->
+          <line x1="200" y1="42" x2="250" y2="42" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowD)"/>
+          <text x="225" y="32" text-anchor="middle" font-size="10" fill="var(--accent)">① 输入同一个问题</text>
+
+          <!-- Student -->
+          <rect x="260" y="15" width="180" height="55" rx="10" fill="var(--secondary-light)" stroke="var(--secondary)" stroke-width="3"/>
+          <text x="350" y="38" text-anchor="middle" font-size="14" fill="var(--text)" font-weight="700">Student（学生模型）</text>
+          <text x="350" y="58" text-anchor="middle" font-size="11" fill="var(--text-secondary)">目标：几十亿参数，手机可跑</text>
+
+          <!-- Knowledge transfer -->
+          <rect x="70" y="95" width="350" height="50" rx="10" fill="var(--success-light)" stroke="var(--success)" stroke-width="2"/>
+          <text x="245" y="118" text-anchor="middle" font-size="13" fill="var(--text)" font-weight="600">② 让 Student 学习 Teacher 的"思维方式"（不只是最终答案）</text>
+          <text x="245" y="136" text-anchor="middle" font-size="11" fill="var(--text-secondary)">学习 Teacher 对每个可能答案的概率分布，而不仅仅是选出的那个正确答案</text>
+
+          <defs>
+            <marker id="arrowD" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 Z" fill="var(--accent)"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">图：蒸馏的过程——不是简单地让小学生背答案，而是让他理解老师的解题思路。</div>
+      </div>
+
+      <p>蒸馏的精妙之处在于：学生模型学的不只是"正确答案是什么"，更是老师模型对每个可能答案的<strong>概率判断</strong>。比如老师模型判断"苹果"的概率 90%，"水果"的概率 8%，"手机"的概率 0.01%——这些微妙的信息编码了老师模型的"知识"。学生模型学习这些概率分布，就是学到了老师的"思维方式"。</p>
+
+      <div class="info-box tip">
+        <strong>DeepSeek 的启示：</strong>中国公司深度求索（DeepSeek）的一个研究贡献就是证明了蒸馏的有效性——他们用一个强大的大模型产生的数据来训练较小的模型，结果小模型的性能出奇地好。这也说明了一个重要趋势：未来不一定是"越大越好"，而是"越聪明地训练越好"。
+      </div>
+    </div>
+
+    <!-- Section A10: Model Evaluation -->
+    <div class="section">
+      <h2><span class="icon-circle icon-orange">10</span> 怎么判断一个模型好不好？—— 评测与基准</h2>
+      <p>模型厂商都说自己的模型"最强""最聪明"。作为产品经理，你需要知道这些说法有多可靠，以及怎么理性地看待它们。</p>
+
+      <h3>主要的评测基准（Benchmark）</h3>
+      <table class="comp-table">
+        <tr><th>基准名称</th><th>测什么</th><th>怎么测</th><th>局限性</th></tr>
+        <tr>
+          <td><strong>MMLU</strong></td>
+          <td>多领域知识理解</td>
+          <td>涵盖 57 个学科的 15000+ 道选择题（数学、历史、法律、医学……）</td>
+          <td>只是选择题，不测创造力和对话能力</td>
+        </tr>
+        <tr>
+          <td><strong>HumanEval</strong></td>
+          <td>代码生成能力</td>
+          <td>164 道编程题，看模型生成的代码能否通过测试用例</td>
+          <td>题目比较简单，不代表真实工程场景</td>
+        </tr>
+        <tr>
+          <td><strong>GSM-8K</strong></td>
+          <td>数学推理</td>
+          <td>8500 道小学数学应用题（需要多步推理）</td>
+          <td>只到小学水平</td>
+        </tr>
+        <tr>
+          <td><strong>HellaSwag</strong></td>
+          <td>常识推理</td>
+          <td>给一段场景描述，让模型预测接下来最合理的走向</td>
+          <td>英语场景为主，中文模型不适用</td>
+        </tr>
+        <tr>
+          <td><strong>MT-Bench</strong></td>
+          <td>多轮对话质量</td>
+          <td>用 GPT-4 作为"裁判"，给不同模型的回答打分</td>
+          <td>AI 评判可能有偏见</td>
+        </tr>
+        <tr>
+          <td><strong>LMSYS Arena</strong></td>
+          <td>综合人类偏好</td>
+          <td>真实用户盲测——两个匿名的模型对话，用户选更好的那个</td>
+          <td>用户群体可能有偏好偏差</td>
+        </tr>
+      </table>
+
+      <div class="info-box warn">
+        <strong>重要提醒：</strong>排行榜上的分数高 ≠ 你的实际场景中用起来好。评测基准有三大问题：1) <strong>数据污染</strong>（训练数据中可能已经包含了评测题）；2) <strong>评测不代表真实使用</strong>（会考试≠会工作）；3) <strong>厂商选择性报告</strong>（只展示分数高的评测）。作为产品经理，<strong>用自己的任务去测试</strong>比看排行榜重要得多。
+      </div>
+
+      <h3>怎么自己测试一个模型？</h3>
+      <p>作为产品经理，你不需要跑代码来评测模型。但你可以在日常使用中建立自己的"评测直觉"：</p>
+      <ul style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;"><strong>稳定性格测试：</strong>同一个问题问 5 次，看回答的一致性。幻觉严重的模型每次答案都不一样。</li>
+        <li style="margin-bottom: 6px;"><strong>边界测试：</strong>问一些模型"应该不知道"的问题（比如编一个不存在的事件），看它是诚实地说"不知道"还是瞎编。</li>
+        <li style="margin-bottom: 6px;"><strong>指令遵循测试：</strong>给一个有很多约束条件的复杂指令（如"用表格格式回答，限制在 100 字以内，不要用英文缩写"），看它是否能全部遵守。</li>
+        <li style="margin-bottom: 6px;"><strong>长文本测试：</strong>给一篇长文章，问其中某个细节在第几段，看模型是真的读完了还是只在"瞎猜"。</li>
+      </ul>
+    </div>
+
+    <!-- Section A11: Future -->
+    <div class="section">
+      <h2><span class="icon-circle icon-green">11</span> 大模型的未来方向</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h4>通往 AGI</h4>
+          <p>AGI（通用人工智能）是指能像人类一样完成任何智力任务的AI。大模型是否是通向AGI的正确道路，是当前AI界最大的争论。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h4>世界模型</h4>
+          <p>让模型真正理解物理世界的因果规律，而不仅仅是预测文字。这是从"语言智能"走向"通用智能"的关键一步。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📱</div>
+          <h4>端侧模型</h4>
+          <p>让大模型在手机、手表上运行——通过量化、剪枝、蒸馏等压缩技术，把几千亿参数压缩到几十亿甚至几亿。</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🤝</div>
+          <h4>多Agent协作</h4>
+          <p>多个AI Agent各自扮演不同角色，像团队一样协作解决复杂问题——有的负责研究、有的负责写代码、有的负责检查。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Summary -->
+    <div class="section" style="background: linear-gradient(135deg, var(--accent-light), var(--primary-light));">
+      <h2><span class="icon-circle icon-blue">✓</span> 进阶阶段总结</h2>
+      <p>恭喜！你已经完成了全部三个阶段的学习。现在你知道了：</p>
+      <ul style="margin-left: 20px; color: var(--text-secondary);">
+        <li style="margin-bottom: 6px;"><strong>注意力机制的Q、K、V</strong> = 模型理解词间关系的精确数学工具</li>
+        <li style="margin-bottom: 6px;"><strong>Scaling Laws</strong> = 解释了为什么"更大就更好"，推动了整个行业的"规模竞赛"</li>
+        <li style="margin-bottom: 6px;"><strong>涌现能力</strong> = 模型在某个规模阈值后突然获得新能力，是当前AI研究的核心谜题</li>
+        <li style="margin-bottom: 6px;"><strong>思维链</strong> = 让模型"一步步思考"，能极大提升推理准确率</li>
+        <li style="margin-bottom: 6px;"><strong>RAG 和 Agent</strong> = 大模型实际落地的两大关键技术模式</li>
+        <li style="margin-bottom: 6px;"><strong>幻觉、偏见、安全对齐</strong> = 大模型当前面临的核心挑战</li>
+        <li style="margin-bottom: 6px;"><strong>训练基础设施</strong> = GPU集群、分布式训练、海量数据存储</li>
+        <li style="margin-bottom: 6px;"><strong>上下文窗口进化</strong> = 从 512 到 1M+ token 的技术革命，背后是注意力计算复杂度的突破</li>
+        <li style="margin-bottom: 6px;"><strong>模型压缩</strong> = 量化（降精度）和蒸馏（大模型教小模型）让大模型能在手机上运行</li>
+        <li style="margin-bottom: 6px;"><strong>模型评测</strong> = 需要综合多个基准，更重要的是用真实任务自己测试</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- ===== 关键概念详解百科 ===== -->
+  <!-- ================================================================== -->
+  <div class="section" style="background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-card) 40%);">
+    <h2><span class="icon-circle icon-blue">📖</span> 关键概念详解百科</h2>
+    <p style="margin-bottom: 20px;">下面不是"一句话速查"，而是<strong>每个概念的完整讲解</strong>。每一个术语都按照"是什么 → 为什么重要 → 和什么有关 → 举个例子"的结构来展开。如果你在技术大会上被人问到某个概念，翻到这里就对了。</p>
+
+    <p style="font-size:0.9rem; color: var(--text-secondary); margin-bottom: 24px;">共 <strong>29 个核心概念</strong>，分为 基础概念 / 训练相关 / 架构相关 / 推理与生成 / 前沿话题 五个板块。点击每个条目展开详细解释。</p>
+
+    <!-- ===== 板块一：基础概念 ===== -->
+    <h3 style="color: var(--primary); margin-top: 8px;">板块一：基础概念（8个）—— 先搞清楚"是什么"</h3>
+
+    <dl class="glossary">
+      <!-- 1. 模型 -->
+      <dt>1. 模型（Model）—— 所有AI的基石</dt>
+      <dd>
+        <p><strong>是什么：</strong>在计算机的世界里，"模型"就是<strong>一个从大量数据中学到了某种规律的系统</strong>。给它一个输入，它能根据学到的规律产生一个输出。它不是数据库——不存储原文，存储的是"规律和模式"。</p>
+        <p><strong>为什么重要：</strong>这是理解一切AI技术的最基础概念。当你听到有人说"这个模型很强"或"模型崩了"，他们指的就是这个东西。没有模型这个概念，后面所有的讨论都无法进行。</p>
+        <p><strong>和其他概念的关系：</strong>模型由<strong>参数</strong>构成，通过<strong>训练</strong>获得能力，通过<strong>推理</strong>来使用。模型是最终产物，其他所有概念都是为了"造出更好的模型"或"更好地使用模型"。</p>
+        <p><strong>举个例子：</strong>地球仪是一个"地球的模型"——它抓住了大陆形状、海洋位置的规律，忽略了地形高度等细节。</p>
+      </dd>
+
+      <!-- 2. 参数 -->
+      <dt>2. 参数（Parameter）—— 模型的"脑细胞"</dt>
+      <dd>
+        <p><strong>是什么：</strong>参数是模型内部<strong>可以调整的数字旋钮</strong>。如果把模型比作一个巨大的"配方"，参数就是这个配方里每一项原料的用量。这些数字不是人手工设置的，而是模型在训练过程中<strong>自己调整出来的</strong>。每个参数存储了一点点"知识"，几百亿个参数合在一起，就构成了模型对世界的理解。</p>
+        <p><strong>为什么重要：</strong>参数的数量（参数量）是衡量模型规模和能力的最直观指标。参数量越大，模型能学到的规律就越精细、越复杂。但同时，更多的参数也意味着更高的计算成本和更慢的响应速度。</p>
+        <p><strong>和其他概念的关系：</strong>参数通过<strong>训练</strong>过程被不断调整；<strong>Scaling Laws</strong>研究了参数数量和性能的关系；<strong>量化</strong>技术试图用更少的存储空间来表示这些参数。</p>
+        <p><strong>举个例子：</strong>GPT-3 有 1750 亿个参数。如果每个参数是一个 4 字节的浮点数（一种数值存储方式），光是存储这些参数就需要约 700GB 的空间——比大多数电脑的硬盘还要大。GPT-4 的参数量更大，据推测超过 1 万亿。</p>
+      </dd>
+
+      <!-- 3. 大语言模型 -->
+      <dt>3. 大语言模型（LLM, Large Language Model）—— "大模型"的全称</dt>
+      <dd>
+        <p><strong>是什么：</strong>大语言模型是参数数量达到<strong>数百亿甚至数万亿级别</strong>的、专门处理<strong>文本语言</strong>的深度学习模型。ChatGPT、Claude、Gemini、文心一言、通义千问，这些你听过的名字，本质上都是大语言模型。</p>
+        <p><strong>为什么重要：</strong>LLM 是当前 AI 浪潮的核心驱动力。它展现出了此前任何技术都没有的"通用性"——同一个模型可以做翻译、写代码、写诗、做数学题、分析法律文件……这种通用性让它不再是"一个工具"，而更像一个"平台"。</p>
+        <p><strong>和其他概念的关系：</strong>LLM 是<strong>大模型</strong>家族中最具代表性的一员。它基于<strong>Transformer</strong>架构，使用<strong>自回归生成</strong>方式输出内容。与之并列的还有视觉模型、语音模型、多模态模型等。</p>
+        <p><strong>举个例子：</strong>你可以让同一个 LLM 做三件完全不同的事——"翻译这段英文"、"写一个Python冒泡排序"、"用小学生能听懂的话解释光合作用"——它都能做，而且质量不错。</p>
+      </dd>
+
+      <!-- 4. 预训练 -->
+      <dt>4. 预训练（Pre-training）—— 模型"上学"的过程</dt>
+      <dd>
+        <p><strong>是什么：</strong>预训练是模型训练的<strong>第一个也是最重要的阶段</strong>。简单来说，就是把海量的公开文本（网页、书籍、论文、百科、代码……）"喂"给模型，让模型做"完形填空"——每次遮住一个词，让模型去猜。猜对了就加强相关的参数连接，猜错了就调整。这个过程重复<strong>几万亿次</strong>。</p>
+        <p><strong>为什么重要：</strong>预训练决定了模型的"知识基础"。这个阶段花费巨大（训练 GPT-4 级别的模型可能耗费数千万美元），但一旦完成，模型就获得了通用的语言理解和知识能力。之后的微调和 RLHF 只是在这个基础上做"装修"。</p>
+        <p><strong>和其他概念的关系：</strong>预训练完成后得到<strong>基座模型（Base Model）</strong>，再经过<strong>有监督微调（SFT）</strong>和<strong>RLHF</strong>变成可用的对话助手。预训练数据的质量和多样性直接影响最终模型的能力上限。</p>
+        <p><strong>举个例子：</strong>这就像让一个人读了几乎所有的书（几百万本），他虽然还不会"和人聊天"，但脑子里已经存储了海量的知识和语言模式。后面只需要教他"如何对话"就行了。</p>
+      </dd>
+
+      <!-- 5. 世界模型 -->
+      <dt>5. 世界模型（World Model）—— 让 AI 理解"现实世界怎么运作"</dt>
+      <dd>
+        <p><strong>是什么：</strong>世界模型是一种试图<strong>理解物理世界因果规律</strong>的 AI 模型。普通的语言模型知道"杯子掉在地上会碎"是因为它在文本中读到过这句话。但世界模型的目标是：它内部有一个对重力、材质、碰撞等物理规律的"直觉理解"，能自己推理出"杯子会碎"这个结果。</p>
+        <p><strong>为什么重要：</strong>世界模型被认为是通往<strong>AGI（通用人工智能）</strong>的关键一步。因为真正的智能不只是会说话，而是要能理解真实世界的运作方式。自动驾驶、机器人、科学模拟等领域都高度依赖世界模型的研究进展。</p>
+        <p><strong>和其他概念的关系：</strong>世界模型是比语言模型更宏大的目标。它可能需要结合<strong>多模态模型</strong>的能力（同时理解视觉、声音、物理信号），并具备<strong>推理</strong>和<strong>因果理解</strong>能力。</p>
+        <p><strong>举个例子：</strong>如果你问一个世界模型"把这个积木塔最下面那块抽走会怎样？"，它不仅会回答"塔会倒塌"，而且它"脑海里"能模拟出倒塌的过程——哪块先倒、往哪个方向倒。这不是从文本中学到的，而是从对物理世界的理解中推理出来的。</p>
+      </dd>
+
+      <!-- 6. 多模态模型 -->
+      <dt>6. 多模态模型（Multimodal Model）—— 能"看"会"听"的 AI</dt>
+      <dd>
+        <p><strong>是什么：</strong>多模态模型是<strong>能同时理解和处理多种信息类型</strong>的 AI 模型。"模态"就是信息的类型——文字是一种模态，图片是另一种，声音、视频、3D 模型等也都是不同的模态。GPT-4V、Gemini 就是典型的多模态模型——你可以给它看一张图片，问它"这张图里有什么不合理的地方"。</p>
+        <p><strong>为什么重要：</strong>人类感知世界本来就是多模态的——我们同时用眼睛看、耳朵听、手去触摸。如果 AI 只能处理文字，那它对这个世界的理解就是不完整的。多模态让 AI 更接近人类的感知方式。</p>
+        <p><strong>和其他概念的关系：</strong>多模态模型通常结合了<strong>语言模型</strong>和<strong>视觉模型</strong>（或语音模型）的能力。它是迈向<strong>世界模型</strong>的重要中间步骤。</p>
+        <p><strong>举个例子：</strong>你拍了一张冰箱内部的照片发给了多模态 AI，然后问"根据冰箱里的食材，我可以做什么晚餐？"。AI 需要先"看懂"图片里有什么食材（视觉理解），再"想出"适合的菜谱（语言推理），这就是多模态的典型应用。</p>
+      </dd>
+
+      <!-- 7. 提示工程 -->
+      <dt>7. 提示工程（Prompt Engineering）—— 学会向 AI "提问"</dt>
+      <dd>
+        <p><strong>是什么：</strong>提示工程就是<strong>设计和优化输入给模型的文字指令</strong>，以获得更高质量、更精准的输出。它不需要修改模型本身，只改变"怎么问"。好的提示就像好的"需求文档"——越清晰、越具体，得到的交付物就越好。</p>
+        <p><strong>为什么重要：</strong>对大多数人来说，提示工程是<strong>最实用的技能</strong>——你不需要懂代码，不需要会训练模型，只要学会怎么提问，就能大幅提升使用 AI 的效果。在企业项目中，好的提示设计也是低成本提升效果的首选方法。</p>
+        <p><strong>和其他概念的关系：</strong>提示工程是使用<strong>LLM</strong>的最基本方式。当提示中包含"请一步步思考"时，就触发了<strong>思维链</strong>。当提示中包含检索到的外部资料时，就成了<strong>RAG</strong>的一部分。</p>
+        <p><strong>举个例子：</strong>"写一篇关于环保的文章"和"你是一位环保专家，请写一篇面向中学生的 800 字科普文章，介绍塑料污染的三大危害，语言要生动有趣，多举生活化的例子"——同样的模型，后者的输出质量会明显更高。</p>
+      </dd>
+
+      <!-- 8. 微调 -->
+      <dt>8. 微调（Fine-tuning）—— 给模型"开小灶"</dt>
+      <dd>
+        <p><strong>是什么：</strong>微调是在预训练模型的基础上，<strong>用特定领域的数据对模型进行进一步训练</strong>。它不是从头训练一个新模型，而是在已有的"通才"基础上，培养一个"专才"。微调所需的数据量比预训练少得多（几万条而非几万亿条），成本也低得多。</p>
+        <p><strong>为什么重要：</strong>通用模型在某些垂直领域（医疗、法律、金融、代码）的表现可能不够好。微调让企业能用自己领域的专业数据，把通用模型改造成领域专家。同时也解决了数据安全问题——可以用内部数据微调开源模型，然后部署在自己的服务器上。</p>
+        <p><strong>和其他概念的关系：</strong>微调是<strong>预训练</strong>之后的第二阶段。和<strong>RAG</strong>不同，微调是改变模型本身，而 RAG 是在模型外部挂一个知识库。两者可以互补使用。</p>
+        <p><strong>举个例子：</strong>一家医院用几万份脱敏的电子病历微调了一个开源模型，微调后的模型在解读医学影像报告时，准确率远高于通用模型。这就是"通才变专才"。</p>
+      </dd>
+    </dl>
+
+    <!-- ===== 板块二：训练相关 ===== -->
+    <h3 style="color: var(--secondary); margin-top: 28px;">板块二：训练相关（5个）—— 模型是怎么"学"出来的</h3>
+
+    <dl class="glossary">
+      <!-- 9. 有监督微调 -->
+      <dt>9. 有监督微调（SFT, Supervised Fine-Tuning）—— 教模型"怎么对话"</dt>
+      <dd>
+        <p><strong>是什么：</strong>SFT 是训练三阶段中的<strong>第二阶段</strong>。预训练完成后，模型会"接话"但不会"对话"——你问它一个问题，它可能继续写你的问题而不是回答你。SFT 用几万到几十万条<strong>人工编写的"标准问答对"</strong>来教模型：什么是问题、什么是回答、如何遵循指令、如何在不知道时说"我不知道"。</p>
+        <p><strong>为什么重要：</strong>SFT 是模型从"语言引擎"变成"对话助手"的关键转折。没有 SFT，就没有 ChatGPT 那样的对话体验。它让模型学会了"以助手的方式行事"。</p>
+        <p><strong>和其他概念的关系：</strong>SFT 在<strong>预训练</strong>之后、<strong>RLHF</strong>之前。它提供的是"示范"（人类展示好的回答长什么样），而 RLHF 提供的是"反馈"（人类评判哪个回答更好）。</p>
+        <p><strong>举个例子：</strong>一个基座模型收到"法国的首都是什么？"，可能会续写成"法国的首都是什么？法国位于欧洲西部……"（像在续写一篇文章）。经过 SFT 后，它会回答"法国的首都是巴黎。"——学会了"回答"这个行为模式。</p>
+      </dd>
+
+      <!-- 10. RLHF -->
+      <dt>10. RLHF（基于人类反馈的强化学习）—— 让模型"懂分寸"</dt>
+      <dd>
+        <p><strong>是什么：</strong>RLHF 全称是 Reinforcement Learning from Human Feedback（基于人类反馈的强化学习），是训练的<strong>第三阶段</strong>。简单来说：让人类标注员给不同的 AI 回答打分排名，然后用这些"偏好数据"训练一个"奖励模型"，最后用奖励模型来引导大模型朝"更受人类喜欢"的方向优化。</p>
+        <p><strong>为什么重要：</strong>RLHF 是模型从"能用"到"好用"的关键。它让模型学会了微妙的人类偏好——什么样的回答算"有帮助"？什么样的语气让人舒服？什么时候应该拒绝回答？这些很难写成硬性规则，但人类一眼就能判断好坏。</p>
+        <p><strong>和其他概念的关系：</strong>RLHF 在<strong>SFT</strong>之后进行。它是<strong>安全对齐</strong>的核心技术手段。RLHF 也直接关联到<strong>幻觉</strong>和<strong>偏见</strong>问题的缓解。</p>
+        <p><strong>举个例子：</strong>用户问"怎么制作炸弹？"——预训练模型可能会照着网上的资料继续写下去；SFT 后的模型可能会拒绝但语气生硬；RLHF 后的模型会礼貌地解释为什么不能提供这个信息，并引导用户去做安全合法的事。</p>
+      </dd>
+
+      <!-- 11. 损失函数 -->
+      <dt>11. 损失函数（Loss Function）—— 模型的"打分表"</dt>
+      <dd>
+        <p><strong>是什么：</strong>损失函数是训练过程中用来<strong>衡量模型"错得有多离谱"</strong>的数学工具。模型每次做出预测后，损失函数会给出一个分数——错得越离谱，分数越高。训练的目标就是<strong>让这个分数越低越好</strong>。模型的参数就是朝着"降低损失"的方向一步步调整的。</p>
+        <p><strong>为什么重要：</strong>没有损失函数，训练就不知道"方向"——不知道该往哪个方向调整参数。它是整个训练过程的"指南针"。理解损失函数，你就能理解为什么模型训练是一个"优化"问题。</p>
+        <p><strong>和其他概念的关系：</strong>损失函数的梯度（可以理解为"斜率"）通过<strong>反向传播</strong>算法传导回每一层，指导每个参数如何调整。</p>
+        <p><strong>举个例子：</strong>就像投篮练习——损失函数告诉你"偏了多少"。如果球偏左了 30 厘米，下次你就知道要往右调整。模型也是这样：知道了偏差的大小和方向，就能调整参数让下次预测更准。</p>
+      </dd>
+
+      <!-- 12. 反向传播 -->
+      <dt>12. 反向传播（Backpropagation）—— "从错误中学习"的数学引擎</dt>
+      <dd>
+        <p><strong>是什么：</strong>反向传播是训练神经网络的核心算法。它做的事情是：<strong>把输出端的误差，"反向"传播回网络的每一层</strong>，计算每个参数对最终误差"贡献"了多少，然后相应调整每个参数。因为是从输出层向输入层反向计算，所以叫"反向"传播。</p>
+        <p><strong>为什么重要：</strong>没有反向传播，深度神经网络的训练就不可能实现。它是让几十上百层的网络中的几十亿个参数<strong>同时、协调地学习</strong>的唯一方法。你可以把它理解为"从错误中学习"的数学实现。</p>
+        <p><strong>和其他概念的关系：</strong>反向传播依赖<strong>损失函数</strong>计算误差，依赖<strong>梯度下降</strong>来更新参数。这三个概念组合在一起，就是深度学习的"学习引擎"。</p>
+        <p><strong>举个例子：</strong>就像排练一台话剧——演出结束后，导演从最后一幕倒着往前复盘：最后一幕出问题是因为演员站位不对，这又是因为前面换场时道具放错了位置，再往前追溯是因为……每一层的问题都能追溯到上一层的原因，然后一起修正。</p>
+      </dd>
+
+      <!-- 13. 梯度下降 -->
+      <dt>13. 梯度下降（Gradient Descent）—— 找到"最低点"的方法</dt>
+      <dd>
+        <p><strong>是什么：</strong>梯度下降是一种<strong>寻找函数最小值</strong>的数学方法。在训练模型时，"函数"就是损失函数（我们希望损失越低越好）。梯度（可以理解为"坡度"）告诉你当前所在位置的<strong>最陡上升方向</strong>，而梯度下降就是<strong>往反方向走一小步</strong>，这样就能一步步走到"谷底"（损失最小的地方）。</p>
+        <p><strong>为什么重要：</strong>这是深度学习最基础的优化算法。所有的模型训练，本质上都是在用梯度下降（或其变体）来寻找最好的参数组合。理解它，你就能理解为什么训练需要大量计算。</p>
+        <p><strong>和其他概念的关系：</strong>梯度下降使用<strong>反向传播</strong>计算的梯度来更新<strong>参数</strong>。学习率（Learning Rate）控制每一步的大小——太大可能跳过最低点，太小则训练太慢。</p>
+        <p><strong>举个例子：</strong>想象你在浓雾中站在一座山上，目标是走到山谷的最低点。你看不到整个山，但能感觉到脚下的坡度。于是你每次往坡度最陡的下坡方向走一小步，停下来重新感受坡度，再走一步……最终一定能走到山谷底部。这就是梯度下降。</p>
+      </dd>
+    </dl>
+
+    <!-- ===== 板块三：架构相关 ===== -->
+    <h3 style="color: var(--accent); margin-top: 28px;">板块三：架构相关（7个）—— 模型"身体"是怎么搭建的</h3>
+
+    <dl class="glossary">
+      <!-- 14. 神经网络 -->
+      <dt>14. 神经网络（Neural Network）—— 模型的"身体结构"</dt>
+      <dd>
+        <p><strong>是什么：</strong>神经网络是由<strong>大量简单的计算单元（"神经元"）按层排列</strong>组成的计算结构。每个神经元接收一些输入，做一些简单的加权求和运算，产生一个输出。当很多层这样的神经元堆叠在一起时（每一层的输出作为下一层的输入），整个网络就能学会极其复杂的规律。名字叫"神经"网络只是因为设计者最初受到了人脑的启发，但它的运作方式和人脑相差很大。</p>
+        <p><strong>为什么重要：</strong>神经网络是深度学习的<strong>唯一基础架构</strong>。从最简单的图片分类到最前沿的大语言模型，全部都建立在神经网络之上。理解它，你就理解了所有现代 AI 的"身体"是怎么构成的。</p>
+        <p><strong>和其他概念的关系：</strong>神经网络由<strong>参数</strong>（权重和偏置）组成。当网络有很多层时就是<strong>深度神经网络</strong>。<strong>Transformer</strong>是一种特殊设计的神经网络架构。</p>
+        <p><strong>举个例子：</strong>把神经网络想象成一个多层流水线工厂——第一层工人做粗加工（识别基本笔画），把半成品传给第二层；第二层做精细加工（组合成字）；第三层做组装（理解词语）；越往后的层做得越复杂（理解句子、段落、整篇文章）。</p>
+      </dd>
+
+      <!-- 15. Transformer -->
+      <dt>15. Transformer —— 改变一切的那个架构</dt>
+      <dd>
+        <p><strong>是什么：</strong>Transformer 是 2017 年由 Google 研究人员提出的一种<strong>神经网络架构</strong>，它的核心创新是<strong>自注意力机制</strong>——让模型在处理每个词时，能同时看到句子中所有其他词。在这之前，模型处理文字是"一个词一个词按顺序读"，Transformer 变成了"一整句话一起看"。</p>
+        <p><strong>为什么重要：</strong>Transformer 是当前<strong>所有主流大模型的基础</strong>。GPT、Claude、Gemini、LLaMA 等全部基于 Transformer。它解决了之前技术（RNN）的两个致命问题：不能并行处理（速度慢）和长距离遗忘（读到后面忘了前面）。没有 Transformer，就没有今天的大模型时代。</p>
+        <p><strong>和其他概念的关系：</strong>Transformer 由<strong>注意力机制</strong>和<strong>前馈网络</strong>交替堆叠而成。<strong>GPT 系列</strong>只用了 Transformer 的"解码器"部分，<strong>BERT</strong>只用了"编码器"部分。</p>
+        <p><strong>举个例子：</strong>理解"他把苹果吃了"——在 Transformer 之前，模型读"他"→"把"→"苹果"→"吃了"，可能读到"吃了"时已经忘了"他"是谁。Transformer 读到"吃了"的时候，会同时回看句中所有词，发现"他"和"吃"关系最强，"苹果"是"吃"的对象。</p>
+      </dd>
+
+      <!-- 16. 注意力机制 -->
+      <dt>16. 注意力机制（Attention Mechanism）—— Transformer 的"灵魂"</dt>
+      <dd>
+        <p><strong>是什么：</strong>注意力机制是一种<strong>"让模型决定关注什么"的计算方法</strong>。当模型在处理一句话中的某个词时，注意力机制会计算这个词和句中所有其他词之间的"相关度分数"，然后根据这些分数，从其他词中提取信息。分数高的词被更多"关注"，分数低的词几乎被忽略。</p>
+        <p><strong>为什么重要：</strong>这是 Transformer 架构最核心、最重要的创新。它解决了"模型怎么知道哪些词和当前任务相关"这个根本问题。没有注意力机制，模型就像一个人试图在吵闹的聚会上同时听所有人说话——什么也听不清。</p>
+        <p><strong>和其他概念的关系：</strong>注意力机制通过<strong>Q、K、V</strong>三个矩阵来实现。<strong>多头注意力</strong>是多套注意力机制并行工作。<strong>自注意力</strong>是指 Q、K、V 都来自同一个输入序列。</p>
+        <p><strong>举个例子：</strong>在处理"小明说他很累，因为他昨天跑了马拉松"这句话时，当模型处理到"他"这个词，注意力机制会给"小明"打高分（因为"他"指代"小明"），给"马拉松"打中等分（解释了为什么累），给其他词打低分。这样模型就"理解"了代词的指代关系。</p>
+      </dd>
+
+      <!-- 17. Token -->
+      <dt>17. Token（词元）—— 模型"读"的最小单位</dt>
+      <dd>
+        <p><strong>是什么：</strong>Token 是模型处理文本的<strong>最小单位</strong>。它不是完整的单词，也不是单个字母，而是介于两者之间的东西。一个 token 可能是一个常见的完整词（如"the"、"我"），也可能是一个词的一部分（如"running"拆成"run"+"ning"），或者是标点符号。模型的输入和输出都是以 token 为单位计算的。</p>
+        <p><strong>为什么重要：</strong>模型的能力和成本都和 token 息息相关。模型的<strong>上下文窗口</strong>（一次能处理多少内容）是以 token 数量衡量的，API 的定价也是按 token 数量计算。理解 token 是理解模型能力边界的起点。</p>
+        <p><strong>和其他概念的关系：</strong>每个 token 通过<strong>词向量（Embedding）</strong>转换成一串数字。<strong>分词器（Tokenizer）</strong>负责把原始文本切分成 token。<strong>上下文窗口</strong>的大小以 token 数量为单位。</p>
+        <p><strong>举个例子：</strong>中文里，大致 1-2 个字 = 1 个 token。一篇 3000 字的文章大约是 1500-2500 个 token。如果你用的模型上下文窗口是 128K token，那它可以一次性处理约 10-20 万字的文档。</p>
+      </dd>
+
+      <!-- 18. 词向量/Embedding -->
+      <dt>18. 词向量（Embedding）—— 把"意思"变成数字</dt>
+      <dd>
+        <p><strong>是什么：</strong>词向量是把一个词或一段文本的<strong>"含义"表示为一串数字</strong>（通常几百到几千个数字）。这些数字不是随机的——"含义相近"的词，它们的数字向量也"相近"。比如"国王"和"女王"的向量在很多维度上相似，但在"性别"这个维度上有差异。</p>
+        <p><strong>为什么重要：</strong>计算机只能理解数字，不能直接理解文字。词向量就是把"文字"翻译成"计算机能运算的数字"的桥梁。没有词向量，模型就没法处理语言。而且词向量可以<strong>做数学运算</strong>——有一个著名的例子：国王的向量 - 男性的向量 + 女性的向量 ≈ 女王的向量。</p>
+        <p><strong>和其他概念的关系：</strong>每个<strong>token</strong>在输入模型时都会被转换为对应的词向量。<strong>RAG</strong>系统用词向量来做"语义搜索"——把问题和文档都转成向量，找最相似的。<strong>向量数据库</strong>专门存储和检索这些向量。</p>
+        <p><strong>举个例子：</strong>假如我们用 3 个数字来表示每个词（实际通常用 768 或更多维），"猫"可能是 (0.8, 0.3, 0.1)，"狗"可能是 (0.7, 0.4, 0.1)（和猫很像！），而"汽车"可能是 (-0.2, 0.8, 0.5)（和猫狗都很不像）。</p>
+      </dd>
+
+      <!-- 19. Q、K、V -->
+      <dt>19. Q、K、V（Query、Key、Value）—— 注意力机制的"三剑客"</dt>
+      <dd>
+        <p><strong>是什么：</strong>Q、K、V 是让注意力机制运作起来的<strong>三个角色</strong>，通过三个不同的数学变换（矩阵乘法）产生。Q（查询）代表"我在找什么"，K（键）代表"我是谁/我有什么标签"，V（值）代表"我的实际内容是什么"。注意力计算的过程就是：用 Q 去匹配所有 K，找到相关的，然后从对应的 V 中提取信息。</p>
+        <p><strong>为什么重要：</strong>Q、K、V 是理解注意力机制<strong>不能绕过的核心概念</strong>。当工程师讨论"注意力头""注意力权重"时，背后就是这三个东西在运作。理解它们，你就能真正理解模型是怎么"理解"语言的，而不只是停留在类比层面。</p>
+        <p><strong>和其他概念的关系：</strong>在<strong>自注意力</strong>中，Q、K、V 都来自同一句话，只是经过不同的矩阵变换。<strong>多头注意力</strong>就是同时用多套不同的 Q、K、V 变换矩阵。Q 和 K 的"匹配度"经过<strong>Softmax</strong>（一种数学函数，能把任意数字变成总和为 1 的概率分布）处理后变成注意力权重。</p>
+        <p><strong>举个例子：</strong>这就像图书馆检索系统。你有一个"查询"（Q = "2024年出版的中文科幻小说"），图书馆里每本书都有"标签"（K = 每本书的分类信息），你用查询去匹配所有标签，找到最相关的几本书，然后从这些书的"实际内容"（V = 书的全文）中提取你需要的信息。</p>
+      </dd>
+
+      <!-- 20. 多头注意力 -->
+      <dt>20. 多头注意力（Multi-Head Attention）—— 同时从多个角度"关注"</dt>
+      <dd>
+        <p><strong>是什么：</strong>多头注意力就是<strong>同时运行多套注意力机制</strong>（通常 8~64 套），每套有自己的 Q、K、V 变换矩阵。不同的"头"可以关注不同类型的语言特征——有的头关注语法结构（主谓宾），有的头关注位置关系（谁在前面），有的头关注语义角色（谁是施动者），有的头关注共指关系（代词指谁）。</p>
+        <p><strong>为什么重要：</strong>单一套注意力只能从一种角度理解语言，但语言是复杂的——同一句话里同时存在语法、语义、指代、情感等多个维度的信息。多头注意力让模型能够<strong>同时从多个角度理解同一句话</strong>，每个头成为不同方面的"专家"。</p>
+        <p><strong>和其他概念的关系：</strong>多头注意力是<strong>Transformer</strong>的核心组件。所有的"头"共享同一个输入，但使用不同的<strong>Q、K、V</strong>变换矩阵。所有头的输出最后被拼接（串在一起）再做一次变换，得到最终的注意力结果。</p>
+        <p><strong>举个例子：</strong>就像警察局的专案组——一个侦探擅长分析动机，另一个擅长分析时间线，第三个擅长分析物证关系。他们同时研究同一个案子，最后开个会把各自的发现汇总起来，就比一个人单独分析要全面得多。</p>
+      </dd>
+    </dl>
+
+    <!-- ===== 板块四：推理与生成 ===== -->
+    <h3 style="color: var(--success); margin-top: 28px;">板块四：推理与生成（6个）—— 模型怎么"用"起来</h3>
+
+    <dl class="glossary">
+      <!-- 21. 推理 -->
+      <dt>21. 推理（Inference）—— 模型"回答问题"的过程</dt>
+      <dd>
+        <p><strong>是什么：</strong>在 AI 领域，"推理"有两个意思要注意区分。第一个意思是<strong>模型运行/使用的过程</strong>——你问模型一个问题，模型根据输入计算出输出，这个过程叫"推理"（和"训练"相对）。第二个意思是<strong>逻辑推理</strong>——模型根据已知信息推导出新结论的能力（Reasoning）。多数情况下，"模型推理"指运行模型来回答问题。</p>
+        <p><strong>为什么重要：</strong>推理是模型<strong>实际产生价值的环节</strong>。训练投入巨大但只做一次，推理是每次使用都要进行的。推理速度和成本直接决定了模型能否大规模商业应用。推理所需的内存和计算资源也决定了模型能否在手机等小设备上运行。</p>
+        <p><strong>和其他概念的关系：</strong>推理是<strong>训练</strong>的对称概念。推理阶段使用<strong>自回归生成</strong>方式逐个产生 token。<strong>量化</strong>和<strong>蒸馏</strong>等技术都是为了降低推理成本。</p>
+        <p><strong>举个例子：</strong>训练就像厨师花一年时间学厨艺（很慢、很贵、只做一次），推理就像厨师每做一道菜（快、每次点菜都要做）。一道菜的成本（推理成本）远低于学厨艺的成本（训练成本），但如果每天卖几千道菜，累计的推理成本也很可观。</p>
+      </dd>
+
+      <!-- 22. 自回归生成 -->
+      <dt>22. 自回归生成（Autoregressive Generation）—— 一个字一个字地"蹦"出来</dt>
+      <dd>
+        <p><strong>是什么：</strong>自回归生成是 GPT 类模型<strong>生成文本的方式</strong>：每次只生成一个 token，然后把这个新生成的 token 拼接到输入后面，再用新的输入生成下一个 token，如此循环直到完成。因为每一步的输出都依赖于之前生成的所有内容（"自己回归自己"），所以叫"自回归"。</p>
+        <p><strong>为什么重要：</strong>这解释了为什么模型生成内容是"逐字逐句"出现的，而不是一次性写好整段。它也解释了模型的<strong>根本局限性</strong>——如果某一步生成了一个不太好的 token，这个 token 就会影响后续所有生成内容，模型没法"反悔"修改。</p>
+        <p><strong>和其他概念的关系：</strong>自回归生成是<strong>GPT 系列</strong>和大多数 LLM 的生成方式。<strong>Temperature</strong>参数控制每一步选择 token 时的"随机性"。这种生成方式也是<strong>幻觉</strong>问题的来源之一。</p>
+        <p><strong>举个例子：</strong>就像用老式打字机打字——每次敲一个字母，敲完就不能改，下一个字母必须在之前已敲出的内容基础上继续写。如果一个字母敲错了（生成了一个不好的 token），整篇文章都可能被带偏。</p>
+      </dd>
+
+      <!-- 23. Temperature -->
+      <dt>23. Temperature（温度参数）—— 控制模型的"创造力"</dt>
+      <dd>
+        <p><strong>是什么：</strong>Temperature 是控制模型<strong>输出的"随机性/创造性"</strong>的一个参数，取值通常在 0 到 2 之间。Temperature 越低（接近 0），模型越"保守"——几乎每次都选概率最高的词，输出稳定但可能枯燥。Temperature 越高（接近 2），模型越"疯狂"——会选概率较低的词，输出更有创意但可能跑偏。</p>
+        <p><strong>为什么重要：</strong>Temperature 是控制模型行为<strong>最简单、最有效的手段之一</strong>。写代码、做翻译、做数学题时应该用低温度（需要精确），写诗、写小说、头脑风暴时应该用高温度（需要创意）。</p>
+        <p><strong>和其他概念的关系：</strong>Temperature 作用于<strong>自回归生成</strong>的每一步——它调整的是"从所有可能 token 中选择下一个"时的概率分布。<strong>Top-p</strong>（也叫 nucleus sampling）是另一种相关但不同的控制方法。</p>
+        <p><strong>举个例子：</strong>Temperature = 0.2，问"我最喜欢的颜色是___"，模型可能每次都回答"蓝色"。Temperature = 1.2，同样的问题，模型可能回答"蓝色""湖蓝""星空般的深蓝""那种黄昏时天边的颜色"……更有创意但也更不可预测。</p>
+      </dd>
+
+      <!-- 24. 思维链 -->
+      <dt>24. 思维链（Chain-of-Thought, CoT）—— "想清楚再说"</dt>
+      <dd>
+        <p><strong>是什么：</strong>思维链是一种<strong>提示方法</strong>——在提问时加上"请一步步思考"或给出一个包含推理步骤的示例，引导模型在给出最终答案之前，先写出<strong>一步一步的推理过程</strong>。神奇的是：模型的参数没有任何改变，但加上"一步步思考"之后，在很多推理任务上的准确率能提升 20%-50%。</p>
+        <p><strong>为什么重要：</strong>思维链证明了模型内部的推理能力<strong>远超直接提问时表现出来的水平</strong>。它也是目前提升模型推理能力<strong>性价比最高的方法</strong>——不需要重新训练，只需要改变提示词。在产品设计中，这意味着好的交互设计能大幅释放模型潜能。</p>
+        <p><strong>和其他概念的关系：</strong>思维链是<strong>提示工程</strong>的高级技巧。<strong>涌现能力</strong>的发现部分归功于思维链——小模型加上"一步步思考"也没用，只有大到一定规模的模型才会从中受益。</p>
+        <p><strong>举个例子：</strong>问题："一个苹果 2 元，小明买了 3 个，给老板 10 元，老板找了多少？" 不用思维链的回答可能是"4元"（可能对也可能错）。用了思维链："3个苹果花了 2×3=6 元，给了 10 元，10-6=4 元，所以老板找回 4 元。"——过程可见、可验证、可追溯。</p>
+      </dd>
+
+      <!-- 25. RAG -->
+      <dt>25. RAG（检索增强生成）—— 让模型"查了资料再说话"</dt>
+      <dd>
+        <p><strong>是什么：</strong>RAG 全称是 Retrieval-Augmented Generation（检索增强生成）。它的核心思想是：<strong>在问模型问题之前，先从一个知识库中检索出最相关的信息，然后把"检索到的资料 + 用户的问题"一起发给模型</strong>，让模型基于这些资料来回答。RAG 不改变模型本身，而是在模型外面加了一个"助理"帮它查资料。</p>
+        <p><strong>为什么重要：</strong>RAG 是目前<strong>企业级大模型应用最主流的架构模式</strong>，因为它解决了几个核心痛点：1) 知识时效性（模型训练有截止日期，RAG 可以用最新文档）；2) 幻觉问题（有资料支撑，模型不容易胡编）；3) 数据安全（敏感数据不需要喂给模型训练，存在自己的知识库里）。</p>
+        <p><strong>和其他概念的关系：</strong>RAG 依赖<strong>词向量（Embedding）</strong>和<strong>向量数据库</strong>做语义检索。它和<strong>微调</strong>是互补关系——微调改变模型本身，RAG 扩展模型的知识来源。</p>
+        <p><strong>举个例子：</strong>公司有一个包含所有内部规章制度的知识库。员工问"我们的年假政策是什么？"——问题先被转成向量，在知识库中找到最相关的 5 条政策文档片段，然后连同问题一起发给大模型。大模型回答："根据 2025 版员工手册第 3 章，年假为每年 15 天……"而不是从自己模糊的训练记忆中瞎猜。</p>
+      </dd>
+
+      <!-- 26. Agent -->
+      <dt>26. Agent（智能体）—— 让模型"长出手脚"</dt>
+      <dd>
+        <p><strong>是什么：</strong>Agent 是让大模型不仅能说话，还能<strong>采取实际行动</strong>的系统。典型的 Agent 以<strong>大模型作为"大脑"</strong>，连接各种工具（搜索、代码执行、数据库查询、邮件发送、软件操作……），按照"思考→行动→观察→思考→……"的循环自主完成任务。模型负责决策"下一步该做什么"，工具负责执行具体操作。</p>
+        <p><strong>为什么重要：</strong>Agent 是让 AI 从"辅助决策"走向"自主执行"的关键一步。如果说 LLM 是 AI 时代的"大脑"，Agent 就是给大脑接上了"手脚"。它能大幅提高自动化的上限，让 AI 胜任更复杂的任务流程。</p>
+        <p><strong>和其他概念的关系：</strong>Agent 以<strong>LLM</strong>为核心，常结合<strong>RAG</strong>（作为知识工具之一）。<strong>多 Agent 协作</strong>是更前沿的方向，多个 Agent 像团队一样分工合作。</p>
+        <p><strong>举个例子：</strong>你给 Agent 发了一封邮件："帮我查一下下周去杭州出差的航班、酒店，发一个行程摘要给经理审批。"Agent 先搜索航班信息，再搜索酒店，整理成行程表格，然后调取经理的邮箱地址，发邮件过去。整个过程不需要你一步步指挥，它自己规划、执行、检查。</p>
+      </dd>
+    </dl>
+
+    <!-- ===== 板块五：前沿与挑战 ===== -->
+    <h3 style="color: var(--warning); margin-top: 28px;">板块五：前沿与挑战（3个）—— 现在的问题和未来的方向</h3>
+
+    <dl class="glossary">
+      <!-- 27. 幻觉 -->
+      <dt>27. 幻觉（Hallucination）—— 最让人头疼的问题</dt>
+      <dd>
+        <p><strong>是什么：</strong>幻觉是指大模型<strong>自信地生成与事实不符的内容</strong>的现象——编造不存在的论文、虚构的法律条文、捏造历史事件、创造不存在的人名和地名，而且语气非常自信，看起来跟真的一样。注意，"幻觉"是 AI 领域的专有术语，不是指模型产生了人类意义上的幻觉或意识。</p>
+        <p><strong>为什么重要：</strong>幻觉是<strong>大模型商业应用的最大障碍之一</strong>。在医疗、法律、金融等高风险领域，一次幻觉可能导致严重后果。它也是当前 AI 研究中最受关注的问题之一。令人困扰的是——我们还没找到根本性的解决方案。</p>
+        <p><strong>为什么会产生幻觉？</strong>根本原因在于：大模型的设计目标是预测"下一个 token 最可能是什么"，而不是"下一个 token 是否事实准确"。它被训练来生成<strong>流畅、合理</strong>的文本，而不是<strong>真实</strong>的文本。流畅性 ≠ 真实性，这就是幻觉的来源。</p>
+        <p><strong>如何缓解？</strong>目前最有效的方法是<strong>RAG</strong>（用外部知识库约束模型）、降低<strong>Temperature</strong>（减少随机性）、以及使用更好的训练数据和 RLHF。</p>
+        <p><strong>举个例子：</strong>你问一个法律 AI "根据《民法典》第几条，合同解除需要什么条件？"，它可能编出一个根本不存在的条款号，并煞有介事地写出看起来很专业的法律条文——实际上全是编的。</p>
+      </dd>
+
+      <!-- 28. 上下文窗口 -->
+      <dt>28. 上下文窗口（Context Window）—— 模型的"工作记忆"</dt>
+      <dd>
+        <p><strong>是什么：</strong>上下文窗口是模型<strong>一次可以"看到"的文本的最大长度</strong>，以 token 数量计量。比如 GPT-4 Turbo 的上下文窗口是 128K token（约等于 10 万字的中文），Claude 3 可以到 200K token（约 15 万字）。窗口内的所有内容，模型都能同时"关注"，但窗口之外的内容对模型来说是完全不可见的。</p>
+        <p><strong>为什么重要：</strong>上下文窗口直接决定了模型能处理的任务类型。窗口太小时，长文档分析、多轮对话、复杂代码审查等任务就无法进行。这也是各模型厂商竞争的关键指标之一。但长上下文意味着更高的推理成本和更慢的响应速度。</p>
+        <p><strong>和其他概念的关系：</strong>上下文窗口以<strong>token</strong>为单位。模型的<strong>注意力机制</strong>的复杂度随上下文长度的平方增长（每增加一倍长度，计算量增加四倍），所以长上下文在技术上很难做。</p>
+        <p><strong>举个例子：</strong>你丢给模型一整本《三体》让它总结。如果模型的上下文窗口只有 32K token，它最多只能"读"前面两三万字，后面的内容完全进不去。128K 的窗口就能基本覆盖全书，但 200K 的窗口可以处理更长的长篇系列文档。</p>
+      </dd>
+
+      <!-- 29. AGI -->
+      <dt>29. AGI（通用人工智能）—— 人工智能的"终极目标"</dt>
+      <dd>
+        <p><strong>是什么：</strong>AGI 全称是 Artificial General Intelligence（通用人工智能），指<strong>能像人类一样完成任何智力任务的 AI</strong>。现在的 AI（包括 GPT-4）属于"窄人工智能"——在特定任务上表现超强（甚至超越人类），但并不具备人类智能的通用性。AGI 则意味着一个 AI 既能写诗、又能做数学、又能开汽车、又能理解情感、又能进行科学发现。</p>
+        <p><strong>为什么重要：</strong>AGI 是 AI 领域的<strong>终极目标</strong>，它的实现将是人类历史上最重要的事件之一（可能仅次于火的发明）。各大 AI 公司——OpenAI、DeepMind、Anthropic——都把 AGI 作为最终使命。当前围绕大模型的讨论本质上都在问同一个问题：大模型路线能通向 AGI 吗？</p>
+        <p><strong>现在的进展如何？</strong>关于大模型是否已经具备 AGI 的"萌芽"，AI 界存在巨大分歧。一些人认为 GPT-4 已展现出"AGI 的火花"（Sparks of AGI）；另一些人则认为大模型本质上只是"统计模式的匹配器"，离真正的理解和推理还很远。这场争论目前没有定论。</p>
+        <p><strong>举个例子：</strong>如果 AGI 实现了，它就不再需要像现在这样"每个领域训练一个模型"。你不需要一个专门的医疗 AI 和一个专门的编程 AI——AGI 能同时胜任这两件事，就像一个人既是医生又是程序员一样。它能跨领域迁移知识，能自主制定目标，能理解自己不知道什么并主动去学习。</p>
+      </dd>
+    </dl>
+
+    <div class="info-box tip" style="margin-top: 24px;">
+      <strong>使用建议：</strong>在技术大会上，如果被问到某个术语而你想不起来细节，可以打开这个"概念百科"，点击对应条目就能快速回忆起完整的解释。每个条目都设计了"是什么 → 为什么重要 → 和其他概念的关系 → 举个例子"的结构，让你不仅能解释概念，还能自然地串联起相关知识。
+    </div>
+  </div>
+
+  <!-- ===== 推荐资源 ===== -->
+  <div class="section">
+    <h2><span class="icon-circle icon-green">📚</span> 进一步学习资源</h2>
+
+    <h3>经典论文（按难度排序）</h3>
+    <table class="comp-table">
+      <tr><th>论文</th><th>年份</th><th>难度</th><th>为什么值得读</th></tr>
+      <tr><td>《Attention Is All You Need》<br><span style="font-size:0.82rem;color:var(--text-secondary);">Vaswani et al., Google</span></td><td>2017</td><td>★★★</td><td>Transformer 架构的原始论文，现代大模型的起点。虽然技术性强，但了解它存在的意义就够了——这篇 8 页的论文改变了整个 AI 行业的方向。</td></tr>
+      <tr><td>《Language Models are Few-Shot Learners》(GPT-3)<br><span style="font-size:0.82rem;color:var(--text-secondary);">Brown et al., OpenAI</span></td><td>2020</td><td>★★☆</td><td>GPT-3 的论文，第一次展示了"规模大到一定程度后，模型会展现出全新的能力"。它开创了"大模型时代"。</td></tr>
+      <tr><td>《Scaling Laws for Neural Language Models》<br><span style="font-size:0.82rem;color:var(--text-secondary);">Kaplan et al., OpenAI</span></td><td>2020</td><td>★★★</td><td>揭示了模型规模、数据量和性能之间的数学关系。这篇论文回答了"为什么大家都在拼命做大模型"。</td></tr>
+      <tr><td>《Training language models to follow instructions》(InstructGPT)<br><span style="font-size:0.82rem;color:var(--text-secondary);">Ouyang et al., OpenAI</span></td><td>2022</td><td>★★☆</td><td>介绍了 RLHF 方法如何让模型学会遵循人类指令。这就是让 ChatGPT 变得"好用"的关键技术论文。</td></tr>
+      <tr><td>《Chain-of-Thought Prompting Elicits Reasoning》<br><span style="font-size:0.82rem;color:var(--text-secondary);">Wei et al., Google</span></td><td>2022</td><td>★☆☆</td><td>思维链的开创性工作，证明了一句话（"请一步步思考"）就能显著提升模型的推理能力。</td></tr>
+    </table>
+
+    <h3>在线学习资源</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🎨</div>
+        <h4>The Illustrated Transformer</h4>
+        <p>Jay Alammar 的可视化博客，用大量图表解释 Transformer 的工作原理。即使看不懂数学公式，图也能让你理解个大概。</p>
+        <p style="font-size:0.82rem;margin-top:8px;">🔗 <a href="https://jalammar.github.io/illustrated-transformer/" style="color:var(--primary);">jalammar.github.io</a></p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎬</div>
+        <h4>3Blue1Brown 神经网络系列</h4>
+        <p>YouTube 上最好的数学可视化频道。用精美的动画解释神经网络、反向传播、梯度下降等核心概念。不是工程师也能看懂。</p>
+        <p style="font-size:0.82rem;margin-top:8px;">🔗 <a href="https://www.3blue1brown.com/topics/neural-networks" style="color:var(--primary);">3blue1brown.com</a></p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <h4>Lilian Weng 的博客</h4>
+        <p>OpenAI 研究员的个人博客，覆盖 LLM、Agent、RLHF、扩散模型等前沿话题，文笔清晰、深入浅出。</p>
+        <p style="font-size:0.82rem;margin-top:8px;">🔗 <a href="https://lilianweng.github.io/" style="color:var(--primary);">lilianweng.github.io</a></p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎓</div>
+        <h4>Andrej Karpathy 的 YouTube</h4>
+        <p>前特斯拉 AI 负责人、OpenAI 联合创始人的视频频道。"从零构建 GPT"系列是经典中的经典。</p>
+        <p style="font-size:0.82rem;margin-top:8px;">🔗 <a href="https://www.youtube.com/@AndrejKarpathy" style="color:var(--primary);">YouTube @AndrejKarpathy</a></p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📖</div>
+        <h4>动手学深度学习 (D2L)</h4>
+        <p>亚马逊 AI 科学家李沐等人编写的开源教材，有中文版。从零开始教深度学习的理论和代码。</p>
+        <p style="font-size:0.82rem;margin-top:8px;">🔗 <a href="https://d2l.ai/" style="color:var(--primary);">d2l.ai</a></p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏆</div>
+        <h4>LMSYS Chatbot Arena</h4>
+        <p>一个公开的大模型竞技场，你可以免费和几十个主流模型对话，并看到它们的排名和评分。</p>
+        <p style="font-size:0.82rem;margin-top:8px;">🔗 <a href="https://chat.lmsys.org/" style="color:var(--primary);">chat.lmsys.org</a></p>
+      </div>
+    </div>
+
+    <h3>中文资源推荐</h3>
+    <ul style="margin-left: 20px; color: var(--text-secondary);">
+      <li style="margin-bottom: 8px;"><strong>李沐的《动手学深度学习》</strong>（B站有配套视频）—— 最好的中文深度学习入门教材，从零开始，生动易懂</li>
+      <li style="margin-bottom: 8px;"><strong>知乎专栏"大模型理论与实践"</strong>—— 很多国内工程师写的技术分享，视角更贴近国内产业实践</li>
+      <li style="margin-bottom: 8px;"><strong>阿里通义千问、百度文心一言的技术博客</strong>—— 了解国产大模型的技术路线和进展</li>
+      <li style="margin-bottom: 8px;"><strong>机器之心、量子位等 AI 媒体</strong>—— 跟踪最新的行业动态和技术突破</li>
+    </ul>
+
+    <div class="info-box tip">
+      <strong>给产品经理的参会建议：</strong>如果想在技术大会上从容应对工程师的提问，我建议你重点掌握这几个概念之间的关系——<strong>预训练→SFT→RLHF</strong>（完整的训练流程）、<strong>Transformer→注意力机制→QKV</strong>（模型的核心架构）、<strong>RAG→Agent→思维链</strong>（当前最热门的技术模式）。能把这几个链条讲清楚，就足以让不了解音视频和大模型领域的工程师觉得"这个人很懂行"。
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== Footer ===== -->
+<div class="footer">
+  <p>yj-knowledge-bank · 大模型完全入门指南 · 生成于 2026年5月</p>
+  <p style="margin-top:4px;">本教程专为非技术背景的同学设计，目标是让你在技术大会上"说的头头是道" ✨</p>
+  <p style="margin-top:8px;">
+    <a href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">github.com/chunyujin295/yj-knowledge-bank</a>
+    &nbsp;·&nbsp; <a href="../index.html">返回首页</a>
+  </p>
+</div>
+
+<!-- Scroll to top -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// ===== Tab Switching =====
+const tabButtons = document.querySelectorAll('.nav-tabs button');
+const tabContents = document.querySelectorAll('.tab-content');
+const levelLabel = document.getElementById('levelLabel');
+const levelDot = document.querySelector('.level-dot');
+
+const levelConfig = {
+  beginner: { label: '入门 — 知其然', dotClass: 'beginner' },
+  medium:   { label: '中等 — 知其所以然', dotClass: 'medium' },
+  advanced: { label: '进阶 — 深入原理', dotClass: 'advanced' }
+};
+
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tabId = btn.dataset.tab;
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+
+    // Update level indicator
+    const cfg = levelConfig[tabId];
+    levelLabel.textContent = cfg.label;
+    levelDot.className = 'level-dot ' + cfg.dotClass;
+
+    // Scroll to top of content
+    document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// ===== Theme Toggle =====
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.hasAttribute('data-theme')) {
+    html.removeAttribute('data-theme');
+    localStorage.setItem('theme', 'auto');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Apply saved theme
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+
+// Manual dark mode via attribute
+const darkStyle = document.createElement('style');
+darkStyle.textContent = `
+  [data-theme="dark"] {
+    --bg: #0F172A;
+    --bg-card: #1E293B;
+    --bg-card-alt: #334155;
+    --text: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --border: #334155;
+    --primary: #60A5FA;
+    --primary-light: #1E3A5F;
+    --secondary: #A78BFA;
+    --secondary-light: #2E1065;
+    --accent: #FB923C;
+    --accent-light: #431407;
+    --success: #34D399;
+    --success-light: #064E3B;
+    --warning: #FBBF24;
+    --warning-light: #451A03;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+  }
+`;
+document.head.appendChild(darkStyle);
+
+// ===== Scroll to Top Button =====
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 600) {
+    scrollTopBtn.classList.add('visible');
+  } else {
+    scrollTopBtn.classList.remove('visible');
+  }
+});
+
+// ===== Glossary Toggle =====
+document.querySelectorAll('.glossary dt').forEach(dt => {
+  dt.addEventListener('click', () => {
+    dt.classList.toggle('open');
+    const dd = dt.nextElementSibling;
+    if (dd && dd.tagName === 'DD') {
+      dd.classList.toggle('open');
+    }
+  });
+});
+
+// ===== Collapsible Sections =====
+document.querySelectorAll('.collapsible-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.classList.toggle('open');
+    const body = header.nextElementSibling;
+    if (body && body.classList.contains('collapsible-body')) {
+      body.classList.toggle('open');
+    }
+  });
+});
+</script>
+
+</body>
+</html>
