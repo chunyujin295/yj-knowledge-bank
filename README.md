@@ -124,56 +124,59 @@ curl http://127.0.0.1:5004
 # 应该返回 index.html 的内容
 ```
 
-### 4. 物理机：配置 frpc（内网穿透客户端）
+### 4. 物理机：添加 frpc 代理条目
 
-编辑 frpc 配置文件（通常在 `/opt/frp/frpc.toml`）：
+在已有的 `frpc.toml` 末尾新增一个 `[[proxies]]` 块：
 
 ```toml
-# frpc.toml - 物理机端
-serverAddr = "<云服务器公网IP>"
-serverPort = 7000
-
-auth.method = "token"
-auth.token = "<你的frp认证token>"
-
 [[proxies]]
-name = "knowledge-bank"
+name = "yj-knowledge-bank"
 type = "tcp"
 localIP = "127.0.0.1"
 localPort = 5004
 remotePort = 5004
 ```
 
-启动 frpc：
+> **为什么用 `type = "tcp"` 而不是 `type = "http"`？**
+>
+> 这里 frp 只做纯传输通道，HTTP 层的工作全部由 Nginx 承担。对比：
+>
+> |          | `type = "tcp"`        | `type = "http"`              |
+> | -------- | --------------------- | ---------------------------- |
+> | 工作层   | L4，字节流转发        | L7，frps 解析 HTTP 头        |
+> | 路由方式 | `remotePort` 一一对应 | 按 `customDomains` 域名路由  |
+> | 适用场景 | Nginx 在前面兜底时    | frp 直接暴露 HTTP 服务到公网 |
+>
+> yj-knowledge-bank 走的是路径路由（`/yj-knowledge-bank`），不是独立域名。frp 的 HTTP 代理只能按域名分流，做不到路径级别。所以链路是：
+>
+> ```
+> Nginx (SSL终止 + path路由) → frps:5004 (tcp隧道) → frpc → serve:5004
+>        ↑ L7                       ↑ L4                      ↑
+>     HTTP 层处理               纯端口转发               静态文件服务
+> ```
+>
+> 用 `tcp` 少了一层不必要的 HTTP 解析，更轻量。
+
+重启 frpc：
 
 ```bash
-# 如果 frp 也配置了 systemctl
-sudo systemctl restart frpc
-sudo systemctl status frpc
+sudo systemctl restart frpClient.service # 这里是我的服务名，你的就按照你自己的来
+sudo systemctl status frpClient.service
 ```
 
-### 5. 云服务器：配置 frps（内网穿透服务端）
+### 5. 云服务器：frps 无需额外配置
 
-编辑 frps 配置文件（通常在 `/opt/frp/frps.toml`）：
+frps 只需 `bindPort` 监听，每条 proxy 的 `remotePort` 会自动生效，不需要逐个声明。
 
-```toml
-# frps.toml - 云服务器端
-bindPort = 7000
-
-auth.method = "token"
-auth.token = "<你的frp认证token>"
-```
-
-启动 frps：
+确认 frps 正常运行即可：
 
 ```bash
-sudo systemctl restart frps
-sudo systemctl status frps
+sudo systemctl status frpSevice.service # 这里是我的服务名，你的就按照你自己的来
 ```
 
-### 6. 云服务器：配置 Nginx 反向代理
+### 6. 云服务器：在已有 Nginx 中添加 location
 
-目标：`https://codis.fun/yj-knowledge-bank` → `http://127.0.0.1:5004`（frps 转发的端口）
+目标：`https://codis.fun/yj-knowledge-bank` → `http://127.0.0.1:5004`（frps 隧道的远程端口）
 
 编辑 Nginx 站点配置：
 
@@ -181,37 +184,20 @@ sudo systemctl status frps
 sudo vim /etc/nginx/sites-available/codis.fun
 ```
 
-在已有的 `server` 块中添加 location：
+在已有的 `server` 块中添加两个 location：
 
 ```nginx
-server {
-    listen 443 ssl http2;
-    server_name codis.fun;
-
-    ssl_certificate     /path/to/ssl/fullchain.pem;
-    ssl_certificate_key /path/to/ssl/privkey.pem;
-
-    # ... 其他已有配置 ...
-
-    # yj-knowledge-bank 知识库
-    location = /yj-knowledge-bank {
-        return 301 /yj-knowledge-bank/;
-    }
-
-    location /yj-knowledge-bank/ {
-        proxy_pass http://127.0.0.1:5004/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
+# yj-knowledge-bank 知识库（添加到 codis.fun 的 server 块中）
+location = /yj-knowledge-bank {
+    return 301 /yj-knowledge-bank/;
 }
 
-# HTTP → HTTPS 重定向
-server {
-    listen 80;
-    server_name codis.fun;
-    return 301 https://$server_name$request_uri;
+location /yj-knowledge-bank/ {
+    proxy_pass http://127.0.0.1:5004/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
 }
 ```
 
@@ -225,7 +211,7 @@ sudo systemctl reload nginx
 ### 7. 验证部署
 
 ```bash
-# 1. 检查物理机 Node 服务
+# 1. 检查物理机 serve 服务
 curl http://127.0.0.1:5004
 
 # 2. 检查云服务器 frp 隧道
@@ -243,7 +229,7 @@ curl https://codis.fun/yj-knowledge-bank/
 后续有内容更新时：
 
 ```bash
-cd /opt/yj-knowledge-bank
+cd /home/yj/code/yj-knowledge-bank
 git pull
 sudo systemctl restart yj-knowledge-bank
 ```
@@ -254,9 +240,9 @@ sudo systemctl restart yj-knowledge-bank
 
 | 操作 | 命令 |
 |------|------|
-| 查看 Node 服务状态 | `sudo systemctl status yj-knowledge-bank` |
-| 重启 Node 服务 | `sudo systemctl restart yj-knowledge-bank` |
-| 查看 Node 日志 | `sudo journalctl -u yj-knowledge-bank -f` |
+| 查看 serve 服务状态 | `sudo systemctl status yj-knowledge-bank` |
+| 重启 serve 服务 | `sudo systemctl restart yj-knowledge-bank` |
+| 查看服务日志 | `sudo journalctl -u yj-knowledge-bank -f` |
 | 查看 frpc 状态 | `sudo systemctl status frpc` |
 | 查看 frps 状态 | `sudo systemctl status frps` |
 | 重载 Nginx | `sudo systemctl reload nginx` |
