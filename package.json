@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "个人计算机知识查缺补漏的 AI 知识库",
   "scripts": {
-    "start": "serve . -p 5004"
+    "start": "serve . -p 5004 --no-clean-urls"
   },
   "dependencies": {
     "serve": "^14.2.6"
