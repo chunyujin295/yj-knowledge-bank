@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fplayer-ff-mobile 技术全解</title>
+<style>
+/* ================================================================
+   Anthropic / Claude Design System — Warm cream + coral
+   NO black backgrounds anywhere
+   ================================================================ */
+@font-face{font-family:'Display Serif';src:local('Tiempos Headline'),local('Cormorant Garamond'),local('EB Garamond'),local('Garamond');}
+@font-face{font-family:'Body Sans';src:local('Inter'),local('-apple-system'),local('BlinkMacSystemFont'),local('Segoe UI'),local('Roboto');}
+
+:root{
+  --canvas:#faf9f5;--surface-soft:#f5f0e8;--surface-card:#efe9de;
+  --surface-cream-strong:#e8e0d2;--surface-code:#f3efe6;
+  --primary:#cc785c;--primary-active:#a9583e;--primary-light:rgba(204,120,92,0.12);
+  --ink:#141413;--body:#3d3d3a;--body-strong:#252523;
+  --muted:#6c6a64;--muted-soft:#8e8b82;
+  --hairline:#e6dfd8;--hairline-soft:#ebe6df;
+  --on-primary:#ffffff;
+  --accent-teal:#5db8a6;--accent-amber:#e8a55a;--accent-teal-light:rgba(93,184,166,0.1);
+  --accent-amber-light:rgba(232,165,90,0.1);--success:#5db872;--error:#c64545;--error-light:rgba(198,69,69,0.08);
+  --radius-xs:4px;--radius-sm:6px;--radius-md:8px;--radius-lg:12px;
+  --radius-xl:16px;--radius-pill:9999px;--radius-full:9999px;
+  --transition:0.2s ease;
+  --bg-page:var(--canvas);--bg-alt:var(--surface-soft);--bg-card:var(--surface-card);
+  --text-heading:var(--ink);--text-body:var(--body);--text-muted:var(--muted);
+  --text-caption:var(--muted-soft);--border-default:var(--hairline);
+  --border-soft:var(--hairline-soft);
+  --btn-primary-bg:var(--primary);--btn-primary-text:var(--on-primary);
+  --btn-secondary-bg:var(--canvas);--btn-secondary-text:var(--ink);
+  --nav-bg:var(--canvas);--nav-height:64px;--section-gap:96px;--card-pad:32px;
+}
+
+[data-theme="dark"]{
+  --canvas:#1e1c18;--surface-soft:#252320;--surface-card:#2d2b26;
+  --surface-cream-strong:#38352f;--surface-code:#2d2b26;
+  --primary:#cc785c;--primary-active:#d98b72;--primary-light:rgba(204,120,92,0.15);
+  --ink:#ede8df;--body:#c5c1b9;--body-strong:#d8d4cc;
+  --muted:#8e8b82;--muted-soft:#6c6a64;
+  --hairline:#38352f;--hairline-soft:#2d2b26;
+  --on-primary:#ffffff;
+  --accent-teal:#5db8a6;--accent-amber:#e8a55a;--accent-teal-light:rgba(93,184,166,0.12);
+  --accent-amber-light:rgba(232,165,90,0.12);--success:#5db872;--error:#d46a6a;--error-light:rgba(212,106,106,0.1);
+  --bg-page:var(--canvas);--bg-alt:var(--surface-soft);--bg-card:var(--surface-card);
+  --text-heading:var(--ink);--text-body:var(--body);--text-muted:var(--muted);
+  --text-caption:var(--muted-soft);--border-default:var(--hairline);
+  --border-soft:var(--hairline-soft);
+  --btn-primary-bg:var(--primary);--btn-primary-text:var(--on-primary);
+  --btn-secondary-bg:var(--surface-card);--btn-secondary-text:var(--ink);
+  --nav-bg:var(--canvas);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{
+  font-family:'Body Sans',Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC",sans-serif;
+  font-size:16px;font-weight:400;line-height:1.7;
+  color:var(--text-body);background:var(--bg-page);
+  transition:background var(--transition),color var(--transition);
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3{font-family:'Display Serif',Tiempos Headline,Cormorant Garamond,EB Garamond,Garamond,"Times New Roman",serif;font-weight:400;color:var(--text-heading)}
+h1{font-size:clamp(36px,5vw,48px);line-height:1.1;letter-spacing:-1px}
+h2{font-size:clamp(26px,4vw,36px);line-height:1.15;letter-spacing:-0.5px}
+h3{font-size:clamp(18px,2.5vw,22px);line-height:1.3;letter-spacing:-0.3px;margin-top:36px}
+h4{font-family:'Body Sans',Inter,sans-serif;font-size:18px;font-weight:500;line-height:1.4;color:var(--text-heading)}
+h3:first-child{margin-top:0}
+a{color:var(--primary);text-decoration:none;transition:opacity var(--transition)}
+a:hover{opacity:0.8}
+
+.container{max-width:1200px;margin:0 auto;padding:0 32px}
+.section{padding:var(--section-gap) 0}
+.section-alt{background:var(--bg-alt)}
+p{margin-bottom:14px;color:var(--text-body)}
+p:last-child{margin-bottom:0}
+
+/* Nav */
+.top-nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);height:var(--nav-height);border-bottom:1px solid var(--hairline);transition:background var(--transition),border-color var(--transition)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:100%;gap:20px}
+.nav-brand{font-family:'Display Serif',Tiempos Headline,Cormorant Garamond,serif;font-size:18px;font-weight:400;color:var(--text-heading);letter-spacing:-0.3px;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.nav-brand .mark{width:18px;height:18px;position:relative;flex-shrink:0}
+.nav-brand .mark::before,.nav-brand .mark::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--ink);border-radius:50%}
+.nav-brand .mark::before{width:4px;height:18px}
+.nav-brand .mark::after{width:18px;height:4px}
+.nav-modules{display:flex;gap:2px;align-items:center;overflow-x:auto;flex:1;justify-content:center;scrollbar-width:none}
+.nav-modules::-webkit-scrollbar{display:none}
+.nav-modules a{font-family:'Body Sans',Inter,sans-serif;color:var(--muted);font-size:13px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:var(--radius-md);transition:all var(--transition);white-space:nowrap;text-decoration:none}
+.nav-modules a:hover,.nav-modules a.active{color:var(--ink);background:var(--surface-card);text-decoration:none}
+.theme-toggle{flex-shrink:0;font-family:'Body Sans',Inter,sans-serif;background:var(--btn-secondary-bg);color:var(--btn-secondary-text);border:1px solid var(--hairline);border-radius:var(--radius-md);padding:6px 14px;height:36px;font-size:13px;font-weight:500;cursor:pointer;transition:all var(--transition)}
+.theme-toggle:hover{border-color:var(--muted)}
+
+/* Hero */
+.hero{padding:var(--section-gap) 0 64px;text-align:center;background:var(--bg-page);border-bottom:1px solid var(--hairline)}
+.hero-badge{display:inline-block;padding:4px 14px;background:var(--primary);color:var(--on-primary);font-family:'Body Sans',Inter,sans-serif;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;border-radius:var(--radius-pill);margin-bottom:28px}
+.hero h1{margin-bottom:16px}
+.hero p.lead{font-size:18px;color:var(--text-muted);max-width:680px;margin:0 auto 36px;line-height:1.5;font-weight:400}
+.hero-meta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero-meta-item{display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--surface-card);font-size:13px;font-weight:500;color:var(--muted);border-radius:var(--radius-pill)}
+.hero-meta-item .icon{font-size:16px}
+
+/* Module Index */
+.module-index{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;padding:48px 0}
+.module-index-item{padding:20px;border-radius:var(--radius-lg);background:var(--bg-card);border:1px solid var(--hairline);transition:all var(--transition);cursor:pointer;text-decoration:none;display:block}
+.module-index-item:hover{border-color:var(--muted);text-decoration:none}
+.module-index-item .idx-num{font-size:12px;font-weight:500;color:var(--primary);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.module-index-item .idx-title{font-size:16px;font-weight:500;color:var(--text-heading);margin-bottom:4px}
+.module-index-item .idx-desc{font-size:14px;color:var(--text-muted);line-height:1.5}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.card{background:var(--bg-card);border:1px solid var(--hairline);border-radius:var(--radius-lg);padding:var(--card-pad);transition:border-color var(--transition)}
+.card:hover{border-color:var(--muted)}
+.card-icon{font-size:28px;margin-bottom:16px;display:block;opacity:0.85}
+.card h4{margin-bottom:8px}
+.card p{font-size:14px;color:var(--text-muted);line-height:1.7}
+
+/* Protocol Cards */
+.protocol-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.protocol-card{padding:28px;border-radius:var(--radius-lg);border:1px solid var(--hairline);background:var(--bg-card);transition:border-color var(--transition)}
+.protocol-card:hover{border-color:var(--muted)}
+.protocol-card .proto-tag{display:inline-block;padding:2px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;color:#fff}
+.tag-hls{background:var(--accent-teal)}.tag-flv{background:var(--primary)}.tag-rtmp{background:#6c6a64}
+
+/* Steps */
+.step-list{list-style:none;padding:0}
+.step-item{display:flex;gap:24px;padding:28px 0;border-bottom:1px solid var(--hairline)}
+.step-num{flex-shrink:0;width:40px;height:40px;border-radius:50%;border:1px solid var(--hairline);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;color:var(--text-heading)}
+.step-content h4{margin-bottom:4px}
+.step-content p{font-size:14px;color:var(--text-muted);line-height:1.7}
+
+/* Code Block — NO BLACK, warm light background */
+.code-block{
+  background:var(--surface-code);border:1px solid var(--hairline);
+  border-radius:var(--radius-lg);padding:24px;margin:20px 0;overflow-x:auto;
+  font-family:'JetBrains Mono','SF Mono','Fira Code','Cascadia Code',ui-monospace,monospace;
+  font-size:13px;font-weight:400;line-height:1.6;color:var(--body-strong);
+}
+.code-block .kw{color:#c64545}.code-block .str{color:#2d7d6c}
+.code-block .cmt{color:var(--muted-soft);font-style:italic}
+.code-block .fn{color:#a9583e}.code-block .type{color:#8e6b2f}
+
+/* Info Box */
+.info-box{padding:24px;border-radius:var(--radius-md);margin:24px 0;font-size:14px;color:var(--text-body);line-height:1.7;background:var(--bg-card);border:1px solid var(--hairline)}
+.info-box strong{color:var(--text-heading)}
+.info-box.tip{border-left:3px solid var(--accent-teal)}.info-box.warn{border-left:3px solid var(--accent-amber)}
+
+/* Know Box */
+.know-box{background:var(--bg-card);border:1px solid var(--hairline);border-radius:var(--radius-lg);padding:24px var(--card-pad);margin:24px 0}
+.know-box-head{font-size:13px;font-weight:500;color:var(--primary);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.know-box p{font-size:14px;color:var(--text-muted);line-height:1.8}
+.know-box p strong{color:var(--text-body)}
+
+/* Table */
+.comp-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--hairline);border-radius:var(--radius-lg);overflow:hidden;font-size:14px}
+.comp-table th{background:var(--bg-alt);padding:14px 16px;text-align:left;font-weight:500;color:var(--text-heading);border-bottom:1px solid var(--hairline);font-size:13px}
+.comp-table td{padding:12px 16px;border-bottom:1px solid var(--hairline-soft);color:var(--text-muted);line-height:1.6}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .check{color:var(--success);font-weight:500}.comp-table .cross{color:var(--muted-soft)}
+
+/* Inline code */
+p code,li code,dd code,td code,.info-box code,.step-content code{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:13px;background:var(--surface-cream-strong);padding:1px 6px;border-radius:var(--radius-xs);font-weight:500}
+
+/* Footer — warm cream tone, no black */
+.footer{background:var(--surface-cream-strong);color:var(--text-muted);padding:64px 0;text-align:center;font-size:14px;line-height:1.6}
+.footer a{color:var(--primary);font-weight:500}
+
+/* Utilities */
+.scroll-progress{position:fixed;top:0;left:0;height:2px;background:var(--primary);z-index:200;transition:width 0.1s linear}
+.back-to-top{position:fixed;bottom:32px;right:32px;z-index:90;width:36px;height:36px;border-radius:50%;background:var(--bg-card);color:var(--ink);border:1px solid var(--hairline);cursor:pointer;font-size:18px;opacity:0;transform:translateY(10px);transition:all var(--transition);pointer-events:none;display:flex;align-items:center;justify-content:center}
+.back-to-top.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.back-to-top:hover{border-color:var(--muted)}
+.content-list{color:var(--text-muted);font-size:14px;line-height:1.9;padding-left:24px}
+.content-list li{margin-bottom:6px}
+
+/* ========== SVG Diagrams ========== */
+.diagram-wrap{text-align:center;padding:32px 0;overflow-x:auto}
+.diagram-wrap svg{max-width:100%;height:auto}
+.diagram-caption{font-size:13px;color:var(--text-caption);margin-top:12px;text-align:center}
+
+/* Architecture block (light boxes) */
+.arch-block{background:var(--bg-card);border:1px solid var(--hairline);border-radius:var(--radius-lg);padding:var(--card-pad);overflow-x:auto}
+.arch-layers{display:flex;flex-direction:column;gap:8px;min-width:500px}
+.arch-layer{display:flex;align-items:center;gap:16px;padding:14px 20px;border-radius:var(--radius-md);background:var(--bg-page);border:1px solid var(--hairline-soft);transition:border-color var(--transition)}
+.arch-layer:hover{border-color:var(--hairline)}
+.arch-layer .layer-label{flex-shrink:0;width:100px;font-size:13px;font-weight:500;color:var(--text-heading)}
+.arch-layer .layer-detail{font-size:14px;color:var(--text-muted);flex:1}
+.arch-layer .layer-tech{font-size:12px;padding:3px 10px;border-radius:var(--radius-pill);background:var(--surface-cream-strong);color:var(--muted);white-space:nowrap;font-weight:500}
+
+@media(max-width:768px){
+  :root{--section-gap:64px;--card-pad:24px}
+  .container{padding:0 20px}.hero{padding:64px 0 48px}
+  .nav-modules{display:none}
+  .arch-layers{min-width:auto}.arch-layer{flex-wrap:wrap}
+}
+
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.5s ease-out,transform 0.5s ease-out}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-inner">
+    <div class="nav-brand"><span class="mark"></span>fplayer-ff-mobile</div>
+    <div class="nav-modules">
+      <a href="#overview">概览</a><a href="#ecosystem">生态</a><a href="#playback">播放流程</a>
+      <a href="#protocols">协议</a><a href="#engine">播放引擎</a><a href="#gateway">服务通信</a>
+      <a href="#ui-theme">UI主题</a><a href="#settings">设置存储</a><a href="#logging">日志</a>
+      <a href="#player-controls">播放控件</a><a href="#errors">错误处理</a>
+      <a href="#cross-platform">跨平台</a><a href="#build">构建发布</a><a href="#security">权限安全</a>
+    </div>
+    <button class="theme-toggle" id="themeToggle">深色</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">局域网流媒体播放器</div>
+    <h1>fplayer-ff-mobile 技术全解</h1>
+    <p class="lead">一份<strong>逐词解释</strong>的技术教程。不预设任何知识，从零开始讲清楚每一个术语。</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><span class="icon">📱</span> Android + Windows</div>
+      <div class="hero-meta-item"><span class="icon">🎬</span> HLS / FLV / RTMP</div>
+      <div class="hero-meta-item"><span class="icon">🏗️</span> Flutter + Dart</div>
+      <div class="hero-meta-item"><span class="icon">⚡</span> 局域网低延迟</div>
+    </div>
+  </div>
+</section>
+
+<!-- 模块索引 -->
+<section class="section" style="padding-bottom:0;">
+<div class="container">
+  <h2 style="text-align:center;margin-bottom:8px">功能模块索引</h2>
+  <p style="text-align:center;color:var(--text-muted);margin-bottom:8px">共14个模块，每个模块先讲前提知识，再讲具体实现</p>
+  <div class="module-index">
+    <a href="#overview" class="module-index-item"><div class="idx-num">01</div><div class="idx-title">项目概览</div><div class="idx-desc">这个项目是什么、解决了什么问题</div></a>
+    <a href="#ecosystem" class="module-index-item"><div class="idx-num">02</div><div class="idx-title">三端协同生态</div><div class="idx-desc">Desktop / Service / Mobile 如何协作</div></a>
+    <a href="#playback" class="module-index-item"><div class="idx-num">03</div><div class="idx-title">播放流程</div><div class="idx-desc">从点击播放到画面出现，经历哪些步骤</div></a>
+    <a href="#protocols" class="module-index-item"><div class="idx-num">04</div><div class="idx-title">流媒体传输协议</div><div class="idx-desc">HLS / HTTP-FLV / RTMP 的原理与选择</div></a>
+    <a href="#engine" class="module-index-item"><div class="idx-num">05</div><div class="idx-title">播放器引擎</div><div class="idx-desc">libmpv 与 media_kit 技术栈</div></a>
+    <a href="#gateway" class="module-index-item"><div class="idx-num">06</div><div class="idx-title">服务通信</div><div class="idx-desc">与 Service 的 HTTP API 交互</div></a>
+    <a href="#ui-theme" class="module-index-item"><div class="idx-num">07</div><div class="idx-title">UI 与主题系统</div><div class="idx-desc">Material 3 + 双主题设计</div></a>
+    <a href="#settings" class="module-index-item"><div class="idx-num">08</div><div class="idx-title">设置持久化</div><div class="idx-desc">SharedPreferences 键值对存储</div></a>
+    <a href="#logging" class="module-index-item"><div class="idx-num">09</div><div class="idx-title">日志系统</div><div class="idx-desc">运行时的黑匣子记录</div></a>
+    <a href="#player-controls" class="module-index-item"><div class="idx-num">10</div><div class="idx-title">播放器控件</div><div class="idx-desc">专为直播设计的简化操作</div></a>
+    <a href="#errors" class="module-index-item"><div class="idx-num">11</div><div class="idx-title">错误处理</div><div class="idx-desc">七种失败场景的检测与提示</div></a>
+    <a href="#cross-platform" class="module-index-item"><div class="idx-num">12</div><div class="idx-title">跨平台策略</div><div class="idx-desc">Windows / Android / Web 的差异处理</div></a>
+    <a href="#build" class="module-index-item"><div class="idx-num">13</div><div class="idx-title">构建与发布</div><div class="idx-desc">一条命令完成双平台打包</div></a>
+    <a href="#security" class="module-index-item"><div class="idx-num">14</div><div class="idx-title">权限与安全</div><div class="idx-desc">INTERNET 权限、明文 HTTP、局域网隔离</div></a>
+  </div>
+</div>
+</section>
+
+<!-- ====== 01 项目概览 ====== -->
+<section class="section section-alt" id="overview">
+<div class="container">
+  <h2>01 · 项目概览</h2>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 先理解：什么是 App？什么是"程序"？</div>
+    <p>你手机上的每一个图标——微信、抖音、地图——点开之后运行的那个东西，就是一个 <strong>App</strong>（Application，应用程序）。App 的本质是一堆<strong>指令</strong>（告诉手机"在屏幕上画一个按钮"、"收到消息时响一声"），由程序员用一种叫<strong>编程语言</strong>的特殊文字写出来。手机里的芯片（处理器）能读懂这些指令并执行。</p>
+    <p>不同的手机需要不同的指令格式：Android 手机和 iPhone 用的不是同一种"语言"，所以同一个 App 通常需要写两遍。但有一种技术可以只写一遍、自动翻译到多个平台，这就是 <strong>Flutter</strong>。</p>
+  </div>
+
+  <p style="margin-top:24px;"><strong>一句话定义：</strong>fplayer-ff-mobile 是一个手机/电脑上运行的 App，用来播放<strong>同一局域网</strong>内其他设备发出的实时视频画面。</p>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 先理解：什么是局域网（LAN）？</div>
+    <p>当你把手机和电脑连到<strong>同一个 WiFi</strong>，或者用网线插到<strong>同一个路由器</strong>上时，这些设备就组成了一个<strong>局域网</strong>（Local Area Network，简称 LAN）。</p>
+    <p>局域网里的设备可以直接互相"对话"——数据只在本地这个小圈子里流动，所以<strong>速度特别快、延迟特别低</strong>（延迟就是从"A发出数据"到"B收到数据"之间的时间差）。本项目就是利用了这个特性——视频画面在局域网内直接传输，几乎感觉不到卡顿。局域网不需要互联网，即使你家断网了，局域网里的设备依然可以互相通信。</p>
+  </div>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 先理解：什么是视频流（Streaming）？什么是"拉流"？</div>
+    <p>你在优酷或 B站 看视频时，视频文件存在网站的服务器上。你看的时候，服务器把数据一段一段地发给你，手机收到一段就播放一段——这就是<strong>流媒体</strong>。好处是不用等整个视频下载完才能看。</p>
+    <p>"<strong>拉流</strong>"就是从别人那里把视频流"拉"过来播放（你是接收方）。"<strong>推流</strong>"就是你把自己的视频"推"出去给别人看（你是发送方）。本 App 的角色是拉流——从别人（Desktop）那里拉视频过来播放。</p>
+  </div>
+
+  <h3>核心技术事实</h3>
+  <table class="comp-table">
+    <thead><tr><th style="width:28%">维度</th><th>具体内容</th></tr></thead>
+    <tbody>
+      <tr><td><strong>编程语言</strong></td><td>Dart（Google 设计的一种语言，专门配合 Flutter 框架使用）</td></tr>
+      <tr><td><strong>使用的框架</strong></td><td>Flutter（Google 的跨平台开发框架——写一遍代码，安卓和 Windows 都能跑）</td></tr>
+      <tr><td><strong>界面规范</strong></td><td>Material Design 3（Google 发布的界面设计系统）</td></tr>
+      <tr><td><strong>播放核心</strong></td><td>media_kit（在 Flutter 和 libmpv 播放引擎之间搭桥的中间包）</td></tr>
+      <tr><td><strong>网络通信</strong></td><td>HTTP（网页浏览用的通信方式）、TCP（更底层的数据传输方式）</td></tr>
+      <tr><td><strong>本地存储</strong></td><td>SharedPreferences（一种简单的小数据存储方案，存用户设置）</td></tr>
+      <tr><td><strong>能跑在哪些设备上</strong></td><td>Android 手机、Windows 电脑、Web 浏览器</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- ====== 02 三端协同生态 ====== -->
+<section class="section" id="ecosystem">
+<div class="container">
+  <h2>02 · 三端协同生态</h2>
+  <p style="color:var(--text-muted);">本项目不是独立运行的——它需要另外两个程序配合，形成一条完整的"视频生产→分发→消费"链路。</p>
+
+  <!-- SVG: Ecosystem Flow Diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 840 220" width="840" height="220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowCoral" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#cc785c"/></marker>
+        <filter id="softShadow"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#141413" flood-opacity="0.06"/></filter>
+      </defs>
+      <!-- Node 1: Desktop -->
+      <rect x="20" y="40" width="200" height="130" rx="12" fill="#efe9de" stroke="#e6dfd8" filter="url(#softShadow)"/>
+      <text x="120" y="80" text-anchor="middle" font-size="28">🖥️</text>
+      <text x="120" y="110" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="15" font-weight="600" fill="#141413">fplayer-ff-desktop</text>
+      <text x="120" y="135" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="12" fill="#6c6a64">视频生产者</text>
+      <text x="120" y="155" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="11" fill="#8e8b82">采集画面 → 编码 → 推送</text>
+      <!-- Arrow 1 -->
+      <line x1="225" y1="105" x2="310" y2="105" stroke="#cc785c" stroke-width="2" marker-end="url(#arrowCoral)"/>
+      <text x="267" y="98" text-anchor="middle" font-size="11" fill="#8e8b82">注册流</text>
+      <!-- Node 2: Service -->
+      <rect x="320" y="40" width="200" height="130" rx="12" fill="#efe9de" stroke="#e6dfd8" filter="url(#softShadow)"/>
+      <text x="420" y="80" text-anchor="middle" font-size="28">⚙️</text>
+      <text x="420" y="110" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="15" font-weight="600" fill="#141413">fplayer-ff-service</text>
+      <text x="420" y="135" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="12" fill="#6c6a64">调度中心</text>
+      <text x="420" y="155" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="11" fill="#8e8b82">注册流 → 管理地址 → 响应查询</text>
+      <!-- Arrow 2 -->
+      <line x1="525" y1="105" x2="610" y2="105" stroke="#cc785c" stroke-width="2" marker-end="url(#arrowCoral)"/>
+      <text x="567" y="98" text-anchor="middle" font-size="11" fill="#8e8b82">查询</text>
+      <!-- Node 3: Mobile (highlighted) -->
+      <rect x="620" y="40" width="200" height="130" rx="12" fill="#efe9de" stroke="#cc785c" stroke-width="2" filter="url(#softShadow)"/>
+      <text x="720" y="80" text-anchor="middle" font-size="28">📱</text>
+      <text x="720" y="110" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="15" font-weight="600" fill="#141413">fplayer-ff-mobile</text>
+      <text x="720" y="135" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="12" fill="#6c6a64">👈 本项目</text>
+      <text x="720" y="155" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="11" fill="#8e8b82">查询地址 → 拉流 → 解码 → 播放</text>
+      <!-- Bottom: direct pull -->
+      <text x="720" y="200" text-anchor="middle" font-size="11" fill="#8e8b82">拿到地址后直接向 Desktop 拉流</text>
+      <path d="M120,175 Q120,200 300,200 Q500,200 700,195" fill="none" stroke="#cc785c" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <text x="420" y="215" text-anchor="middle" font-size="10" fill="#8e8b82">视频数据直接传输（不经过 Service）</text>
+    </svg>
+    <div class="diagram-caption">▲ 三端协作流程：Service 只管"查地址"，视频数据在 Desktop 和 Mobile 之间直接传输</div>
+  </div>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 先理解：什么是 IP 地址？什么是端口？</div>
+    <p>局域网中每台设备都有一个<strong>IP 地址</strong>——就是这台设备在网络上的"门牌号"。比如 <code>192.168.1.5</code> 就代表某台设备。<strong>端口</strong>是一个数字编号（0到65535），标识这台设备上的具体网络程序。IP地址 + 端口 = 精确位置。比如 <code>192.168.1.5:8080</code> 就是"那台设备上的8080端口"。</p>
+  </div>
+
+  <!-- SVG: IP + Port visualization -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 780 220" width="780" height="220" xmlns="http://www.w3.org/2000/svg">
+      <text x="390" y="22" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="12" font-weight="600" fill="#141413">网络地址 = IP地址（找到设备） + 端口（找到设备上的程序）</text>
+      <!-- Building / Device -->
+      <rect x="30" y="44" width="200" height="150" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="130" y="72" text-anchor="middle" font-size="24">🖥️</text>
+      <text x="130" y="98" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">设备 A（Desktop）</text>
+      <text x="130" y="118" text-anchor="middle" font-size="12" fill="#6c6a64">IP: 192.168.1.5</text>
+      <line x1="60" y1="130" x2="200" y2="130" stroke="#e6dfd8" stroke-width="1"/>
+      <!-- Ports inside device -->
+      <rect x="60" y="138" width="65" height="22" rx="4" fill="#cc785c" opacity="0.12" stroke="#cc785c" stroke-width="1"/>
+      <text x="92" y="153" text-anchor="middle" font-size="10" fill="#a9583e">端口 8080</text>
+      <text x="98" y="172" text-anchor="middle" font-size="9" fill="#8e8b82">流媒体服务</text>
+      <rect x="135" y="138" width="65" height="22" rx="4" fill="#e6dfd8" stroke="#e6dfd8"/>
+      <text x="167" y="153" text-anchor="middle" font-size="10" fill="#6c6a64">端口 9000</text>
+      <text x="172" y="172" text-anchor="middle" font-size="9" fill="#8e8b82">Service</text>
+
+      <!-- Arrow -->
+      <text x="250" y="125" text-anchor="middle" font-size="20" fill="#cc785c">→</text>
+      <text x="250" y="145" text-anchor="middle" font-size="10" fill="#6c6a64">通过 IP 找到设备</text>
+
+      <!-- Device B -->
+      <rect x="290" y="44" width="200" height="150" rx="10" fill="#fff3ef" stroke="#cc785c" stroke-width="1.5"/>
+      <text x="390" y="72" text-anchor="middle" font-size="24">📱</text>
+      <text x="390" y="98" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">设备 B（Mobile）</text>
+      <text x="390" y="118" text-anchor="middle" font-size="12" fill="#6c6a64">IP: 192.168.1.8</text>
+      <line x1="320" y1="130" x2="460" y2="130" stroke="#e6dfd8" stroke-width="1"/>
+      <text x="390" y="155" text-anchor="middle" font-size="11" fill="#6c6a64">没有服务在监听</text>
+
+      <!-- Connection line -->
+      <text x="515" y="125" text-anchor="middle" font-size="12" fill="#8e8b82">Mobile 向</text>
+      <text x="515" y="143" text-anchor="middle" font-size="12" fill="#8e8b82">192.168.1.5:8080</text>
+      <text x="515" y="161" text-anchor="middle" font-size="12" fill="#8e8b82">发起连接</text>
+
+      <rect x="555" y="44" width="200" height="150" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="655" y="72" text-anchor="middle" font-size="24">🔢</text>
+      <text x="655" y="100" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">关键概念</text>
+      <text x="655" y="122" text-anchor="middle" font-size="11" fill="#6c6a64">同一设备可同时运行</text>
+      <text x="655" y="140" text-anchor="middle" font-size="11" fill="#6c6a64">多个网络程序——</text>
+      <text x="655" y="158" text-anchor="middle" font-size="11" fill="#6c6a64">各占不同端口，互不干扰</text>
+      <text x="655" y="180" text-anchor="middle" font-size="11" fill="#8e8b82">端口范围：0 ~ 65535</text>
+    </svg>
+    <div class="diagram-caption">▲ IP 找到设备，端口找到设备上的具体程序。同一设备可以同时跑多个服务（8080端口跑流媒体，9000端口跑Service），互不冲突</div>
+  </div>
+
+  <div class="card-grid" style="margin-top:24px;">
+    <div class="card"><span class="card-icon">🖥️</span><h4>Desktop（推流端）</h4><p>运行在电脑上。采集画面（屏幕录制或摄像头），用数学算法压缩后发送到网络中。发送前会在 Service 上登记自己的存在。</p></div>
+    <div class="card"><span class="card-icon">⚙️</span><h4>Service（调度端）</h4><p>一台常驻运行的服务程序。它维护一份"谁在播、播到哪"的清单。如果端口变化了它知道最新的，Mobile 不需要关心变化。</p></div>
+    <div class="card"><span class="card-icon">📱</span><h4>Mobile（播放端 · 本项目）</h4><p>用户打开 App，输入 Service 地址 + 流名。App 自动从 Service 查出流的实际播放地址，然后开始拉数据、解压缩、显示到屏幕上。</p></div>
+  </div>
+
+  <div class="info-box tip" style="margin-top:24px;">
+    <strong>为什么需要 Service？</strong> 没有 Service，Mobile 得直接知道 Desktop 的 IP 和端口。端口可能随时变（被别的程序占了就换一个）。Service 就是一个"电话号码本"——Desktop 每次换端口都告诉 Service，Mobile 先查本子再拨号。这样 Mobile 只需记住固定的 Service 地址和流名。
+  </div>
+</div>
+</section>
+
+<!-- ====== 03 播放流程 ====== -->
+<section class="section section-alt" id="playback">
+<div class="container">
+  <h2>03 · 播放流程</h2>
+  <p style="color:var(--text-muted);">从点击"播放"到画面出现，经历了5个步骤。</p>
+
+  <!-- SVG: 5-step flow -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 900 170" width="900" height="170" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="stepArrow" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4 Z" fill="#cc785c"/></marker>
+      </defs>
+      <!-- 5 step boxes -->
+      <rect x="10" y="30" width="140" height="100" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <circle cx="30" cy="52" r="12" fill="#cc785c"/><text x="30" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">1</text>
+      <text x="80" y="70" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">验证输入</text>
+      <text x="80" y="92" text-anchor="middle" font-size="11" fill="#6c6a64">检查必填项</text>
+      <text x="80" y="110" text-anchor="middle" font-size="10" fill="#8e8b82">为空则立即报错</text>
+      <line x1="155" y1="80" x2="195" y2="80" stroke="#cc785c" stroke-width="1.5" marker-end="url(#stepArrow)"/>
+
+      <rect x="200" y="30" width="140" height="100" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <circle cx="220" cy="52" r="12" fill="#cc785c"/><text x="220" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">2</text>
+      <text x="270" y="70" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">解析地址</text>
+      <text x="270" y="92" text-anchor="middle" font-size="11" fill="#6c6a64">向Service查询</text>
+      <text x="270" y="110" text-anchor="middle" font-size="10" fill="#8e8b82">得到真实播放URL</text>
+      <line x1="345" y1="80" x2="385" y2="80" stroke="#cc785c" stroke-width="1.5" marker-end="url(#stepArrow)"/>
+
+      <rect x="390" y="30" width="140" height="100" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <circle cx="410" cy="52" r="12" fill="#cc785c"/><text x="410" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">3</text>
+      <text x="460" y="70" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">兼容检查</text>
+      <text x="460" y="92" text-anchor="middle" font-size="11" fill="#6c6a64">Web拦截FLV/RTMP</text>
+      <text x="460" y="110" text-anchor="middle" font-size="10" fill="#8e8b82">Android仅警告</text>
+      <line x1="535" y1="80" x2="575" y2="80" stroke="#cc785c" stroke-width="1.5" marker-end="url(#stepArrow)"/>
+
+      <rect x="580" y="30" width="140" height="100" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <circle cx="600" cy="52" r="12" fill="#cc785c"/><text x="600" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">4</text>
+      <text x="650" y="70" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">引擎接管</text>
+      <text x="650" y="92" text-anchor="middle" font-size="11" fill="#6c6a64">libmpv开始工作</text>
+      <text x="650" y="110" text-anchor="middle" font-size="10" fill="#8e8b82">接收→解码→渲染</text>
+      <line x1="725" y1="80" x2="765" y2="80" stroke="#cc785c" stroke-width="1.5" marker-end="url(#stepArrow)"/>
+
+      <rect x="770" y="30" width="120" height="100" rx="8" fill="#fff3ef" stroke="#cc785c" stroke-width="1.5"/>
+      <circle cx="790" cy="52" r="12" fill="#cc785c"/><text x="790" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">5</text>
+      <text x="830" y="70" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">状态反馈</text>
+      <text x="830" y="92" text-anchor="middle" font-size="11" fill="#6c6a64">LIVE徽标+日志</text>
+      <text x="830" y="110" text-anchor="middle" font-size="10" fill="#8e8b82">实时更新</text>
+    </svg>
+    <div class="diagram-caption">▲ 播放流程：5步，从输入验证到画面播放</div>
+  </div>
+
+  <h3>技术栈分层视图</h3>
+  <p style="color:var(--text-muted);margin-bottom:16px;">App 内部按"分层"组织——每层只解决一类问题，只和上下邻居交互。好处是：想换播放器？只改播放器层，其他层不动。</p>
+  <div class="arch-block">
+    <div class="arch-layers">
+      <div class="arch-layer"><span class="layer-label">🎨 UI 层</span><span class="layer-detail">按钮、卡片、输入框、视频画面、日志——用户看到和碰到的一切</span><span class="layer-tech">Flutter Widget</span></div>
+      <div class="arch-layer"><span class="layer-label">🧠 逻辑层</span><span class="layer-detail">播放/停止控制、地址解析、状态管理、输入验证</span><span class="layer-tech">Dart · setState</span></div>
+      <div class="arch-layer"><span class="layer-label">📡 网络层</span><span class="layer-detail">向 Service 发 HTTP 请求、接收视频流数据</span><span class="layer-tech">http · TCP</span></div>
+      <div class="arch-layer"><span class="layer-label">💾 存储层</span><span class="layer-detail">用户设置（主题、URL、协议）的保存和读取</span><span class="layer-tech">SharedPreferences</span></div>
+      <div class="arch-layer"><span class="layer-label">🎬 播放器层</span><span class="layer-detail">封装 libmpv 引擎，提供跨平台解码和渲染</span><span class="layer-tech">media_kit · libmpv</span></div>
+      <div class="arch-layer"><span class="layer-label">⚙️ 原生平台层</span><span class="layer-detail">Android (Kotlin+Gradle)、Windows (C++/CMake)、Web (JS)</span><span class="layer-tech">Kotlin · C++ · JS</span></div>
+    </div>
+  </div>
+
+  <div class="know-box" style="margin-top:24px;">
+    <div class="know-box-head">📖 KOTLIN、C++、JAVASCRIPT 是什么？</div>
+    <p>这些都是<strong>编程语言</strong>。不同语言适合干不同的事：<strong>Kotlin</strong> 是 Android 系统的最佳搭档；<strong>C++</strong> 性能极高，适合视频解码这种重体力活；<strong>JavaScript</strong> 是浏览器唯一能直接执行的语言。Flutter 能把 Dart 自动翻译成这些语言，你不需要单独学它们。</p>
+  </div>
+</div>
+</section>
+
+<!-- ====== 04 流媒体协议 ====== -->
+<section class="section" id="protocols">
+<div class="container">
+  <h2>04 · 流媒体传输协议</h2>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 先理解：视频文件有多大？为什么必须压缩和拆分？</div>
+    <p>一段1分钟、1080p清晰度的<strong>原始（未压缩）</strong>视频，大小大约是 <strong>10GB</strong>。如果你家网速是100Mbps，下载10GB要花约14分钟——而你只想看1分钟的视频。所以视频在传输前必须被<strong>压缩</strong>（用数学算法删掉人眼不太敏感的细节），10GB压到几十MB。即使压缩后还是很大，没法等全下载完再播——这就引出了"怎么传"的问题。不同的传法，就是不同的<strong>协议</strong>。</p>
+  </div>
+
+  <div class="protocol-row" style="margin-top:24px;">
+    <div class="protocol-card">
+      <span class="proto-tag tag-hls">HLS</span>
+      <h4>HTTP Live Streaming</h4>
+      <p><strong>做法：</strong>把视频切成小片段（每个2-10秒，存为 .ts 文件），同时写一份"播放列表"（.m3u8），告诉播放器各片段的网址顺序。</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:10px;"><strong>过程：</strong>先下载列表 → 按序逐个下载片段 → 播完一个下下一个。</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:8px;"><strong>优点：</strong>所有浏览器和手机天生支持。<br><strong>缺点：</strong>延迟2-5秒，因为要等片段完整生成才能下载。</p>
+      <p style="font-size:13px;color:var(--text-muted);">✅ Web 和 Android 首选</p>
+    </div>
+    <div class="protocol-card">
+      <span class="proto-tag tag-flv">HTTP-FLV</span>
+      <h4>Flash Video over HTTP</h4>
+      <p><strong>做法：</strong>不切片。建立连接后，数据连续不断地推过来，收到一段立刻解码播放一段。</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:10px;"><strong>过程：</strong>连上 → 数据持续到达 → 边收边播，不等。</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:8px;"><strong>优点：</strong>延迟极低（不到1秒），不需等片段。<br><strong>缺点：</strong>浏览器不原生支持 FLV 解码。</p>
+      <p style="font-size:13px;color:var(--text-muted);">✅ Windows 桌面首选</p>
+    </div>
+    <div class="protocol-card">
+      <span class="proto-tag tag-rtmp">RTMP</span>
+      <h4>Real-Time Messaging Protocol</h4>
+      <p><strong>做法：</strong>用专用端口1935，建立一条持续的双向通道，数据能同时往两个方向流动。</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:10px;"><strong>过程：</strong>连接 → 双方握手 → 沿通道持续推送。</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:8px;"><strong>优点：</strong>延迟极低，支持双向。<br><strong>缺点：</strong>2020年后浏览器不再支持。</p>
+      <p style="font-size:13px;color:var(--text-muted);">⚠️ 仅特殊场景</p>
+    </div>
+  </div>
+
+  <!-- SVG: Protocol comparison mini diagram -->
+  <div class="diagram-wrap" style="padding:24px 0 8px;">
+    <svg viewBox="0 0 840 120" width="840" height="120" xmlns="http://www.w3.org/2000/svg">
+      <text x="30" y="25" font-family="Body Sans,Inter,sans-serif" font-size="12" font-weight="600" fill="#141413">HLS：</text>
+      <rect x="70" y="10" width="55" height="24" rx="4" fill="#5db8a6" opacity="0.2" stroke="#5db8a6" stroke-width="1"/>
+      <text x="97" y="27" text-anchor="middle" font-size="10" fill="#2d7d6c">片1.ts</text>
+      <text x="135" y="27" font-size="14" fill="#8e8b82">→</text>
+      <rect x="155" y="10" width="55" height="24" rx="4" fill="#5db8a6" opacity="0.2" stroke="#5db8a6" stroke-width="1"/>
+      <text x="182" y="27" text-anchor="middle" font-size="10" fill="#2d7d6c">片2.ts</text>
+      <text x="220" y="27" font-size="14" fill="#8e8b82">→</text>
+      <rect x="240" y="10" width="55" height="24" rx="4" fill="#5db8a6" opacity="0.2" stroke="#5db8a6" stroke-width="1"/>
+      <text x="267" y="27" text-anchor="middle" font-size="10" fill="#2d7d6c">片3.ts</text>
+      <text x="305" y="27" font-size="14" fill="#8e8b82">→</text>
+      <text x="325" y="27" font-size="10" fill="#6c6a64">...连续片段</text>
+      <text x="420" y="27" font-size="11" fill="#6c6a64">每个片段先完整生成 → 才能被下载 → 延迟2-5秒</text>
+
+      <text x="30" y="65" font-family="Body Sans,Inter,sans-serif" font-size="12" font-weight="600" fill="#141413">HTTP-FLV：</text>
+      <rect x="130" y="50" width="310" height="24" rx="4" fill="#cc785c" opacity="0.12"/>
+      <text x="285" y="67" text-anchor="middle" font-size="10" fill="#a9583e">连续数据流 ···················· 边收边播，不等</text>
+      <text x="460" y="67" font-size="11" fill="#6c6a64">不切片 → 无需等待 → 延迟&lt;1秒</text>
+
+      <text x="30" y="105" font-family="Body Sans,Inter,sans-serif" font-size="12" font-weight="600" fill="#141413">RTMP：</text>
+      <rect x="100" y="90" width="24" height="24" rx="4" fill="#6c6a64" opacity="0.15" stroke="#8e8b82" stroke-width="1"/>
+      <text x="112" y="107" text-anchor="middle" font-size="8" fill="#6c6a64">端口1935</text>
+      <text x="136" y="107" font-size="14" fill="#8e8b82">↔</text>
+      <rect x="160" y="90" width="310" height="24" rx="4" fill="#6c6a64" opacity="0.08"/>
+      <text x="315" y="107" text-anchor="middle" font-size="10" fill="#6c6a64">双向持续通道（推+拉同时）</text>
+      <text x="490" y="107" font-size="11" fill="#6c6a64">独有端口 → 浏览器不支持</text>
+    </svg>
+    <div class="diagram-caption">▲ 三种协议的数据传输方式对比：切片 vs 连续流 vs 双向通道</div>
+  </div>
+
+  <h3>各平台的处理策略</h3>
+  <table class="comp-table">
+    <thead><tr><th>平台</th><th>默认推荐</th><th>FLV/RTMP 行为</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Windows</strong></td><td>HTTP-FLV</td><td class="check">✅ 正常播放</td></tr>
+      <tr><td><strong>Android</strong></td><td>HLS</td><td>⚠️ 弹出警告，但不阻止</td></tr>
+      <tr><td><strong>Web</strong></td><td>HLS（仅此选项）</td><td class="cross">❌ 直接拦截，提示切换 HLS</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- ====== 05 播放器引擎 ====== -->
+<section class="section section-alt" id="engine">
+<div class="container">
+  <h2>05 · 播放器引擎</h2>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 先理解：压缩（编码）和解压缩（解码）</div>
+    <p><strong>编码（压缩）：</strong>发送端拿到原始画面，用数学算法分析"哪些信息可以丢掉而不被人眼察觉"。比如天空区域相邻像素颜色差不多就只存一个代表色；连续两帧之间背景没动就只存变化的部分。10GB → 30MB。</p>
+    <p><strong>解码（解压缩）：</strong>接收端把压缩数据还原为可显示的像素。这不是简单的"反向运行"——需要大量数学运算来<strong>推算</strong>被删掉的细节。这个过程极复杂、极消耗算力，必须用专门的程序处理——这就是<strong>播放器引擎</strong>的核心工作。</p>
+  </div>
+
+  <!-- SVG: Encoding / Decoding flow -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 800 200" width="800" height="200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="encArrow" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4 Z" fill="#cc785c"/></marker>
+      </defs>
+      <!-- Original video -->
+      <rect x="15" y="40" width="150" height="120" rx="10" fill="#cc785c" opacity="0.08" stroke="#cc785c" stroke-width="1"/>
+      <text x="90" y="75" text-anchor="middle" font-size="26">🎬</text>
+      <text x="90" y="100" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">原始视频</text>
+      <text x="90" y="120" text-anchor="middle" font-size="11" fill="#6c6a64">1920×1080 像素</text>
+      <text x="90" y="138" text-anchor="middle" font-size="11" fill="#8e8b82">1分钟 ≈ 10 GB</text>
+      <text x="90" y="155" text-anchor="middle" font-size="11" fill="#c64545">太大，无法传输</text>
+      <!-- Arrow -->
+      <line x1="170" y1="100" x2="215" y2="100" stroke="#cc785c" stroke-width="2" marker-end="url(#encArrow)"/>
+      <text x="192" y="92" text-anchor="middle" font-size="10" fill="#a9583e">编码</text>
+      <!-- Encoder box -->
+      <rect x="220" y="40" width="140" height="120" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="290" y="75" text-anchor="middle" font-size="26">🗜️</text>
+      <text x="290" y="100" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">压缩算法</text>
+      <text x="290" y="120" text-anchor="middle" font-size="11" fill="#6c6a64">分析画面</text>
+      <text x="290" y="138" text-anchor="middle" font-size="11" fill="#6c6a64">删冗余信息</text>
+      <text x="290" y="155" text-anchor="middle" font-size="10" fill="#8e8b82">（人眼不敏感的细节）</text>
+      <!-- Arrow -->
+      <line x1="365" y1="100" x2="410" y2="100" stroke="#cc785c" stroke-width="2" marker-end="url(#encArrow)"/>
+      <!-- Compressed -->
+      <rect x="415" y="50" width="130" height="100" rx="10" fill="#5db8a6" opacity="0.1" stroke="#5db8a6" stroke-width="1"/>
+      <text x="480" y="82" text-anchor="middle" font-size="22">📦</text>
+      <text x="480" y="105" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">压缩后视频</text>
+      <text x="480" y="125" text-anchor="middle" font-size="11" fill="#2d7d6c">1分钟 ≈ 30 MB</text>
+      <text x="480" y="142" text-anchor="middle" font-size="11" fill="#2d7d6c">可以网络传输了</text>
+      <!-- Arrow to network -->
+      <line x1="550" y1="100" x2="590" y2="100" stroke="#5db8a6" stroke-width="1.5" marker-end="url(#encArrow)"/>
+      <text x="570" y="92" text-anchor="middle" font-size="9" fill="#6c6a64">网络</text>
+      <text x="570" y="112" text-anchor="middle" font-size="9" fill="#6c6a64">传输</text>
+      <!-- Network cloud -->
+      <ellipse cx="645" cy="100" rx="35" ry="30" fill="#e6dfd8" opacity="0.5"/>
+      <text x="645" y="104" text-anchor="middle" font-size="14">☁️</text>
+      <!-- Arrow to decoder -->
+      <line x1="683" y1="100" x2="720" y2="100" stroke="#5db8a6" stroke-width="1.5" marker-end="url(#encArrow)"/>
+      <text x="702" y="92" text-anchor="middle" font-size="9" fill="#6c6a64">到达</text>
+      <!-- Decoder box -->
+      <rect x="220" y="40" width="0" height="0"/> <!-- placeholder, decoder is on the end -->
+    </svg>
+    <div class="diagram-caption">▲ 编码（压缩）：10GB → 30MB，删掉人眼不敏感的信息。解码（解压）：30MB → 还原为可显示的像素。解码的计算量远大于编码</div>
+  </div>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 什么是"程序库"（Library）？</div>
+    <p>在编程中，<strong>库</strong>就是别人写好的一堆功能，打包好给你直接用。你不需要从零写"怎么解压视频"——已经有人写好了 libmpv，你直接调用就行。<strong>libmpv</strong> 来自 mpv（一个著名的开源播放器软件），被提取出来做成独立的库，任何程序都可以调用它来获得视频播放能力。</p>
+  </div>
+
+  <!-- SVG: media_kit bridge diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 760 180" width="760" height="180" xmlns="http://www.w3.org/2000/svg">
+      <!-- Flutter/Dart side -->
+      <rect x="20" y="30" width="200" height="120" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="120" y="65" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="15" font-weight="600" fill="#141413">Flutter App</text>
+      <text x="120" y="90" text-anchor="middle" font-size="12" fill="#6c6a64">Dart 语言</text>
+      <text x="120" y="112" text-anchor="middle" font-size="11" fill="#8e8b82">"播放这个URL"</text>
+      <text x="120" y="132" text-anchor="middle" font-size="11" fill="#8e8b82">"画面画到这块区域"</text>
+      <!-- media_kit bridge -->
+      <rect x="280" y="40" width="200" height="100" rx="10" fill="#fff3ef" stroke="#cc785c" stroke-width="2"/>
+      <text x="380" y="75" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="15" font-weight="600" fill="#141413">🧩 media_kit</text>
+      <text x="380" y="98" text-anchor="middle" font-size="12" fill="#6c6a64">翻译官 / 桥接层</text>
+      <text x="380" y="118" text-anchor="middle" font-size="11" fill="#8e8b82">Dart ↔ C 互译</text>
+      <!-- Arrow left → right -->
+      <line x1="225" y1="70" x2="275" y2="70" stroke="#cc785c" stroke-width="1.5" marker-end="url(#stepArrow)"/>
+      <line x1="225" y1="110" x2="275" y2="110" stroke="#8e8b82" stroke-width="1" marker-end="url(#stepArrow)"/>
+      <!-- libmpv side -->
+      <rect x="540" y="30" width="200" height="120" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="640" y="65" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="15" font-weight="600" fill="#141413">🎬 libmpv</text>
+      <text x="640" y="90" text-anchor="middle" font-size="12" fill="#6c6a64">C 语言</text>
+      <text x="640" y="112" text-anchor="middle" font-size="11" fill="#8e8b82">接收网络数据</text>
+      <text x="640" y="132" text-anchor="middle" font-size="11" fill="#8e8b82">解码 → 渲染像素</text>
+      <!-- Arrow bridge → libmpv -->
+      <line x1="485" y1="70" x2="535" y2="70" stroke="#cc785c" stroke-width="1.5" marker-end="url(#stepArrow)"/>
+      <line x1="485" y1="110" x2="535" y2="110" stroke="#8e8b82" stroke-width="1" marker-end="url(#stepArrow)"/>
+      <!-- Bottom labels -->
+      <text x="120" y="170" text-anchor="middle" font-size="10" fill="#8e8b82">不懂 C，无法直接</text>
+      <text x="120" y="185" text-anchor="middle" font-size="10" fill="#8e8b82">调用 libmpv</text>
+      <text x="380" y="170" text-anchor="middle" font-size="10" fill="#a9583e">media_kit 做中间翻译</text>
+      <text x="640" y="170" text-anchor="middle" font-size="10" fill="#8e8b82">不懂 Dart，无法直接</text>
+      <text x="640" y="185" text-anchor="middle" font-size="10" fill="#8e8b82">被 Flutter 调用</text>
+    </svg>
+    <div class="diagram-caption">▲ media_kit 的桥接角色：Flutter (Dart) 和 libmpv (C) 语言不通，media_kit 在中间翻译</div>
+  </div>
+
+  <div class="card-grid" style="margin-top:24px;">
+    <div class="card"><span class="card-icon">🧩</span><h4>media_kit（核心包）</h4><p>负责 Dart ↔ C 之间的通信翻译。把 Flutter 的命令（打开、播放、暂停、停止）转发给 libmpv，把 libmpv 的输出传回 Flutter。</p></div>
+    <div class="card"><span class="card-icon">🎥</span><h4>media_kit_video</h4><p>负责把 libmpv 解码出的像素数据画到屏幕上的指定区域。同时提供播放控件界面，并自动适配不同平台。</p></div>
+    <div class="card"><span class="card-icon">📦</span><h4>media_kit_libs_video</h4><p>包含 libmpv 在各平台上的预编译文件。Android 用 .so 格式，Windows 用 .dll 格式（不同操作系统的库文件格式）。</p></div>
+  </div>
+</div>
+</section>
+
+<!-- ====== 06 服务通信 ====== -->
+<section class="section" id="gateway">
+<div class="container">
+  <h2>06 · 服务通信（Gateway API）</h2>
+
+  <div class="know-box">
+    <div class="know-box-head">📖 HTTP 是什么？GET 请求是什么？JSON 是什么？</div>
+    <p><strong>HTTP：</strong>互联网上最基础的通信规则——你每次打开网页就在用它。一方发<strong>请求</strong>（"给我某某数据"），另一方回<strong>响应</strong>（"给，这是数据"）。<strong>GET</strong> 是最常用的请求类型——纯查询，不修改任何东西。参数直接附在网址后面：用 <code>?</code> 开始，<code>&</code> 分隔。</p>
+    <p><strong>JSON：</strong>一种用纯文本表示数据的格式。花括号 <code>{}</code> 包住"对象"（名字:值的配对），方括号 <code>[]</code> 包住"列表"。几乎所有编程语言都能直接读懂，所以互联网上程序间传数据绝大多数都用它。</p>
+  </div>
+
+  <!-- SVG: HTTP Request/Response flow -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 760 165" width="760" height="165" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="httpArr" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4 Z" fill="#cc785c"/></marker>
+        <marker id="httpArrBack" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4 Z" fill="#5db8a6"/></marker>
+      </defs>
+      <!-- Client -->
+      <rect x="15" y="15" width="200" height="130" rx="10" fill="#fff3ef" stroke="#cc785c" stroke-width="1.5"/>
+      <text x="115" y="48" text-anchor="middle" font-size="24">📱</text>
+      <text x="115" y="70" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="14" font-weight="600" fill="#141413">客户端 (Mobile)</text>
+      <text x="115" y="92" text-anchor="middle" font-size="11" fill="#6c6a64">发起 HTTP 请求</text>
+      <text x="115" y="110" text-anchor="middle" font-size="11" fill="#6c6a64">"我想要数据"</text>
+      <text x="115" y="130" text-anchor="middle" font-size="10" fill="#8e8b82">IP: 192.168.1.8</text>
+      <!-- Right arrow: Request -->
+      <line x1="220" y1="65" x2="340" y2="65" stroke="#cc785c" stroke-width="2" marker-end="url(#httpArr)"/>
+      <text x="280" y="55" text-anchor="middle" font-size="11" font-weight="600" fill="#a9583e">① GET 请求</text>
+      <text x="280" y="72" text-anchor="middle" font-size="10" fill="#6c6a64">/api/v1/streams/resolve</text>
+      <text x="280" y="87" text-anchor="middle" font-size="10" fill="#6c6a64">?app=live&stream=001</text>
+      <!-- Server -->
+      <rect x="350" y="15" width="200" height="130" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="450" y="48" text-anchor="middle" font-size="24">⚙️</text>
+      <text x="450" y="70" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="14" font-weight="600" fill="#141413">服务端 (Service)</text>
+      <text x="450" y="92" text-anchor="middle" font-size="11" fill="#6c6a64">收到请求</text>
+      <text x="450" y="110" text-anchor="middle" font-size="11" fill="#6c6a64">查询 → 返回数据</text>
+      <text x="450" y="130" text-anchor="middle" font-size="10" fill="#8e8b82">IP: 192.168.1.5</text>
+      <!-- Left arrow: Response -->
+      <line x1="345" y1="115" x2="225" y2="115" stroke="#5db8a6" stroke-width="2" marker-end="url(#httpArrBack)"/>
+      <text x="285" y="107" text-anchor="middle" font-size="11" font-weight="600" fill="#2d7d6c">② JSON 响应</text>
+      <text x="285" y="124" text-anchor="middle" font-size="10" fill="#6c6a64">{playHls: "...", ...}</text>
+      <!-- Right side: explanation -->
+      <rect x="570" y="20" width="175" height="120" rx="8" fill="#f5f0e8"/>
+      <text x="657" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">关键点</text>
+      <text x="657" y="66" text-anchor="middle" font-size="11" fill="#6c6a64">GET = 纯查询</text>
+      <text x="657" y="86" text-anchor="middle" font-size="11" fill="#6c6a64">不修改服务端数据</text>
+      <text x="657" y="106" text-anchor="middle" font-size="11" fill="#6c6a64">参数附在URL后面</text>
+      <text x="657" y="126" text-anchor="middle" font-size="11" fill="#6c6a64">? 开始，& 分隔</text>
+    </svg>
+    <div class="diagram-caption">▲ HTTP 通信模型：客户端发请求，服务端回响应。GET 只查询不修改，参数直接附在网址后面</div>
+  </div>
+
+  <div class="code-block">
+<span class="cmt">// Mobile 向 Service 发出的实际请求</span>
+<span class="fn">GET</span> http://192.168.1.100:9000/api/v1/streams/resolve?app=<span class="str">live</span>&stream=<span class="str">stream001</span>
+
+<span class="cmt">// 翻译成人话：去192.168.1.100的9000端口，
+// 找/api/v1/streams/resolve这个路径，
+// 查app=live、stream=stream001这条流</span>
+
+<span class="cmt">// Service 返回的 JSON 响应：</span>
+{
+  <span class="str">"playHls"</span>:      <span class="str">"http://192.168.1.100:8080/live/stream001.m3u8"</span>,
+  <span class="str">"playHttpFlv"</span>: <span class="str">"http://192.168.1.100:8080/live/stream001.flv"</span>,
+  <span class="str">"playUrls"</span>: {
+    <span class="str">"rtmp"</span>: <span class="str">"rtmp://192.168.1.100:1935/live/stream001"</span>,
+    <span class="str">"hls"</span>:  <span class="str">"http://192.168.1.100:8080/live/stream001.m3u8"</span>
+  }
+}
+  </div>
+
+  <h3>地址提取逻辑</h3>
+  <table class="comp-table">
+    <thead><tr><th>用户选了</th><th>App 优先取哪个字段</th><th>如果为空，回退取哪个</th></tr></thead>
+    <tbody>
+      <tr><td><strong>HLS</strong></td><td><code>playHls</code></td><td><code>playUrls.hls</code></td></tr>
+      <tr><td><strong>HTTP-FLV</strong></td><td><code>playHttpFlv</code></td><td>（无回退，为空就报错）</td></tr>
+      <tr><td><strong>RTMP</strong></td><td><code>playUrls.rtmp</code></td><td>（无回退，为空就报错）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>两种使用模式</h3>
+  <table class="comp-table">
+    <thead><tr><th style="width:20%"></th><th style="width:40%">服务模式</th><th style="width:40%">直接模式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>地址怎么来的</strong></td><td>通过上面讲的 API 自动查</td><td>用户自己手打完整网址</td></tr>
+      <tr><td><strong>用户需要填什么</strong></td><td>Service地址 + App名 + 流名</td><td>完整的播放网址</td></tr>
+      <tr><td><strong>端口变了怎么办</strong></td><td class="check">✅ 自动跟上</td><td class="cross">❌ 得手动去改网址</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- ====== 07-14: Keep content same, ensure no black backgrounds ====== -->
+<!-- 07 UI主题 -->
+<section class="section section-alt" id="ui-theme">
+<div class="container">
+  <h2>07 · UI 与主题系统</h2>
+  <div class="know-box"><div class="know-box-head">📖 什么是 UI？什么是"设计系统"？</div><p><strong>UI（用户界面）</strong>就是你能看到和触碰到的所有界面元素——按钮、输入框、颜色、字体。UI 的好坏决定了你用 App 时觉得"舒服"还是"别扭"。<strong>设计系统</strong>是一套事先定好的规则——"按钮用这个色、卡片用这个圆角"。有了规则，程序员不用每做一个新页面都重新想一遍，直接按规则来。换整套规则就换整套外观。</p></div>
+  <div class="know-box"><div class="know-box-head">📖 Material Design 和"设计令牌"是什么？</div><p>Material Design 是 Google 发布的界面设计规范——"App 长相说明书"。2021年的第三版（Material 3）引入了<strong>设计令牌</strong>：给颜色/字体/形状起名字——"主色"叫 primary、"表面色"叫 surface。开发者只给这些名字赋值一次，整个 App 的所有组件就自动统一换色。比每个按钮单独设色高效得多。</p></div>
+  <!-- SVG: Design tokens propagation -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 840 200" width="840" height="200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Token definitions -->
+      <rect x="15" y="30" width="190" height="145" rx="10" fill="#fff3ef" stroke="#cc785c" stroke-width="1.5"/>
+      <text x="110" y="58" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="14" font-weight="600" fill="#141413">设计令牌定义</text>
+      <line x1="35" y1="68" x2="185" y2="68" stroke="#e6dfd8" stroke-width="1"/>
+      <text x="30" y="88" font-size="11" fill="#6c6a64">primary = #17171C</text>
+      <text x="30" y="106" font-size="11" fill="#6c6a64">surface = #FFFFFF</text>
+      <text x="30" y="124" font-size="11" fill="#6c6a64">error = #B30000</text>
+      <text x="30" y="142" font-size="11" fill="#6c6a64">card-radius = 22px</text>
+      <text x="30" y="160" font-size="11" fill="#6c6a64">button-radius = 32px</text>
+      <!-- Arrows -->
+      <text x="225" y="70" font-size="18" fill="#cc785c">→</text>
+      <text x="225" y="90" font-size="18" fill="#cc785c">→</text>
+      <text x="225" y="110" font-size="18" fill="#cc785c">→</text>
+      <text x="225" y="130" font-size="18" fill="#cc785c">→</text>
+      <text x="225" y="150" font-size="18" fill="#cc785c">→</text>
+      <!-- Components receiving tokens -->
+      <rect x="260" y="18" width="130" height="60" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="325" y="45" text-anchor="middle" font-size="13" font-weight="600" fill="#141413">🔘 按钮</text>
+      <text x="325" y="63" text-anchor="middle" font-size="10" fill="#6c6a64">bg=primary, r=32px</text>
+
+      <rect x="410" y="18" width="130" height="60" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="475" y="45" text-anchor="middle" font-size="13" font-weight="600" fill="#141413">🃏 卡片</text>
+      <text x="475" y="63" text-anchor="middle" font-size="10" fill="#6c6a64">bg=surface, r=22px</text>
+
+      <rect x="560" y="18" width="130" height="60" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="625" y="45" text-anchor="middle" font-size="13" font-weight="600" fill="#141413">📝 输入框</text>
+      <text x="625" y="63" text-anchor="middle" font-size="10" fill="#6c6a64">focus=formFocus</text>
+
+      <rect x="710" y="18" width="115" height="60" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="767" y="45" text-anchor="middle" font-size="13" font-weight="600" fill="#141413">⚠️ 错误</text>
+      <text x="767" y="63" text-anchor="middle" font-size="10" fill="#6c6a64">color=error</text>
+      <!-- Second row -->
+      <rect x="310" y="95" width="130" height="60" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="375" y="122" text-anchor="middle" font-size="13" font-weight="600" fill="#141413">📋 AppBar</text>
+      <text x="375" y="140" text-anchor="middle" font-size="10" fill="#6c6a64">bg=primaryContainer</text>
+
+      <rect x="460" y="95" width="130" height="60" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="525" y="122" text-anchor="middle" font-size="13" font-weight="600" fill="#141413">🔗 链接文字</text>
+      <text x="525" y="140" text-anchor="middle" font-size="10" fill="#6c6a64">color=secondary</text>
+
+      <rect x="610" y="95" width="130" height="60" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="675" y="122" text-anchor="middle" font-size="13" font-weight="600" fill="#141413">🔴 LIVE徽标</text>
+      <text x="675" y="140" text-anchor="middle" font-size="10" fill="#6c6a64">color=coral</text>
+      <!-- Key insight -->
+      <text x="420" y="190" text-anchor="middle" font-size="11" fill="#8e8b82">↑ 所有组件自动从令牌取值，改一处令牌值 → 全局统一换色</text>
+    </svg>
+    <div class="diagram-caption">▲ 设计令牌一次定义、全局生效：改 primary 的颜色值，所有按钮、链接、图标自动跟变</div>
+  </div>
+  <h3 style="margin-top:32px;">本项目的实际配色</h3>
+  <table class="comp-table">
+    <thead><tr><th>用途</th><th>色值</th><th>出现位置</th></tr></thead>
+    <tbody>
+      <tr><td>主色</td><td><code>#17171C</code></td><td>按钮、标题文字、重要图标</td></tr>
+      <tr><td>辅色</td><td><code>#1863DC</code></td><td>链接文字、播放中蓝色高亮、INFO 标签</td></tr>
+      <tr><td>强调色</td><td><code>#FF7759</code></td><td>LIVE 直播徽标、WARN 警告标签</td></tr>
+      <tr><td>AppBar 背景</td><td><code>#003C33</code></td><td>顶栏底色</td></tr>
+      <tr><td>输入框焦点</td><td><code>#9B60AA</code></td><td>点输入框时，边框变这个颜色</td></tr>
+      <tr><td>卡片圆角</td><td>22px</td><td>所有卡片的统一圆角</td></tr>
+      <tr><td>按钮圆角</td><td>32px</td><td>所有按钮的统一药丸形</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- 08 设置持久化 -->
+<section class="section" id="settings">
+<div class="container">
+  <h2>08 · 设置持久化</h2>
+  <div class="know-box"><div class="know-box-head">📖 内存 vs 硬盘——数据存在哪？</div><p><strong>内存（RAM）：</strong>运行中的程序数据存在这里。极快（纳秒级读写），但<strong>断电就没了</strong>。App 一关，内存被回收，数据全清。<strong>硬盘/闪存（Disk/Flash）：</strong>永久存储。写起来比内存慢，但<strong>关机关 App 都不丢</strong>。<strong>持久化</strong>就是把数据从"一关就丢"的内存搬到"关了还在"的硬盘上。</p></div>
+  <!-- SVG: RAM vs Disk -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 800 175" width="800" height="175" xmlns="http://www.w3.org/2000/svg">
+      <!-- RAM -->
+      <rect x="15" y="15" width="240" height="135" rx="10" fill="#ffe8e0" stroke="#c64545" stroke-width="1.5"/>
+      <text x="135" y="42" text-anchor="middle" font-size="22">⚡</text>
+      <text x="135" y="65" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="14" font-weight="600" fill="#141413">内存 RAM</text>
+      <text x="135" y="85" text-anchor="middle" font-size="12" fill="#6c6a64">速度：极快（纳秒级）</text>
+      <text x="135" y="105" text-anchor="middle" font-size="12" fill="#c64545">致命弱点：断电即丢</text>
+      <text x="135" y="125" text-anchor="middle" font-size="11" fill="#8e8b82">App关闭 → 数据全部清空</text>
+      <text x="135" y="143" text-anchor="middle" font-size="11" fill="#8e8b82">用户填的配置全没了 ✗</text>
+      <!-- Arrow -->
+      <text x="275" y="95" text-anchor="middle" font-size="22" fill="#cc785c">→</text>
+      <text x="275" y="115" text-anchor="middle" font-size="10" fill="#a9583e">持久化</text>
+      <text x="275" y="130" text-anchor="middle" font-size="10" fill="#a9583e">写入</text>
+      <!-- Disk -->
+      <rect x="310" y="15" width="240" height="135" rx="10" fill="#e8f5f0" stroke="#5db8a6" stroke-width="1.5"/>
+      <text x="430" y="42" text-anchor="middle" font-size="22">💾</text>
+      <text x="430" y="65" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="14" font-weight="600" fill="#141413">硬盘/闪存 Disk</text>
+      <text x="430" y="85" text-anchor="middle" font-size="12" fill="#6c6a64">速度：比内存慢</text>
+      <text x="430" y="105" text-anchor="middle" font-size="12" fill="#2d7d6c">优势：永久保存</text>
+      <text x="430" y="125" text-anchor="middle" font-size="11" fill="#8e8b82">关机、关App → 数据还在</text>
+      <text x="430" y="143" text-anchor="middle" font-size="11" fill="#8e8b82">下次打开App配置全在 ✓</text>
+      <!-- Bottom: SharedPreferences -->
+      <rect x="570" y="15" width="215" height="135" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="677" y="48" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">SharedPreferences</text>
+      <text x="677" y="70" text-anchor="middle" font-size="11" fill="#6c6a64">Flutter内置</text>
+      <text x="677" y="90" text-anchor="middle" font-size="11" fill="#6c6a64">"共享偏好存储"</text>
+      <line x1="590" y1="100" x2="765" y2="100" stroke="#e6dfd8" stroke-width="1"/>
+      <text x="677" y="118" text-anchor="middle" font-size="10" fill="#8e8b82">gateway_url → "http://..."</text>
+      <text x="677" y="134" text-anchor="middle" font-size="10" fill="#8e8b82">theme_mode → "dark"</text>
+      <text x="677" y="150" text-anchor="middle" font-size="10" fill="#8e8b82">app → "live"</text>
+    </svg>
+    <div class="diagram-caption">▲ 持久化的本质：把数据从"一关就没"的内存转移到"关了还在"的硬盘。SharedPreferences 是 Flutter 内置的小数据存储方案</div>
+  </div>
+  <div class="know-box"><div class="know-box-head">📖 键值对存储（Key-Value）是什么？</div><p>最简单的数据存储方式。每条数据由<strong>名字</strong>（键）和<strong>内容</strong>（值）组成。存：把键"gateway_url"对应的值存为"http://192.168.1.100:9000"。取：给我键"gateway_url"对应的值。极快、极简单，适合少量配置信息。数据量大应该用数据库。<strong>SharedPreferences</strong> 就是 Flutter 和 Android 内置的键值对存储。</p></div>
+  <h3 style="margin-top:32px;">本项目的存储设计</h3>
+  <p style="color:var(--text-muted);"><strong>自动保存：</strong>每次用户打字，Flutter 监听机制自动触发保存。<strong>启动恢复：</strong>App 启动时读出所有值，填回界面。存储7个数据：<code>input_mode</code>、<code>gateway_url</code>、<code>app</code>、<code>stream</code>、<code>protocol</code>、<code>direct_url</code>、<code>theme_mode</code>。</p>
+</div>
+</section>
+
+<!-- 09 日志 -->
+<section class="section section-alt" id="logging">
+<div class="container">
+  <h2>09 · 日志系统</h2>
+  <div class="know-box"><div class="know-box-head">📖 什么是日志？为什么需要它？</div><p>日志就是程序在运行过程中写的<strong>流水账</strong>——"14:32:05 用户点击了播放"、"14:32:07 连接失败，原因是网络不通"。核心作用是<strong>事后排查</strong>——出了问题回头看日志就知道"到底发生了什么、在哪一步出的事"。没有日志只能瞎猜。飞机上的"黑匣子"就是飞行日志——出事后调查员靠它还原事发经过。</p></div>
+  <p style="margin-top:24px;color:var(--text-muted);">日志面板位于 App 底部。每条日志含：时间戳、级别（INFO/WARN/ERROR）、消息内容。三个来源：用户操作、播放器状态变化、错误事件。管理：上限200条、自动滚动、一键复制、一键清空、实时级别统计。</p>
+</div>
+</section>
+
+<!-- 10 播放器控件 -->
+<section class="section" id="player-controls">
+<div class="container">
+  <h2>10 · 播放器控件设计</h2>
+  <div class="know-box"><div class="know-box-head">📖 点播 vs 直播——为什么影响控件设计？</div><p><strong>点播（VOD）：</strong>视频是一个<strong>已经录制好的完整文件</strong>，有明确的总时长（比如10分30秒），你可以拖进度条跳到第5分钟——因为第5分钟的内容已经存在了。<strong>直播（Live Streaming）：</strong>画面正在实时产生。第5分钟的内容现在还<strong>不存在</strong>（还没发生），你当然没法跳过去。本项目是直播——进度条完全没用，只会误导用户。所以关了进度条、拖拽手势、双击快进。</p></div>
+  <!-- SVG: VOD vs Live timeline comparison -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 235" width="820" height="235" xmlns="http://www.w3.org/2000/svg">
+      <!-- VOD section -->
+      <text x="20" y="22" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">📼 点播（VOD）—— 录好的文件</text>
+      <rect x="20" y="34" width="780" height="18" rx="4" fill="#efe9de" stroke="#e6dfd8"/>
+      <rect x="20" y="34" width="780" height="18" rx="4" fill="#5db8a6" opacity="0.3"/>
+      <text x="50" y="47" font-size="10" fill="#2d7d6c">0:00</text>
+      <text x="380" y="47" text-anchor="middle" font-size="10" fill="#6c6a64">全部内容已存在（已录制完成）</text>
+      <text x="740" y="47" text-anchor="end" font-size="10" fill="#2d7d6c">10:30</text>
+      <!-- Slider -->
+      <circle cx="310" cy="43" r="9" fill="#fff" stroke="#5db8a6" stroke-width="2"/>
+      <text x="310" y="72" text-anchor="middle" font-size="10" fill="#2d7d6c">可跳到任意位置</text>
+      <text x="310" y="86" text-anchor="middle" font-size="10" fill="#2d7d6c">（第5分钟的内容已经存在）</text>
+      <!-- Scrub arrows -->
+      <text x="195" y="67" font-size="12" fill="#5db8a6">◀━━━</text>
+      <text x="390" y="67" font-size="12" fill="#5db8a6">━━━▶</text>
+      <!-- App behavior -->
+      <text x="410" y="72" text-anchor="middle" font-size="10" fill="#8e8b82">App：显示进度条 ✅</text>
+      <text x="410" y="86" text-anchor="middle" font-size="10" fill="#8e8b82">允许拖拽 ✅</text>
+
+      <!-- Divider -->
+      <line x1="20" y1="110" x2="800" y2="110" stroke="#e6dfd8" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- Live section -->
+      <text x="20" y="138" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">🔴 直播（Live）—— 实时产生</text>
+      <rect x="20" y="150" width="780" height="18" rx="4" fill="#efe9de" stroke="#e6dfd8"/>
+      <!-- Filled part (already happened) -->
+      <rect x="20" y="150" width="280" height="18" rx="4" fill="#cc785c" opacity="0.2"/>
+      <text x="50" y="163" font-size="10" fill="#a9583e">0:00</text>
+      <text x="190" y="163" text-anchor="middle" font-size="10" fill="#a9583e">已发生的（可以回看但意义不大）</text>
+      <!-- Live indicator -->
+      <circle cx="310" cy="159" r="8" fill="#cc785c"/>
+      <circle cx="310" cy="159" r="8" fill="none" stroke="#cc785c" stroke-width="1.5">
+        <animate attributeName="r" from="8" to="16" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" from="0.5" to="0" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+      <text x="310" y="188" text-anchor="middle" font-size="10" font-weight="600" fill="#cc785c">← 当前时刻</text>
+      <!-- Unfilled (future) -->
+      <text x="560" y="163" text-anchor="middle" font-size="10" fill="#6c6a64">未来的（还没发生，不存在）</text>
+      <text x="310" y="205" text-anchor="middle" font-size="10" fill="#c64545">进度条无用——不能跳到"还没发生"的时间点</text>
+      <!-- App behavior -->
+      <text x="680" y="188" text-anchor="middle" font-size="10" fill="#8e8b82">App：隐藏进度条 ❌</text>
+      <text x="680" y="205" text-anchor="middle" font-size="10" fill="#8e8b82">禁拖拽 ❌ 禁双击快进 ❌</text>
+    </svg>
+    <div class="diagram-caption">▲ 点播 vs 直播的本质区别：点播的全部内容都已存在，直播的未来部分还不存在。这决定了控件要不要进度条</div>
+  </div>
+  <table class="comp-table" style="margin-top:24px;">
+    <thead><tr><th style="width:25%">平台</th><th style="width:37.5%">按钮</th><th style="width:37.5%">为什么</th></tr></thead>
+    <tbody><tr><td><strong>Windows 桌面</strong></td><td>播放/暂停 + 音量 + 全屏</td><td>屏幕大，鼠标精确，多放几个不拥挤</td></tr><tr><td><strong>Android 手机</strong></td><td>仅全屏按钮</td><td>屏幕小，手指粗，多了容易误触</td></tr></tbody>
+  </table>
+</div>
+</section>
+
+<!-- 11 错误处理 -->
+<section class="section section-alt" id="errors">
+<div class="container">
+  <h2>11 · 错误处理</h2>
+  <p style="color:var(--text-muted);">项目覆盖了7种可能出错的场景——每种都在出问题之前检查，或出问题之后捕获，给用户清晰的提示。</p>
+  <table class="comp-table" style="margin-top:20px;">
+    <thead><tr><th>什么错了</th><th>怎么发现的</th><th>告诉用户什么</th></tr></thead>
+    <tbody>
+      <tr><td>填的信息不完整</td><td>发请求前检查</td><td>"请填写服务地址、App、Stream"</td></tr>
+      <tr><td>网址为空</td><td>播放前检查</td><td>"请输入播放地址"</td></tr>
+      <tr><td>Service 返回错误（如404）</td><td>看 HTTP 状态码</td><td>"gateway 响应 404: ..."</td></tr>
+      <tr><td>Service 回了乱码</td><td>解析时验证格式</td><td>"响应格式无效"</td></tr>
+      <tr><td>想要的协议没有地址</td><td>检查字段是否空</td><td>"响应中缺少 playHttpFlv"</td></tr>
+      <tr><td>Web 环境用了 FLV/RTMP</td><td>检测网址特征</td><td>"Web环境不支持，请切换 HLS"</td></tr>
+      <tr><td>播放引擎启动失败</td><td>try-catch 抓异常</td><td>"播放失败: 具体原因"</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- 12 跨平台 -->
+<section class="section" id="cross-platform">
+<div class="container">
+  <h2>12 · 跨平台策略</h2>
+  <div class="know-box"><div class="know-box-head">📖 什么是"平台"？为什么跨平台是件大事？</div><p>一部 Android 手机和一台 Windows 电脑，底层是完全不同的<strong>操作系统</strong>——管理硬件的最底层软件。不同操作系统有不同的"规矩"：Android 用 Linux 内核+Kotlin，Windows 用 NT 内核+C++，浏览器用 JavaScript 引擎。传统做法是一个 App 写三遍，Flutter 的做法是写一遍 Dart，编译工具分别翻译成各平台的原生机器指令——这就是跨平台的核心价值。</p></div>
+  <table class="comp-table" style="margin-top:24px;">
+    <thead><tr><th>平台</th><th>支持度</th><th>怎么编译的</th><th>限制</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Windows</strong></td><td class="check">✅</td><td>Dart→原生x64 + C++用CMake</td><td>无</td></tr>
+      <tr><td><strong>Android</strong></td><td class="check">✅</td><td>Dart→ARM64 + Gradle打包</td><td>需允许明文HTTP</td></tr>
+      <tr><td><strong>Web</strong></td><td>⚠️</td><td>Dart→JavaScript</td><td>不支持FLV/RTMP</td></tr>
+      <tr><td><strong>iOS</strong></td><td class="cross">❌</td><td>—</td><td>未配置iOS编译</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box warn" style="margin-top:24px;"><strong>Android 明文 HTTP 配置：</strong>2018年 Android 9 开始要求 App 默认用 HTTPS 加密，HTTP 明文被拦截——防范公共 WiFi 下数据被窃取。但本项目是局域网内部使用，流媒体服务没有 HTTPS 证书。所以配置文件中声明 <code>android:usesCleartextTraffic="true"</code>——仅本 App 豁免，不影响其他 App。</div>
+</div>
+</section>
+
+<!-- 13 构建发布 -->
+<section class="section section-alt" id="build">
+<div class="container">
+  <h2>13 · 构建与发布</h2>
+  <div class="know-box"><div class="know-box-head">📖 什么是"构建"？源代码怎么变成能装的 App？</div><p>程序员写的代码（Dart、C++、Kotlin）是<strong>人类可读的文本</strong>。但手机芯片只懂<strong>机器码</strong>（0和1组成的硬件指令）。<strong>构建</strong>就是通过<strong>编译器</strong>把人类可读代码翻译成机器码。Flutter 的构建分两步：先编译 Dart → 各平台原生机器指令，再调用各平台打包工具压成安装包。</p></div>
+  <!-- SVG: Build pipeline -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 880 170" width="880" height="170" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="buildArr" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4 Z" fill="#cc785c"/></marker></defs>
+      <rect x="10" y="20" width="150" height="110" rx="10" fill="#fff3ef" stroke="#cc785c" stroke-width="1.5"/>
+      <text x="85" y="50" text-anchor="middle" font-size="22">📝</text>
+      <text x="85" y="73" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">源代码</text>
+      <text x="85" y="93" text-anchor="middle" font-size="11" fill="#6c6a64">Dart / C++ / Kotlin</text>
+      <text x="85" y="113" text-anchor="middle" font-size="10" fill="#8e8b82">人类可读文本 ~1400行</text>
+      <line x1="165" y1="75" x2="205" y2="75" stroke="#cc785c" stroke-width="2" marker-end="url(#buildArr)"/>
+      <rect x="210" y="25" width="140" height="100" rx="10" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="280" y="55" text-anchor="middle" font-size="20">⚙️</text>
+      <text x="280" y="78" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">构建工具链</text>
+      <text x="280" y="98" text-anchor="middle" font-size="11" fill="#6c6a64">编译器 + 打包器</text>
+      <text x="280" y="115" text-anchor="middle" font-size="10" fill="#8e8b82">一条命令自动完成</text>
+      <line x1="355" y1="75" x2="395" y2="75" stroke="#cc785c" stroke-width="2" marker-end="url(#buildArr)"/>
+      <rect x="400" y="10" width="130" height="50" rx="8" fill="#e8f5f0" stroke="#5db8a6" stroke-width="1"/>
+      <text x="465" y="32" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">Windows .zip</text>
+      <text x="465" y="48" text-anchor="middle" font-size="10" fill="#6c6a64">桌面安装包</text>
+      <rect x="540" y="10" width="130" height="50" rx="8" fill="#e8f5f0" stroke="#5db8a6" stroke-width="1"/>
+      <text x="605" y="32" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">Android .apk</text>
+      <text x="605" y="48" text-anchor="middle" font-size="10" fill="#6c6a64">侧载安装包</text>
+      <rect x="680" y="10" width="130" height="50" rx="8" fill="#e8f5f0" stroke="#5db8a6" stroke-width="1"/>
+      <text x="745" y="32" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">Android .aab</text>
+      <text x="745" y="48" text-anchor="middle" font-size="10" fill="#6c6a64">Play商店上架</text>
+      <rect x="430" y="75" width="130" height="45" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="495" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">checksums.txt</text>
+      <text x="495" y="111" text-anchor="middle" font-size="10" fill="#6c6a64">SHA256 数字指纹</text>
+      <rect x="570" y="75" width="160" height="45" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="650" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">release-notes.md</text>
+      <text x="650" y="111" text-anchor="middle" font-size="10" fill="#6c6a64">发布说明模板</text>
+      <text x="440" y="160" text-anchor="middle" font-size="10" fill="#8e8b82">↑ 一条命令 → 5个产物，集中输出到 dist/ 目录</text>
+    </svg>
+    <div class="diagram-caption">▲ 构建流水线：源代码 → 编译+打包 → 5个产物自动输出</div>
+  </div>
+  <div class="know-box"><div class="know-box-head">📖 APK vs AAB 的区别</div><p><strong>APK：</strong>传统格式，包含所有资源，能直接传到手机上安装（侧载），不需要商店。坏处是包很大——包含了用不上的资源。<strong>AAB：</strong>2018年 Google 推出，是一个"零件清单"——从 Play 商店下载时，Google 根据你的具体手机型号动态组装最优包。AAB 不能直接安装，必须通过商店。</p></div>
+  <div class="know-box"><div class="know-box-head">📖 SHA256 校验是什么？</div><p><strong>哈希算法：</strong>一种数学函数——输入任意数据，输出固定长度的"指纹"。同一文件指纹始终相同；文件哪怕只改一个字节，指纹就完全不同。<strong>SHA256</strong> 是一种广泛使用的哈希算法，输出64个十六进制字符。发布软件时附带 SHA256 指纹，下载者可验证文件是否完好无损。</p></div>
+  <div class="code-block">
+<span class="cmt"># 一键构建 Windows + Android 发布包</span>
+powershell -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
+
+<span class="cmt"># 产物输出到 dist/ 目录：</span>
+<span class="cmt">#   fplayer-ff-mobile-windows.zip   → Windows 桌面版</span>
+<span class="cmt">#   fplayer-ff-mobile-android.apk   → Android 侧载安装包</span>
+<span class="cmt">#   fplayer-ff-mobile-android.aab   → Google Play 上架包</span>
+<span class="cmt">#   checksums.txt                   → SHA256 校验文件</span>
+  </div>
+  <h3 style="margin-top:32px;">Android 签名</h3>
+  <p style="color:var(--text-muted);">Android 要求安装包必须经过<strong>数字签名</strong>——用开发者的私钥加密标记，证明"这个包确实是我做的，中途没被掉包"。有正式密钥则正式签名（能上架商店）；没有则用 Debug 签名（仅内部测试，不能上架）。</p>
+</div>
+</section>
+
+<!-- 14 权限安全 -->
+<section class="section" id="security">
+<div class="container">
+  <h2>14 · 权限与安全</h2>
+  <div class="know-box"><div class="know-box-head">📖 Android 权限系统——为什么 App 要"申请"才能联网？</div><p>Android 设计了<strong>权限机制</strong>：每个 App 安装前必须声明自己要用哪些敏感功能（联网、摄像头、定位……）。用户在安装时就能看到并判断是否合理。INTERNET 权限是最基础的——允许 App 发起网络连接。在配置文件中写 <code>&lt;uses-permission android:name="android.permission.INTERNET"/&gt;</code>。</p></div>
+  <div class="know-box"><div class="know-box-head">📖 NAT（网络地址转换）——为什么外面看不到你家里设备？</div><p>路由器给每台设备分一个<strong>私有 IP</strong>（如 192.168.x.x），只在局域网内有效——出了路由器没人认识。路由器对外只暴露一个<strong>公网 IP</strong>。这个机制叫 <strong>NAT</strong>，天然形成安全隔离——外部攻击者无法主动连接你局域网里的设备，因为不知道地址。本项目的所有视频数据都在局域网内传输，外部接触不到。</p></div>
+  <!-- SVG: NAT / LAN security diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 210" width="820" height="210" xmlns="http://www.w3.org/2000/svg">
+      <!-- LAN area -->
+      <rect x="20" y="15" width="380" height="170" rx="14" fill="#f5f0e8" stroke="#e6dfd8" stroke-width="2"/>
+      <text x="210" y="38" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">🏠 你的局域网（私有 IP 段 192.168.x.x）</text>
+      <!-- Devices inside LAN -->
+      <rect x="45" y="55" width="100" height="65" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="95" y="80" text-anchor="middle" font-size="18">🖥️</text>
+      <text x="95" y="100" text-anchor="middle" font-size="11" font-weight="600" fill="#141413">Desktop</text>
+      <text x="95" y="114" text-anchor="middle" font-size="9" fill="#6c6a64">192.168.1.5</text>
+
+      <rect x="160" y="55" width="100" height="65" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
+      <text x="210" y="80" text-anchor="middle" font-size="18">⚙️</text>
+      <text x="210" y="100" text-anchor="middle" font-size="11" font-weight="600" fill="#141413">Service</text>
+      <text x="210" y="114" text-anchor="middle" font-size="9" fill="#6c6a64">192.168.1.6</text>
+
+      <rect x="275" y="55" width="100" height="65" rx="8" fill="#fff3ef" stroke="#cc785c" stroke-width="1.5"/>
+      <text x="325" y="80" text-anchor="middle" font-size="18">📱</text>
+      <text x="325" y="100" text-anchor="middle" font-size="11" font-weight="600" fill="#141413">Mobile</text>
+      <text x="325" y="114" text-anchor="middle" font-size="9" fill="#6c6a64">192.168.1.8</text>
+      <!-- Internal flow -->
+      <text x="95" y="130" text-anchor="middle" font-size="9" fill="#2d7d6c">视频数据在</text>
+      <text x="95" y="142" text-anchor="middle" font-size="9" fill="#2d7d6c">局域网内</text>
+      <text x="95" y="154" text-anchor="middle" font-size="9" fill="#2d7d6c">直接传输</text>
+      <line x1="145" y1="142" x2="155" y2="142" stroke="#5db8a6" stroke-width="1.5"/>
+      <line x1="260" y1="142" x2="270" y2="142" stroke="#5db8a6" stroke-width="1.5"/>
+
+      <!-- Router / NAT -->
+      <rect x="40" y="170" width="340" height="22" rx="6" fill="#e8e0d2" stroke="#d9d2c4"/>
+      <text x="210" y="185" text-anchor="middle" font-size="10" fill="#6c6a64">路由器（NAT：私有 IP ↔ 公网 IP 转换）公网 IP：203.0.113.5</text>
+
+      <!-- Internet side -->
+      <rect x="430" y="15" width="370" height="170" rx="14" fill="#ffe8e0" stroke="#c64545" stroke-width="1" stroke-dasharray="6,3"/>
+      <text x="615" y="38" text-anchor="middle" font-family="Body Sans,Inter,sans-serif" font-size="13" font-weight="600" fill="#141413">🌐 互联网（公网）</text>
+      <!-- Attacker -->
+      <rect x="520" y="60" width="100" height="50" rx="8" fill="#fff" stroke="#c64545" stroke-width="1"/>
+      <text x="570" y="82" text-anchor="middle" font-size="16">👤</text>
+      <text x="570" y="98" text-anchor="middle" font-size="10" fill="#c64545">外部攻击者</text>
+      <!-- Cross / blocked -->
+      <text x="630" y="90" text-anchor="middle" font-size="22" fill="#c64545">✕</text>
+      <rect x="650" y="55" width="130" height="60" rx="8" fill="#fff" stroke="#8e8b82"/>
+      <text x="715" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="#141413">无法访问</text>
+      <text x="715" y="96" text-anchor="middle" font-size="10" fill="#6c6a64">192.168.x.x</text>
+      <text x="715" y="110" text-anchor="middle" font-size="10" fill="#8e8b82">是私有地址</text>
+      <!-- Safe zone -->
+      <text x="570" y="155" text-anchor="middle" font-size="11" font-weight="600" fill="#2d7d6c">✅ 安全：外部看不到内网设备</text>
+      <text x="570" y="173" text-anchor="middle" font-size="10" fill="#6c6a64">只能看到路由器的公网IP</text>
+      <text x="570" y="188" text-anchor="middle" font-size="10" fill="#6c6a64">但不知道后面有什么设备</text>
+    </svg>
+    <div class="diagram-caption">▲ NAT 安全隔离：局域网内的私有 IP 对外部完全不可见。攻击者只能看到路由器的公网 IP，无法主动连接内网设备</div>
+  </div>
+  <h3 style="margin-top:32px;">如果需要远程观看怎么办？</h3>
+  <p style="color:var(--text-muted);">不要把流媒体端口直接暴露到公网——全世界都能扫到。安全做法是用 <strong>VPN</strong>（虚拟专用网络）——在公网上建立一条加密隧道，让远程设备"虚拟地"接入你的局域网，获得局域网内的虚拟 IP，就可以像在本地一样访问所有内网资源。</p>
+</div>
+</section>
+
+<!-- Footer — warm, no black -->
+<footer class="footer">
+  <div class="container">
+    <p style="margin-bottom:8px;">fplayer-ff-mobile 技术全解 · 14个功能模块 · 逐词解释</p>
+    <p style="font-size:13px;">基于 Anthropic / Claude 设计系统 · 支持浅色/深色主题 · 2026年5月</p>
+  </div>
+</footer>
+
+<button class="back-to-top" id="backToTop">↑</button>
+
+<script>
+const html=document.documentElement;
+const themeToggle=document.getElementById('themeToggle');
+const getTheme=()=>html.getAttribute('data-theme');
+function updateToggleButton(){themeToggle.innerHTML=getTheme()==='dark'?'浅色':'深色';}
+themeToggle.addEventListener('click',()=>{const n=getTheme()==='dark'?'light':'dark';html.setAttribute('data-theme',n);localStorage.setItem('fplayer-tutorial-theme',n);updateToggleButton();});
+const saved=localStorage.getItem('fplayer-tutorial-theme');if(saved){html.setAttribute('data-theme',saved);}updateToggleButton();
+
+const progressBar=document.getElementById('scrollProgress');
+window.addEventListener('scroll',()=>{const dH=document.documentElement.scrollHeight-window.innerHeight;if(dH>0)progressBar.style.width=(window.scrollY/dH)*100+'%';});
+
+const backToTop=document.getElementById('backToTop');
+window.addEventListener('scroll',()=>backToTop.classList.toggle('visible',window.scrollY>600));
+backToTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+const sections=document.querySelectorAll('section[id]');
+const navLinks=document.querySelectorAll('.nav-modules a');
+window.addEventListener('scroll',()=>{let c='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-120)c=s.id;});navLinks.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+c));});
+
+const observer=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
+document.querySelectorAll('.card,.protocol-card,.arch-layer,.step-item,.info-box,.know-box').forEach(el=>{el.classList.add('fade-in');observer.observe(el);});
+</script>
+</body>
+</html>
