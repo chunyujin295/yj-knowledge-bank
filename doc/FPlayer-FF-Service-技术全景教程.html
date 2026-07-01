@@ -998,12 +998,12 @@ segRetain=5           <span class="cmt"># 磁盘保留 5 个片段</span></div>
 <script>
 (function() {
   var html = document.documentElement;
-  var saved = localStorage.getItem('fplayer-tutorial-theme');
+  var saved = localStorage.getItem('theme');
   if (saved === 'dark') html.setAttribute('data-theme', 'dark');
   else if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) html.setAttribute('data-theme', 'dark');
   document.getElementById('themeToggle').addEventListener('click', function() {
     var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next); localStorage.setItem('fplayer-tutorial-theme', next);
+    html.setAttribute('data-theme', next); localStorage.setItem('theme', next);
   });
 })();
 (function() {

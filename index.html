@@ -30,6 +30,48 @@
   --radius-sm: 8px;
 }
 
+[data-theme="dark"] {
+  --bg: #0F172A;
+  --bg-card: #1E293B;
+  --text: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --border: #334155;
+  --primary: #60A5FA;
+  --primary-light: #1E3A5F;
+  --secondary: #A78BFA;
+  --secondary-light: #2E1065;
+  --accent: #FB923C;
+  --accent-light: #431407;
+  --success: #34D399;
+  --success-light: #064E3B;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F172A;
+    --bg-card: #1E293B;
+    --text: #E2E8F0;
+    --text-secondary: #94A3B8;
+    --border: #334155;
+    --primary: #60A5FA;
+    --primary-light: #1E3A5F;
+    --secondary: #A78BFA;
+    --secondary-light: #2E1065;
+    --accent: #FB923C;
+    --accent-light: #431407;
+    --success: #34D399;
+    --success-light: #064E3B;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+  }
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   background: var(--bg);
@@ -42,9 +84,7 @@ body {
 
 /* ===== Navigation ===== */
 .nav {
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -108,6 +148,14 @@ body {
   color: #fff;
   border-color: var(--text);
 }
+
+.theme-toggle {
+  background: none; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer;
+  font-size: 1rem; padding: 6px 10px; line-height: 1;
+  color: var(--text-secondary); transition: all 0.2s;
+}
+.theme-toggle:hover { background: var(--bg); color: var(--primary); }
 
 /* ===== Hero ===== */
 .hero {
@@ -252,6 +300,7 @@ body {
       <li><a href="doc/llm-tutorial.html">LLM 入门</a></li>
       <li><a href="doc/设计模式完全指南.html">设计模式</a></li>
       <li><a href="doc/network-tutorial.html">网络基础</a></li>
+      <li><button class="theme-toggle" id="themeToggle" title="切换深色模式">🌙</button></li>
       <li><a class="gh-link" href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
         GitHub
@@ -355,5 +404,20 @@ body {
   </p>
 </footer>
 
+<script>
+(()=>{
+  const h=document.documentElement, b=document.getElementById('themeToggle');
+  const s=localStorage.getItem('theme');
+  if(s==='dark'){h.setAttribute('data-theme','dark');b.textContent='☀️';}
+  else if(s==='light'){h.setAttribute('data-theme','light');b.textContent='🌙';}
+  b.addEventListener('click',()=>{
+    if(h.getAttribute('data-theme')==='dark'){
+      h.setAttribute('data-theme','light');localStorage.setItem('theme','light');b.textContent='🌙';
+    }else{
+      h.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');b.textContent='☀️';
+    }
+  });
+})();
+</script>
 </body>
 </html>

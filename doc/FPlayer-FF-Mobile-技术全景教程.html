@@ -215,7 +215,7 @@ p code,li code,dd code,td code,.info-box code,.step-content code{font-family:'Je
       <a href="#player-controls">播放控件</a><a href="#errors">错误处理</a>
       <a href="#cross-platform">跨平台</a><a href="#build">构建发布</a><a href="#security">权限安全</a>
     </div>
-    <button class="theme-toggle" id="themeToggle">深色</button>
+    <button class="theme-toggle" id="themeToggle" title="切换深色模式">🌙</button>
   </div>
 </nav>
 
@@ -1118,9 +1118,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
 const html=document.documentElement;
 const themeToggle=document.getElementById('themeToggle');
 const getTheme=()=>html.getAttribute('data-theme');
-function updateToggleButton(){themeToggle.innerHTML=getTheme()==='dark'?'浅色':'深色';}
-themeToggle.addEventListener('click',()=>{const n=getTheme()==='dark'?'light':'dark';html.setAttribute('data-theme',n);localStorage.setItem('fplayer-tutorial-theme',n);updateToggleButton();});
-const saved=localStorage.getItem('fplayer-tutorial-theme');if(saved){html.setAttribute('data-theme',saved);}updateToggleButton();
+function updateToggleButton(){themeToggle.textContent=getTheme()==='dark'?'☀️':'🌙';}
+themeToggle.addEventListener('click',()=>{const n=getTheme()==='dark'?'light':'dark';html.setAttribute('data-theme',n);localStorage.setItem('theme',n);updateToggleButton();});
+const saved=localStorage.getItem('theme');if(saved){html.setAttribute('data-theme',saved);}
+updateToggleButton();
 
 const progressBar=document.getElementById('scrollProgress');
 window.addEventListener('scroll',()=>{const dH=document.documentElement.scrollHeight-window.innerHeight;if(dH>0)progressBar.style.width=(window.scrollY/dH)*100+'%';});

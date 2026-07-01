@@ -33,7 +33,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0F172A;
     --bg-card: #1E293B;
     --bg-card-alt: #334155;
@@ -409,7 +409,7 @@ body {
     <button data-tab="medium">中等</button>
     <button data-tab="advanced">进阶</button>
   </div>
-  <button class="theme-toggle" title="切换主题" onclick="toggleTheme()">🌓</button>
+  <button class="theme-toggle" id="themeToggle" title="切换深色模式">🌙</button>
 </nav>
 
 <!-- ===== Main Content ===== -->
@@ -2180,23 +2180,19 @@ tabButtons.forEach(btn => {
 });
 
 // ===== Theme Toggle =====
-function toggleTheme() {
-  const html = document.documentElement;
-  if (html.hasAttribute('data-theme')) {
-    html.removeAttribute('data-theme');
-    localStorage.setItem('theme', 'auto');
-  } else {
-    html.setAttribute('data-theme', 'dark');
-    localStorage.setItem('theme', 'dark');
-  }
-}
-
-// Apply saved theme
 (function() {
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
+  const h=document.documentElement, b=document.getElementById('themeToggle');
+  const s=localStorage.getItem('theme');
+  if(s==='dark'){h.setAttribute('data-theme','dark');b.textContent='☀️';}
+  else if(s==='light'){h.setAttribute('data-theme','light');b.textContent='🌙';}
+  else if(!s&&matchMedia('(prefers-color-scheme:dark)').matches){h.setAttribute('data-theme','dark');b.textContent='☀️';}
+  b.addEventListener('click',()=>{
+    if(h.getAttribute('data-theme')==='dark'){
+      h.setAttribute('data-theme','light');localStorage.setItem('theme','light');b.textContent='🌙';
+    }else{
+      h.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');b.textContent='☀️';
+    }
+  });
 })();
 
 // Manual dark mode via attribute
