@@ -169,6 +169,22 @@ body {
 
 .markdown-body blockquote p { margin: 4px 0; }
 
+/* Callout boxes (converted from [!note] / [!warning]) */
+.markdown-body .callout {
+  border-left: 4px solid;
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  margin: 16px 0;
+}
+.markdown-body .callout-note {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+.markdown-body .callout-warning {
+  background: #FFFBEB;
+  border-color: #D97706;
+}
+
 /* Code blocks */
 .markdown-body pre {
   background: var(--code-bg);
@@ -316,6 +332,21 @@ mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
     }
     if (mermaidBlocks.length > 0) {
       await mermaid.run();
+    }
+
+    // 转换 Obsidian callout 语法 [>!note] / [>!warning]
+    const blockquotes = contentEl.querySelectorAll('blockquote');
+    for (const bq of blockquotes) {
+      const p = bq.querySelector('p');
+      if (!p) continue;
+      const text = p.innerHTML;
+      let type = null;
+      if (text.startsWith('[!note]'))  type = 'note';
+      if (text.startsWith('[!warning]')) type = 'warning';
+      if (!type) continue;
+
+      bq.classList.add('callout', 'callout-' + type);
+      p.innerHTML = text.replace(/^\[!(?:note|warning)\]\s*/, '');
     }
   } catch (err) {
     contentEl.innerHTML = `<p>加载失败: ${err.message}</p>`;
