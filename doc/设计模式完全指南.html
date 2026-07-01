@@ -298,7 +298,9 @@ mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
   try {
     const res = await fetch('design-patterns/设计模式完全指南.md');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const md = await res.text();
+    let md = await res.text();
+    // 剥离 YAML frontmatter（--- ... ---）
+    md = md.replace(/^---[\s\S]*?---\n*/, '');
     contentEl.innerHTML = marked.parse(md);
     contentEl.classList.remove('loading');
     contentEl.classList.add('markdown-body');
