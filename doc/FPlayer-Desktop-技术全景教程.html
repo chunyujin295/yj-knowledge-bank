@@ -805,7 +805,7 @@ graph TD
       <li><h5><span class="tech-tag">runtime/</span> 工厂层 — ~190 行（最关键）</h5>
       <p>整个项目<strong>唯一知道所有后端存在</strong>的一层。它根据配置决定创建 FFmpeg 后端还是 Qt 后端还是 DXGI 后端。以后想加一个新后端——比如基于 GStreamer 或 MediaFoundation 的后端——只需实现 api/ 中的接口并在这一层注册，其他层完全不用动。这就是"把创建决策集中在一个地方"的价值。</p></li>
       <li><h5><span class="tech-tag">backend/</span> 后端层 — ~13,800 行（真正干活）</h5>
-      <p>五个子模块：media_ffmpeg（FFmpeg 播放/采集）、media_qt6（Qt 播放/采集）、stream_ffmpeg（推拉流，最复杂）、desktopcapture_dxgi（显卡直接抓屏，仅 Windows）、net_qt6（局域网设备发现，目前是骨架）。</p></li>
+      <p>五个子模块：media_ffmpeg（FFmpeg 播放/采集）、media_qt6（Qt 播放/采集）、stream_ffmpeg（推拉流，最复杂）、desktopcapture_dxgi（显卡直接抓屏，仅 Windows）、net_qt6（局域网设备发现，空桩，默认关闭）。</p></li>
       <li><h5><span class="tech-tag">api/</span> 接口层 — ~340 行</h5>
       <p>只有四个头文件（.h 文件——在 C++ 中用来声明"有哪些东西可以用"而不写具体实现的文件），每个定义一个纯接口。刻意不引用任何 FFmpeg 或 Qt 的内部头文件——保持接口"纯净"。因为如果接口层依赖了 FFmpeg，所有使用接口的层也会被间接传染依赖 FFmpeg，那就失去了可替换后端的意义。</p></li>
       <li><h5><span class="tech-tag">common/</span> 工具层 — ~1,200 行</h5>
@@ -920,7 +920,7 @@ flowchart TD
     <div class="card-grid">
       <div class="card"><h5>多后端架构是扩展的基础</h5><p>api/ 层定义纯虚接口（IPlayer/ICamera/IStream），backend/ 层实现具体后端。新增协议只需实现接口并注册，上层零改动。CMake 已预留 WebRTC 编译开关。</p></div>
       <div class="card"><h5>组合模式的通道架构可扩展性很强</h5><p>每个源独立通道，控制完全解耦。加字幕、水印、过渡效果就是加一个新通道，不动现有逻辑。</p></div>
-      <div class="card"><h5>"不完整"是有目的的产品取舍</h5><p>内存存会话、局域网设备发现还是骨架、无鉴权——先跑通核心链路验证价值，再逐步加固。api/ 层已为扩展预留接口。</p></div>
+      <div class="card"><h5>"不完整"是有目的的产品取舍</h5><p>内存存会话、局域网设备发现还是空桩、无鉴权——先跑通核心链路验证价值，再逐步加固。api/ 层已为扩展预留接口。</p></div>
     </section>
 
       </main>

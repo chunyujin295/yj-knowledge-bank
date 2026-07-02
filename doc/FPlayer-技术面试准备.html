@@ -350,7 +350,7 @@ common/    → 公用工具 (OpenGL渲染器)       ~1,200 行</pre>
         </li>
         <li><strong>低延迟方案：</strong>WebRTC（&lt;500ms），CMake 已预留编译开关，待后续版本实现</li>
       </ul>
-      <span class="qa-code-ref">📍 3rd/zlm/windows/config.ini — HLS 分片配置 (segDur=2, segNum=3)</span>
+      <span class="qa-code-ref">📍 fplayer-ff-service 项目 — ZLM HLS 分片配置 (segDur=2, segNum=3)</span>
     </div>
   </div></div>
 
@@ -376,7 +376,7 @@ common/    → 公用工具 (OpenGL渲染器)       ~1,200 行</pre>
     <div class="qa-q">"为什么 CaptureWindow 有 6,746 行？不觉得太长了吗？"</div>
     <div class="qa-a">
       <p>"CaptureWindow 确实偏长，因为它承担了四种模式（摄像头/屏幕/文件/合成）的所有 UI 逻辑 + 推流拉流控制 + AI 对话框 + 截图库侧栏。当时为了快速迭代，先在一个文件里实现完整功能。如果要重构，会拆成独立 Controller + 组合模式。实际上 Service 层已经用工厂模式解耦了业务逻辑，UI 层的臃肿是时间问题不是设计问题。"</p>
-      <span class="qa-code-ref">📍 widget/src/capturewindow.cpp (6746行)</span>
+      <span class="qa-code-ref">📍 widget/src/capturewindow.cpp (~6730行)</span>
     </div>
   </div></div>
 
@@ -418,7 +418,7 @@ common/    → 公用工具 (OpenGL渲染器)       ~1,200 行</pre>
         <li><strong>播放器 EOF 处理：</strong>文件播放到末尾自动从头循环</li>
         <li><strong>API 幂等：</strong>同 app+stream 名称重复调用 start 不创建重复会话</li>
       </ol>
-      <span class="qa-code-ref">📍 scripts/start-all.ps1 · gateway/main.go · kernel-console/main.go</span>
+      <span class="qa-code-ref">📍 gateway/main.go · kernel-console/main.go (fplayer-ff-service)</span>
     </div>
   </div></div>
 </section>
@@ -522,7 +522,7 @@ common/    → 公用工具 (OpenGL渲染器)       ~1,200 行</pre>
     <tr><td>"屏幕捕获"</td><td>gdigrab + DXGI Desktop Duplication</td><td>screencaptureffmpeg.cpp + DXGI</td></tr>
     <tr><td>"协议转换"</td><td>ZLM 自动 RTMP→HLS/FLV/RTSP</td><td>config.ini</td></tr>
     <tr><td>"公网穿透"</td><td>publicHost 覆盖 + FRP 端口映射</td><td>gateway/main.go publicHostOverride</td></tr>
-    <tr><td>"端口分配"</td><td>动态探测，优先 1935/8080/9000</td><td>start-all.ps1 · kernel-console</td></tr>
+    <tr><td>"端口分配"</td><td>动态探测，优先 1935/8080/9000</td><td>kernel-console/main.go (fplayer-ff-service)</td></tr>
     <tr><td>"架构分层"</td><td>api→backend→runtime→service→widget</td><td>CMakeLists.txt 子目录依赖</td></tr>
     <tr><td>"工厂模式"</td><td>RunTime 工厂按 BackendType 实例化</td><td>runtime/</td></tr>
     <tr><td>"跨平台"</td><td>CMake 自动检测编译器+平台</td><td>cmake/3rd.cmake</td></tr>
