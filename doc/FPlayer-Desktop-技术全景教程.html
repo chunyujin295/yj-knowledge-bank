@@ -8,144 +8,141 @@
 <style>
 :root {
   --primary: #cc785c; --primary-active: #a9583e;
-  --ink: #141413; --body: #3d3d3a; --body-strong: #252523;
-  --muted: #6c6a64; --muted-soft: #8e8b82;
-  --hairline: #e6dfd8; --hairline-soft: #ebe6df;
+  --accent-teal: #5db8a6; --accent-amber: #e8a55a;
   --canvas: #faf9f5; --surface-soft: #f5f0e8; --surface-card: #efe9de;
-  --surface-dark: #181715; --on-dark: #faf9f5; --on-dark-soft: #a09d96;
-  --font-display: "Tiempos Headline"
+  --surface-cream-strong: #e8e0d2; --surface-code: #f3efe6;
+  --hairline: #e6dfd8; --hairline-soft: #ebe6df;
+  --ink: #141413; --body-strong: #252523; --body: #3d3d3a;
+  --muted: #6c6a64; --muted-soft: #8e8b82;
+  --on-primary: #ffffff;
+  --code-bg: #f4f0e8; --code-text: #3d3d3a; --code-border: #e6dfd8;
+  --font-display: "Tiempos Headline","Cormorant Garamond","EB Garamond","Garamond","Times New Roman",serif;
+  --font-body: "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC",sans-serif;
+  --font-mono: "JetBrains Mono","Cascadia Code","Consolas",ui-monospace,monospace;
+  --radius-xs: 4px; --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px; --radius-pill: 9999px;
+  --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --space-xxl: 48px; --space-section: 80px;
 }
-
 [data-theme="dark"] {
-  --ink: #e8e6e3; --body: #b0ada6; --body-strong: #d4d1cb;
-  --muted: #8e8b82; --muted-soft: #706d66;
-  --hairline: #3a3732; --hairline-soft: #2d2b27;
-  --canvas: #1a1917; --surface-soft: #22211e; --surface-card: #292825;
+  --canvas: #1a1916; --surface-soft: #201f1c; --surface-card: #252320;
+  --surface-cream-strong: #2a2824; --surface-code: #252320;
+  --hairline: #2a2824; --hairline-soft: #22211e;
+  --ink: #faf9f5; --body-strong: #e8e6df; --body: #c4c1b8;
+  --muted: #8e8b82; --muted-soft: #6c6a64;
+  --code-bg: #252320; --code-text: #c4c1b8; --code-border: #2a2824;
 }
 
-.theme-toggle {
-  background: none; border: 1px solid var(--hairline);
-  border-radius: var(--radius-md); cursor: pointer;
-  font-size: 16px; padding: 4px 8px; line-height: 1;
-  transition: all 0.2s;
-}
-.theme-toggle:hover { border-color: var(--ink); }, "Cormorant Garamond", "EB Garamond", "Garamond", "Times New Roman", "PingFang SC", "Microsoft YaHei", serif;
-  --font-body: "Inter", "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", ui-monospace, monospace;
-  --radius-md: 8px; --radius-lg: 12px; --radius-pill: 9999px;
-  --spacing-xs: 8px; --spacing-sm: 12px; --spacing-md: 16px;
-  --spacing-lg: 24px; --spacing-xl: 32px; --spacing-xxl: 48px; --spacing-section: 96px;
-}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;font-size:16px;-webkit-font-smoothing:antialiased}
-body{font-family:var(--font-body);font-weight:400;line-height:1.55;color:var(--body);background:var(--canvas)}
-.global-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;background:var(--canvas);border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:center}
-.global-nav-inner{width:100%;max-width:1200px;padding:0 var(--spacing-xl);display:flex;align-items:center;justify-content:space-between}
-.nav-logo{font-size:14px;font-weight:500;color:var(--ink);text-decoration:none}
-.nav-links{display:flex;gap:24px;list-style:none}
-.nav-links a{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.2s}
-.nav-links a:hover,.nav-links a.active{color:var(--ink)}
-.sub-nav{position:fixed;top:64px;left:0;right:0;z-index:99;height:48px;background:rgba(250,249,245,0.88);backdrop-filter:saturate(180%) blur(16px);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--hairline-soft)}
-.sub-nav-inner{max-width:1200px;padding:0 var(--spacing-xl);display:flex;align-items:center;gap:24px}
-.sub-nav-title{font-family:var(--font-display);font-size:18px;font-weight:400;color:var(--ink);letter-spacing:-0.3px}
-.sub-nav-tabs{display:flex;gap:2px;list-style:none}
-.sub-nav-tabs a{display:inline-block;padding:6px 14px;font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;border-radius:var(--radius-md);transition:all 0.2s}
-.sub-nav-tabs a:hover{color:var(--ink)}.sub-nav-tabs a.active{color:var(--ink);background:var(--surface-card)}
-.hero{margin-top:112px;padding:var(--spacing-section) var(--spacing-xl);background:var(--canvas);text-align:center}
-.hero-eyebrow{display:inline-block;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--primary);margin-bottom:var(--spacing-lg)}
-.hero h1{font-family:var(--font-display);font-size:64px;font-weight:400;line-height:1.05;letter-spacing:-1.5px;margin-bottom:var(--spacing-lg);color:var(--ink)}
-.hero .tagline{font-size:18px;font-weight:400;line-height:1.4;color:var(--body);max-width:600px;margin:0 auto var(--spacing-xl)}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:var(--font-body);font-size:16px;font-weight:400;line-height:1.7;color:var(--body);background:var(--canvas);transition:background .2s,color .2s;overflow-x:hidden}
+
+h1,h2,h3{font-family:var(--font-display);font-weight:400;color:var(--ink)}
+h1{font-size:clamp(32px,5vw,48px);line-height:1.1;letter-spacing:-1px}
+h2{font-size:clamp(26px,4vw,36px);line-height:1.15;letter-spacing:-0.5px}
+h3{font-size:clamp(18px,2.5vw,22px);line-height:1.3;letter-spacing:-0.3px;margin-top:36px;margin-bottom:12px}
+h4{font-size:18px;font-weight:500;line-height:1.4;color:var(--ink);margin:32px 0 8px}
+p{margin-bottom:14px;color:var(--body);line-height:1.7}
+p:last-child{margin-bottom:0}
+a{color:var(--primary);text-decoration:none}
+a:hover{opacity:0.8}
+
+.top-nav{position:sticky;top:0;z-index:100;background:var(--canvas);height:60px;border-bottom:1px solid var(--hairline);backdrop-filter:saturate(180%) blur(16px)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:100%;gap:16px}
+.nav-brand{font-size:14px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.nav-brand:hover{color:var(--ink);opacity:1}
+.nav-title{font-family:var(--font-display);font-size:16px;color:var(--ink);letter-spacing:-0.3px}
+.theme-toggle{flex-shrink:0;background:var(--surface-card);color:var(--ink);border:1px solid var(--hairline);border-radius:var(--radius-md);padding:6px 12px;height:34px;font-size:13px;font-weight:500;cursor:pointer}
+
+.hero{text-align:center;padding:80px 24px 48px;background:var(--canvas);border-bottom:1px solid var(--hairline)}
+.hero-eyebrow{display:inline-block;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--primary);margin-bottom:12px}
+.hero h1{font-size:clamp(36px,5vw,56px);margin-bottom:16px}
+.hero .tagline{font-size:18px;color:var(--muted);max-width:600px;margin:0 auto 24px;line-height:1.5}
 .hero-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;font-size:14px;color:var(--muted)}
-.hero-meta span strong{color:var(--ink);font-weight:600}
-.section{padding:var(--spacing-section) var(--spacing-xl)}
-.section-inner{max-width:960px;margin:0 auto}
-.section-eyebrow{font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--primary);margin-bottom:var(--spacing-sm)}
-.section h2{font-family:var(--font-display);font-size:48px;font-weight:400;line-height:1.1;letter-spacing:-1px;margin-bottom:var(--spacing-lg);color:var(--ink)}
-.section h3{font-family:var(--font-display);font-size:36px;font-weight:400;line-height:1.15;letter-spacing:-0.5px;margin:var(--spacing-section) 0 var(--spacing-md);color:var(--ink)}
-.section h4{font-size:18px;font-weight:500;line-height:1.4;margin:var(--spacing-xxl) 0 var(--spacing-sm);color:var(--ink)}
-.section p{margin-bottom:var(--spacing-md);color:var(--body);line-height:1.7}
-.section .lead{font-size:18px;font-weight:500;line-height:1.4;color:var(--body-strong);margin-bottom:var(--spacing-xl)}
-.section ul,.section ol{margin:var(--spacing-md) 0 var(--spacing-md) var(--spacing-xl);color:var(--body);line-height:2}
-.surface-white{background:var(--canvas)}.surface-stone{background:var(--surface-soft)}.surface-pale-blue{background:var(--surface-card)}
-.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:var(--spacing-lg);margin:var(--spacing-xl) 0}
-.card{background:var(--surface-card);border:1px solid var(--hairline-soft);border-radius:var(--radius-lg);padding:var(--spacing-xl)}
-.card-icon{font-size:28px;margin-bottom:var(--spacing-sm);display:block}
-.card h5{font-size:18px;font-weight:500;line-height:1.4;margin-bottom:var(--spacing-xs);color:var(--ink)}
-.card p{font-size:14px;line-height:1.55;color:var(--body);margin:0}
-.concept-box{border-radius:var(--radius-lg);padding:var(--spacing-xl);margin:var(--spacing-lg) 0 var(--spacing-xl);background:var(--surface-card);border:1px solid var(--hairline)}
-.concept-box h5{font-size:16px;font-weight:600;margin-bottom:var(--spacing-xs);color:var(--ink)}
-.concept-box p{margin:0;font-size:15px;color:var(--body);line-height:1.7}
-.concept-box ul{margin:var(--spacing-sm) 0 0 var(--spacing-lg);font-size:15px;color:var(--body);line-height:1.9}
-.info-box{border-radius:var(--radius-lg);padding:var(--spacing-xl);margin:var(--spacing-xl) 0;border-left:3px solid var(--primary);background:rgba(204,120,92,0.06)}
-.info-box h5{font-size:16px;font-weight:600;margin-bottom:var(--spacing-xs);color:var(--ink)}
-.info-box p{margin:0;font-size:15px;color:var(--body);line-height:1.6}
-.fun-fact{border-radius:var(--radius-lg);padding:var(--spacing-xl);margin:var(--spacing-xl) 0;background:#fcf7f0;border:1px solid var(--hairline)}
-.fun-fact h5{font-size:16px;font-weight:600;margin-bottom:var(--spacing-xs);color:#8b5e3c}
-.fun-fact p{margin:0;font-size:15px;color:#5c3d28;line-height:1.7}
-.fun-fact a{color:var(--primary);font-weight:500}
-.quote-box{border-radius:var(--radius-lg);padding:var(--spacing-xxl);margin:var(--spacing-xl) 0;background:var(--surface-dark);color:var(--on-dark);text-align:center}
-.quote-box blockquote{font-family:var(--font-display);font-size:22px;font-weight:400;line-height:1.45;font-style:italic;margin-bottom:var(--spacing-sm);letter-spacing:-0.3px}
-.quote-box cite{font-size:13px;color:var(--on-dark-soft);font-style:normal}
-.diagram-container{margin:var(--spacing-xl) 0;padding:var(--spacing-xl);background:var(--canvas);border-radius:var(--radius-lg);border:1px solid var(--hairline);overflow-x:auto}
-.diagram-container .diagram-label{font-family:var(--font-mono);font-size:12px;font-weight:400;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted-soft);margin-bottom:var(--spacing-md)}
-.compare-table{width:100%;border-collapse:collapse;margin:var(--spacing-xl) 0;font-size:14px}
-.compare-table th{text-align:left;padding:var(--spacing-sm) var(--spacing-md);font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--hairline)}
-.compare-table td{padding:var(--spacing-sm) var(--spacing-md);border-bottom:1px solid var(--hairline-soft);color:var(--body);line-height:1.55}
+.hero-meta strong{color:var(--ink);font-weight:600}
+
+.page-layout{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:220px 1fr;gap:48px;padding:32px 32px;align-items:start}
+.sidebar{position:sticky;top:76px;border-right:1px solid var(--hairline);padding-right:24px}
+.sidebar-title{font-size:12px;font-weight:500;letter-spacing:1.5px;color:var(--muted-soft);text-transform:uppercase;margin-bottom:16px}
+.sidebar a{display:block;padding:5px 0 5px 12px;font-size:13px;color:var(--muted);text-decoration:none;border-left:2px solid transparent;line-height:1.4}
+.sidebar a:hover{color:var(--body)}
+.sidebar a.active{color:var(--primary);border-left-color:var(--primary);font-weight:500}
+.content-area{min-width:0}
+
+.func-section{margin-bottom:80px;scroll-margin-top:80px}
+.func-section:last-child{margin-bottom:0}
+.section-number{font-size:12px;font-weight:500;letter-spacing:1.5px;color:var(--muted-soft);text-transform:uppercase;margin-bottom:4px}
+.section-title{font-size:36px;font-weight:400;line-height:1.15;letter-spacing:-0.5px;color:var(--ink);margin-bottom:24px}
+
+.surface-white{background:var(--canvas)}
+.surface-stone{background:var(--surface-soft)}
+
+.concept-box{border-radius:12px;padding:24px;margin:24px 0;background:var(--surface-card);border:1px solid var(--hairline)}
+.concept-box h5{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--ink)}
+.info-box{border-radius:12px;padding:24px;margin:32px 0;border-left:3px solid var(--primary);background:rgba(204,120,92,0.06)}
+.info-box h5{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--ink)}
+.fun-fact{border-radius:12px;padding:24px;margin:32px 0;background:var(--surface-soft);border:1px solid var(--hairline)}
+.quote-box{border-radius:12px;padding:48px;margin:32px 0;background:#181715;color:#faf9f5;text-align:center}
+.quote-box blockquote{font-family:var(--font-display);font-size:22px;font-weight:400;line-height:1.45;font-style:italic;margin-bottom:12px;letter-spacing:-0.3px}
+.quote-box cite{font-size:13px;color:#a09d96;font-style:normal}
+
+.compare-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}
+.compare-table th{text-align:left;padding:12px 16px;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--hairline)}
+.compare-table td{padding:12px 16px;border-bottom:1px solid var(--hairline-soft);color:var(--body);line-height:1.55}
 .compare-table tr:last-child td{border-bottom:none}
-.compare-table .highlight-col{font-weight:600;color:var(--ink)}
-.step-list{list-style:none;counter-reset:step;margin:var(--spacing-xl) 0}
-.step-list li{counter-increment:step;position:relative;padding-left:48px;margin-bottom:var(--spacing-xl)}
-.step-list li::before{content:counter(step);position:absolute;left:0;top:0;width:32px;height:32px;background:var(--ink);color:var(--on-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500}
-.step-list h5{font-size:16px;font-weight:600;margin-bottom:var(--spacing-xxs)}
+
+.diagram-container{margin:24px auto;padding:24px;background:var(--canvas);border-radius:12px;border:1px solid var(--hairline);overflow-x:auto;text-align:center}
+.diagram-container .diagram-label{font-family:var(--font-mono);font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted-soft);margin-bottom:16px;text-align:left}
+.diagram-container pre{text-align:left;display:inline-block;max-width:100%}
+.diagram-container svg{max-width:100%;height:auto;margin:0 auto}
+.diagram-caption{font-size:13px;color:var(--muted);text-align:center;margin-top:12px;font-style:italic}
+
+.inline-img{display:block;max-width:100%;height:auto;margin:24px auto}
+.img-caption{font-size:13px;color:var(--muted);text-align:center;margin-top:8px;font-style:italic}
+.inline-svg{display:block;max-width:100%;margin:24px auto}
+
+.step-list{list-style:none;counter-reset:step;margin:24px 0}
+.step-list li{counter-increment:step;position:relative;padding-left:48px;margin-bottom:24px}
+.step-list li::before{content:counter(step);position:absolute;left:0;top:0;width:32px;height:32px;background:var(--ink);color:var(--canvas);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500}
+.step-list h5{font-size:16px;font-weight:600;margin-bottom:4px}
 .step-list p{font-size:14px;color:var(--body);margin:0;line-height:1.6}
-.tech-tag{display:inline-block;padding:4px 12px;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--primary);background:var(--surface-card);border-radius:var(--radius-pill);margin:2px}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-xl);margin:var(--spacing-xl) 0;align-items:start}
-@media(max-width:768px){.two-col{grid-template-columns:1fr}}
-.footer{background:var(--surface-dark);padding:64px var(--spacing-xl);color:var(--on-dark-soft);font-size:14px;line-height:1.55}
-.footer-inner{max-width:960px;margin:0 auto}
-.footer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--spacing-xxl);margin-bottom:var(--spacing-section)}
-.footer-col h6{font-size:14px;font-weight:500;margin-bottom:var(--spacing-sm);color:var(--on-dark)}
-.footer-col a{display:block;font-size:14px;line-height:2.2;color:var(--on-dark-soft);text-decoration:none}
-.footer-col a:hover{color:var(--on-dark)}
-.footer-bottom{border-top:1px solid rgba(255,255,255,0.08);padding-top:var(--spacing-lg);display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--spacing-sm)}
-.text-muted{color:var(--muted);font-size:13px}
-.inline-img{display:block;width:100%;height:auto;max-width:100%;margin:var(--spacing-xl) auto;border-radius:var(--radius-lg);border:1px solid var(--hairline)}
-.inline-img-sm{display:block;width:100%;height:auto;max-width:560px;margin:var(--spacing-lg) auto;border-radius:var(--radius-lg);border:1px solid var(--hairline)}
-.img-caption{text-align:center;font-size:12px;color:var(--muted);margin-top:-12px;margin-bottom:var(--spacing-xl)}
-.progress-bar{position:fixed;top:112px;left:0;height:2px;background:var(--primary);z-index:101;transition:width 0.1s linear}
-@media(max-width:1024px){.hero h1{font-size:48px}.section h2{font-size:36px}.nav-links{display:none}.section{padding:var(--spacing-section) var(--spacing-md)}.card-grid{grid-template-columns:1fr}}
-@media(max-width:640px){.hero h1{font-size:36px}.section h2{font-size:28px}.hero{padding:var(--spacing-xxl) var(--spacing-md)}}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:24px 0}
+.card{background:var(--surface-card);border:1px solid var(--hairline-soft);border-radius:12px;padding:24px}
+.card h5{font-size:17px;font-weight:500;margin-bottom:8px;color:var(--ink)}
+.card p{font-size:14px;line-height:1.55;color:var(--body);margin:0}
+.tech-tag{font-family:var(--font-mono);font-size:13px;background:var(--surface-code);color:var(--primary);padding:2px 8px;border-radius:4px;font-weight:500}
+
+code{font-family:var(--font-mono);font-size:13px;background:var(--code-bg);padding:2px 6px;border-radius:4px;color:var(--code-text)}
+pre{background:var(--code-bg);border:1px solid var(--code-border);border-radius:8px;padding:16px;font-family:var(--font-mono);font-size:13px;line-height:1.6;color:var(--code-text);overflow-x:auto;margin-bottom:16px;white-space:pre-wrap}
+
+ul,ol{margin:14px 0 14px 1.5em;color:var(--body);line-height:1.9}
+li{margin-bottom:4px}
+
+.footer{padding:48px 24px;border-top:1px solid var(--hairline);text-align:center}
+.footer p{font-size:14px;color:var(--muted)}
+.footer a{color:var(--primary)}
+
+@media (max-width: 860px) {
+  .page-layout{grid-template-columns:1fr}
+  .sidebar{position:static;border-right:none;border-bottom:1px solid var(--hairline);padding-right:0;padding-bottom:12px;margin-bottom:24px}
+  .sidebar a{display:inline-block;border-left:none;border-bottom:2px solid transparent;padding:4px 8px;margin-right:4px;font-size:12px}
+  .sidebar a.active{border-left-color:transparent;border-bottom-color:var(--primary)}
+}
 </style>
 </head>
 <body>
 
-<nav class="global-nav">
-  <div class="global-nav-inner">
-    <a href="#" class="nav-logo">FPlayer Desktop</a>
-    <ul class="nav-links">
-      <li><a href="#capture">画面采集</a></li>
-      <li><a href="#compose">画面组合</a></li>
-      <li><a href="#streaming">推流编码</a></li>
-      <li><a href="#architecture">工程架构</a></li>
-      <li><a href="#server">服务端</a></li>
-    </ul>
-    <button class="theme-toggle" id="themeToggle" title="切换深色模式">🌙</button>
-  </div>
-</nav>
 
-<div class="sub-nav">
-  <div class="sub-nav-inner">
-    <span class="sub-nav-title">技术全景教程</span>
-    <div class="sub-nav-tabs">
-      <a href="#capture" class="active">画面采集</a>
-      <a href="#compose">画面组合</a>
-      <a href="#streaming">推流编码</a>
-      <a href="#architecture">工程架构</a>
-      <a href="#server">服务端</a>
-    </div>
   </div>
 </div>
 <div class="progress-bar" id="progressBar"></div>
+
+<nav class="top-nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="../index.html">&#8592; YJ Knowledge Bank</a>
+      <span class="nav-title">FPlayer Desktop — 技术全景教程</span>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="切换主题">🌓</button>
+    </div>
+  </nav>
 
 <header class="hero">
   <div class="section-inner">
@@ -162,10 +159,22 @@ body{font-family:var(--font-body);font-weight:400;line-height:1.55;color:var(--b
 </header>
 
 <!-- ==================== 一、画面采集 ==================== -->
-<section class="section surface-white" id="capture">
-  <div class="section-inner">
-    <div class="section-eyebrow">Chapter 01</div>
-    <h2>画面从哪来</h2>
+
+<div class="page-layout">
+      <nav class="sidebar" id="sidebar">
+          <div class="sidebar-title">教程章节</div>
+            <a href="#capture">Chapter 01: 画面从哪来</a>
+            <a href="#compose">Chapter 02: 多画面怎么叠成一路</a>
+            <a href="#streaming">Chapter 03: 画面怎么到达观众</a>
+            <a href="#architecture">Chapter 04: 代码是怎么组织的</a>
+            <a href="#server">Chapter 05: 服务端在做什么</a>
+            <a href="#summary">Wrap-up: 可以用这些话介绍 FPlayer</a>
+        </nav>
+      <main class="content-area">
+
+<section class="func-section surface-white" id="capture">
+        <div class="section-number">Chapter 01</div>
+        <h2 class="section-title">画面从哪来</h2>
     <p class="lead">FPlayer 支持三种画面来源：本地视频文件、摄像头、电脑屏幕。每一种都有不同的技术实现路径。</p>
 
     <!-- ===== 数字画面是什么 ===== -->
@@ -389,15 +398,12 @@ flowchart TD
       ✓ 屏幕捕获有三种方案：Qt（简单）、FFmpeg（通用）、DXGI（最快——数据不离开显存）<br>
       ✓ 显卡有独立显存，PCIe 总线搬运数据比显存内部慢很多。DXGI 的高效来自数据全程留在显存里<br>
       ✓ 采集到的每一帧同时走预览（送去屏幕显示）和数据（放入帧总线）两条路</p>
-    </div>
-  </div>
-</section>
+    </section>
 
 <!-- ==================== 二、画面组合 ==================== -->
-<section class="section surface-stone" id="compose">
-  <div class="section-inner">
-    <div class="section-eyebrow">Chapter 02</div>
-    <h2>多画面怎么叠成一路</h2>
+<section class="func-section surface-stone" id="compose">
+        <div class="section-number">Chapter 02</div>
+        <h2 class="section-title">多画面怎么叠成一路</h2>
     <p class="lead">组合模式是 FPlayer 最具差异化的功能。多个画面来源在同一个画布上自由布局，最终合成一路视频流推出去。</p>
 
     <!-- ===== 线程 ===== -->
@@ -481,26 +487,26 @@ flowchart TD
 
     <!-- ===== 帧总线 ===== -->
     <h3>帧总线：采集和合成之间怎么交接</h3>
-    <p>采集线程每抓到一帧画面，就放进<strong>帧总线</strong>（FrameBus）——一块被多个线程共享的存储区。然后采集线程立刻回去抓下一帧，不等任何人。需要用到画面帧的其他线程（比如组合模式的合成线程，或者推流的编码线程）定期来帧总线查看：有没有新帧？有就取走，没有就过一会儿再来。</p>
+    <p>采集线程每抓到一帧画面，就放进<strong>帧总线</strong>（FrameBus）——一块被多个线程共享的存储区。然后采集线程立刻回去抓下一帧，不等任何人。需要用到画面帧的其他线程（比如组合模式中的编码/合成逻辑，或者推流的编码线程）定期来帧总线查看：有没有新帧？有就取走，没有就过一会儿再来。</p>
     <p>帧总线的设计有三个要点：</p>
     <ul>
       <li><strong>编号机制</strong>：每一帧都有一个不断增加的编号——采集线程每放一帧进来就编号加 1（第 42 帧、第 43 帧……）。取帧的线程会记住自己上次取到的是第几帧。下次来看的时候，如果编号没变（还是 42），说明没新帧，就不用白费力气。如果编号变了（现在是 43），说明新帧来了，取走。这个设计避免了重复处理同一帧。</li>
-      <li><strong>多个独立通道</strong>：实际由两套独立的帧总线组成——CameraFrameBus（摄像头帧总线）和 ScreenFrameBus（屏幕帧总线）。每套总线内部通过 <code>QHash<li><strong>多个独立通道</strong>：帧总线内部不是只有一个大箱子，而是有多个独立的"通道"——每个画面来源分一个专属通道。摄像头帧放 1 号通道，屏幕帧放 2 号通道，视频文件帧放 3 号通道。不同通道的数据完全隔离——往 1 号通道写入不会影响 2 号通道的数据。后面要讲的组合模式，合成线程会同时从多个通道取帧。</li>lt;QString, Channel<li><strong>多个独立通道</strong>：帧总线内部不是只有一个大箱子，而是有多个独立的"通道"——每个画面来源分一个专属通道。摄像头帧放 1 号通道，屏幕帧放 2 号通道，视频文件帧放 3 号通道。不同通道的数据完全隔离——往 1 号通道写入不会影响 2 号通道的数据。后面要讲的组合模式，合成线程会同时从多个通道取帧。</li>gt;</code> 按来源 ID 字符串管理多个通道（如"camera_0"、"screen_1"），不同通道的数据完全隔离。文件播放走独立的 Player 实例，不经过帧总线。后面要讲的组合模式，合成线程会同时从多个通道取帧。</li>
+      <li><strong>多个独立通道</strong>：实际由两套独立的帧总线组成——CameraFrameBus（摄像头帧总线）和 ScreenFrameBus（屏幕帧总线）。每套总线内部通过 <code>QHash&lt;QString, Channel&gt;</code> 按来源 ID 字符串管理多个通道（如"camera_0"、"screen_1"），不同通道的数据完全隔离。文件播放走独立的 Player 实例，不经过帧总线。后面要讲的组合模式，StreamFFmpeg 推流时会同从多个通道取帧。</li>
       <li><strong>线程安全</strong>：帧总线里每个通道都有一把锁。采集线程往里写之前先锁住那个通道，写完了解锁。取帧的线程也是先锁住、再读取、再解锁。锁的"粒度"很细——只在真正读写的那一瞬间锁定（通常只有几微秒），锁完了立刻释放。所以基本不会出现"一个线程干等着另一个线程"的情况。</li>
     </ul>
 
     <div class="diagram-container">
-      <div class="diagram-label">图 2 · 采集线程和合成线程通过帧总线交接</div>
+      <div class="diagram-label">图 2 · 采集线程通过帧总线与其他线程交接帧数据</div>
       <pre class="mermaid">
 sequenceDiagram
     participant CAP as 采集线程
     participant BUS as 帧总线（多通道+锁）
-    participant COMP as 合成线程
+    participant COMP as 编码/合成逻辑
     CAP->>CAP: 抓一帧 YUV 画面
-    CAP->>BUS: 锁通道1 → 写入（编号42）→ 解锁
-    Note over BUS: 通道1的新帧覆盖旧帧
+    CAP->>BUS: 锁 CameraFrameBus 通道 → 写入帧(编号42) → 解锁
+    Note over BUS: 新帧覆盖该通道旧帧
     CAP->>CAP: 立刻去抓下一帧
-    COMP->>BUS: 锁通道1 → 编号42 > 上次41？→ 拷贝 → 解锁
+    COMP->>BUS: 锁通道 → 检查编号(42 > 上次41?)→ 拷贝 → 解锁
     BUS-->>COMP: 拿到编号42的帧
     COMP->>COMP: 用这帧参与合成
   </pre>
@@ -512,11 +518,11 @@ sequenceDiagram
     <ol>
       <li>StreamFFmpeg 推流引擎从帧总线（CameraFrameBus / ScreenFrameBus）的各通道取最新帧</li>
       <li>按图层的 Z 序——从最底层到最顶层，逐像素叠加合成。上层像素覆盖下层</li>
-      <li>每一层不一定铺满整个画布：可能摄像头画面只占左下角一小块、屏幕画面铺满背景、文件画面在右上角。合成线程根据每层的位置参数，准确地把像素写到画布的对应坐标</li>
+      <li>每一层不一定铺满整个画布：可能摄像头画面只占左下角一小块、屏幕画面铺满背景、文件画面在右上角。StreamFFmpeg 合成逻辑根据每层的位置参数，准确地把像素写到画布的对应坐标</li>
       <li>全叠完之后，得到一张完整画面——这就是最终要推流出去的画面</li>
       <li>把这帧送去编码压缩，再走 RTMP 协议推送到服务器</li>
     </ol>
-    <p><strong>每个素材源是完全独立控制的。</strong>如果你暂停了视频文件的播放，只是它对应的帧总线通道不再更新——编号停了，合成线程来取帧时发现编号没变，就不取这一路。这一路画面就"冻结"在最后一帧。摄像头和屏幕完全不受影响，继续正常更新帧。如果你替换掉一个素材源，只是把对应通道换成了另一个来源——其他通道完全不感知。这种"各管各的"独立设计，让组合模式的扩展性很强——未来要叠加字幕、水印、还是过渡效果，都是加一个新通道的事，不需要动任何现有通道的逻辑。</p>
+    <p><strong>每个素材源是完全独立控制的。</strong>如果你暂停了视频文件的播放，只是它对应的帧总线通道不再更新——编号停了，编码线程来取帧时发现编号没变，就不取这一路。这一路画面就"冻结"在最后一帧。摄像头和屏幕完全不受影响，继续正常更新帧。如果你替换掉一个素材源，只是把对应通道换成了另一个来源——其他通道完全不感知。这种"各管各的"独立设计，让组合模式的扩展性很强——未来要叠加字幕、水印、还是过渡效果，都是加一个新通道的事，不需要动任何现有通道的逻辑。</p>
 
     <div class="diagram-container">
       <div class="diagram-label">图 3 · 组合模式：三源合成一路</div>
@@ -526,9 +532,9 @@ flowchart LR
         P1["视频文件"]; C1["摄像头"]; S1["屏幕"]
     end
     subgraph 通道["帧总线通道"]
-        CH1["通道1"]; CH2["通道2"]; CH3["通道3"]
+        CH1["CameraBus<br/>摄像头"]; CH2["ScreenBus<br/>屏幕"]; CH3["Player实例<br/>文件"]
     end
-    subgraph 合成["合成线程"]
+    subgraph 合成["合成 & 编码"]
         COMP["从底到顶逐层叠像素<br/>→ 生成完整画面<br/>→ 编码 → 推流"]
     end
     P1-->CH1; C1-->CH2; S1-->CH3
@@ -546,16 +552,13 @@ flowchart LR
       ✓ 锁 = 保护共享数据的机制，一次只让一个线程操作，防止读出半新半旧的垃圾数据<br>
       ✓ 帧总线 = 多线程共享的画面中转区：采集线程往里放，合成/编码线程来取<br>
       ✓ 递增编号防止重复处理，多通道让不同画面源互不干扰<br>
-      ✓ 组合 = 合成线程从多通道同时取帧 → 按图层顺序从底到顶叠像素 → 生成完整画面</p>
-    </div>
-  </div>
-</section>
+      ✓ 组合 = StreamFFmpeg 从多通道同时取帧 → 按图层顺序从底到顶叠像素 → 生成完整画面</p>
+    </section>
 
 <!-- ==================== 三、推流与编码 ==================== -->
-<section class="section surface-white" id="streaming">
-  <div class="section-inner">
-    <div class="section-eyebrow">Chapter 03</div>
-    <h2>画面怎么到达观众</h2>
+<section class="func-section surface-white" id="streaming">
+        <div class="section-number">Chapter 03</div>
+        <h2 class="section-title">画面怎么到达观众</h2>
     <p class="lead">画面采集好了、组合好了，接下来要压缩编码，然后通过网络发送出去。这是整个链路中计算量最大的环节。</p>
 
     <h3>推流和拉流</h3>
@@ -753,15 +756,12 @@ flowchart TD
       ✓ 编码器自动降级：NVENC → AMF → QSV → libx264，有好的先用好的<br>
       ✓ 六种推流路径，流拷贝 vs 转码：不碰压缩数据（快且无损）vs 重新压缩（灵活但有损）<br>
       ✓ 音频管线五步：采集 → 混音 → 格式统一 → AAC 编码 → 音视频交错（防不同步）</p>
-    </div>
-  </div>
-</section>
+    </section>
 
 <!-- ==================== 四、工程架构 ==================== -->
-<section class="section surface-white" id="architecture">
-  <div class="section-inner">
-    <div class="section-eyebrow">Chapter 04</div>
-    <h2>代码是怎么组织的</h2>
+<section class="func-section surface-white" id="architecture">
+        <div class="section-number">Chapter 04</div>
+        <h2 class="section-title">代码是怎么组织的</h2>
     <p class="lead">整个桌面端的代码分成 7 层，只遵循一条核心规则：只有 runtime 层知道所有后端的存在。</p>
 
     <!-- ===== 接口与后端 ===== -->
@@ -830,15 +830,12 @@ graph TD
       ✓ 解耦 = 让代码的不同部分不知道彼此的细节，从而可以独立修改和替换<br>
       ✓ 七层架构中，只有 runtime 知道所有后端存在——"创建什么"的决策集中在一个地方<br>
       ✓ C++ 是编译型语言（先翻译再运行，快）；Qt 是跨平台框架；FFmpeg 是音视频行业标准</p>
-    </div>
-  </div>
-</section>
+    </section>
 
 <!-- ==================== 五、服务端 ==================== -->
-<section class="section surface-stone" id="server">
-  <div class="section-inner">
-    <div class="section-eyebrow">Chapter 05</div>
-    <h2>服务端在做什么</h2>
+<section class="func-section surface-stone" id="server">
+        <div class="section-number">Chapter 05</div>
+        <h2 class="section-title">服务端在做什么</h2>
     <p class="lead">FPlayer 可以脱离服务器独立使用——推流端直接把画面发给拉流端。但加上服务端后，就能一对多分发、自动转格式、统一管理地址。</p>
 
     <h3>为什么需要一个服务器？</h3>
@@ -904,15 +901,12 @@ flowchart TD
       ✓ ZLMediaKit：管媒体数据（转格式、分发），动态端口分配避免冲突<br>
       ✓ 控制面与数据面分离：独立运行、独立升级、故障隔离<br>
       ✓ 通过 api/ 抽象接口，未来扩展新协议（如 WebRTC）时上层代码不动</p>
-    </div>
-  </div>
-</section>
+    </section>
 
 <!-- ==================== 总结 ==================== -->
-<section class="section surface-pale-blue" id="summary">
-  <div class="section-inner">
-    <div class="section-eyebrow">Wrap-up</div>
-    <h2>可以用这些话介绍 FPlayer</h2>
+<section class="func-section surface-pale-blue" id="summary">
+        <div class="section-number">Wrap-up</div>
+        <h2 class="section-title">可以用这些话介绍 FPlayer</h2>
     <div class="quote-box">
       <blockquote>"FPlayer 是一个局域网流媒体系统。桌面端用 C++ 和 FFmpeg 做采集、合成和推流；服务端用 Go 管会话、用 ZLMediaKit 做多协议分发；手机端做拉流播放。整套系统可以纯局域网运行，不依赖互联网。"</blockquote>
       <cite>—— 30 秒介绍</cite>
@@ -927,9 +921,10 @@ flowchart TD
       <div class="card"><h5>多后端架构是扩展的基础</h5><p>api/ 层定义纯虚接口（IPlayer/ICamera/IStream），backend/ 层实现具体后端。新增协议只需实现接口并注册，上层零改动。CMake 已预留 WebRTC 编译开关。</p></div>
       <div class="card"><h5>组合模式的通道架构可扩展性很强</h5><p>每个源独立通道，控制完全解耦。加字幕、水印、过渡效果就是加一个新通道，不动现有逻辑。</p></div>
       <div class="card"><h5>"不完整"是有目的的产品取舍</h5><p>内存存会话、局域网设备发现还是骨架、无鉴权——先跑通核心链路验证价值，再逐步加固。api/ 层已为扩展预留接口。</p></div>
+    </section>
+
+      </main>
     </div>
-  </div>
-</section>
 
 <footer class="footer">
   <div class="footer-inner">
@@ -944,41 +939,34 @@ flowchart TD
     </div>
   </div>
 </footer>
-
 <script>
-mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose', flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' } });
-document.querySelectorAll('.sub-nav-tabs a, .nav-links a').forEach(link => {
-  link.addEventListener('click', function(e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.pageYOffset - 120, behavior: 'smooth' });
-  });
-});
-window.addEventListener('scroll', () => {
-  const pct = document.documentElement.scrollHeight > window.innerHeight ? (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100 : 0;
-  document.getElementById('progressBar').style.width = pct + '%';
-  const ids = ['capture','compose','streaming','architecture','server','summary'];
-  const tabs = document.querySelectorAll('.sub-nav-tabs a, .nav-links a');
-  let cur = ids[0];
-  ids.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 150) cur = id; });
-  tabs.forEach(t => { t.classList.remove('active'); if (t.getAttribute('href')==='#'+cur) t.classList.add('active'); });
-});
-</script>
-<script>
-(()=>{
-  const h=document.documentElement, b=document.getElementById('themeToggle');
-  const s=localStorage.getItem('theme');
-  if(s==='dark'){h.setAttribute('data-theme','dark');b.textContent='☀️';}
-  else if(s==='light'){h.setAttribute('data-theme','light');b.textContent='🌙';}
-  else if(!s&&matchMedia('(prefers-color-scheme:dark)').matches){h.setAttribute('data-theme','dark');b.textContent='☀️';}
-  b.addEventListener('click',()=>{
-    if(h.getAttribute('data-theme')==='dark'){
-      h.setAttribute('data-theme','light');localStorage.setItem('theme','light');b.textContent='🌙';
-    }else{
-      h.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');b.textContent='☀️';
-    }
-  });
+mermaid.initialize({startOnLoad:true,theme:'neutral',securityLevel:'loose',flowchart:{useMaxWidth:true,htmlLabels:true,curve:'basis'}});
+(function(){
+  var saved = localStorage.getItem('fplayer-desktop-theme');
+  if (saved === 'dark') document.documentElement.setAttribute('data-theme','dark');
 })();
+function toggleTheme(){
+  var el = document.documentElement;
+  var isDark = el.getAttribute('data-theme') === 'dark';
+  el.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('fplayer-desktop-theme', isDark ? 'light' : 'dark');
+}
+// Sidebar active link tracking
+var secs = document.querySelectorAll('.func-section');
+var links = document.querySelectorAll('.sidebar a');
+window.addEventListener('scroll', function(){
+  var cur = '';
+  secs.forEach(function(s){ if(window.scrollY >= s.offsetTop - 100) cur = s.getAttribute('id'); });
+  links.forEach(function(l){ l.classList.toggle('active', l.getAttribute('href') === '#' + cur); });
+});
+// Sidebar smooth scroll
+document.querySelectorAll('.sidebar a').forEach(function(a){
+  a.addEventListener('click', function(e){
+    e.preventDefault();
+    var target = document.querySelector(this.getAttribute('href'));
+    if (target) window.scrollTo({top: target.offsetTop - 80, behavior: 'smooth'});
+  });
+});
 </script>
 </body>
 </html>
