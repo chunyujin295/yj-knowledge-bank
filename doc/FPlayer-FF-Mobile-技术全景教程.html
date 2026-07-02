@@ -238,7 +238,7 @@ p code,li code,dd code,td code,.info-box code,.step-content code{font-family:'Je
 <section class="section" style="padding-bottom:0;">
 <div class="container">
   <h2 style="text-align:center;margin-bottom:8px">功能模块索引</h2>
-  <p style="text-align:center;color:var(--text-muted);margin-bottom:8px">共14个模块，每个模块先讲前提知识，再讲具体实现</p>
+  <p style="text-align:center;color:var(--text-muted);margin-bottom:8px">单文件架构 (main.dart ~1,400行)，按 14 个功能领域分段讲解</p>
   <div class="module-index">
     <a href="#overview" class="module-index-item"><div class="idx-num">01</div><div class="idx-title">项目概览</div><div class="idx-desc">这个项目是什么、解决了什么问题</div></a>
     <a href="#ecosystem" class="module-index-item"><div class="idx-num">02</div><div class="idx-title">三端协同生态</div><div class="idx-desc">Desktop / Service / Mobile 如何协作</div></a>
@@ -293,7 +293,7 @@ p code,li code,dd code,td code,.info-box code,.step-content code{font-family:'Je
       <tr><td><strong>播放核心</strong></td><td>media_kit（在 Flutter 和 libmpv 播放引擎之间搭桥的中间包）</td></tr>
       <tr><td><strong>网络通信</strong></td><td>HTTP（网页浏览用的通信方式）、TCP（更底层的数据传输方式）</td></tr>
       <tr><td><strong>本地存储</strong></td><td>SharedPreferences（一种简单的小数据存储方案，存用户设置）</td></tr>
-      <tr><td><strong>能跑在哪些设备上</strong></td><td>Android 手机、Windows 电脑、Web 浏览器</td></tr>
+      <tr><td><strong>能跑在哪些设备上</strong></td><td>Android 手机、Windows 电脑（Web 平台代码已预留但待构建配置）</td></tr>
     </tbody>
   </table>
 </div>
@@ -466,13 +466,13 @@ p code,li code,dd code,td code,.info-box code,.step-content code{font-family:'Je
       <div class="arch-layer"><span class="layer-label">📡 网络层</span><span class="layer-detail">向 Service 发 HTTP 请求、接收视频流数据</span><span class="layer-tech">http · TCP</span></div>
       <div class="arch-layer"><span class="layer-label">💾 存储层</span><span class="layer-detail">用户设置（主题、URL、协议）的保存和读取</span><span class="layer-tech">SharedPreferences</span></div>
       <div class="arch-layer"><span class="layer-label">🎬 播放器层</span><span class="layer-detail">封装 libmpv 引擎，提供跨平台解码和渲染</span><span class="layer-tech">media_kit · libmpv</span></div>
-      <div class="arch-layer"><span class="layer-label">⚙️ 原生平台层</span><span class="layer-detail">Android (Kotlin+Gradle)、Windows (C++/CMake)、Web (JS)</span><span class="layer-tech">Kotlin · C++ · JS</span></div>
+      <div class="arch-layer"><span class="layer-label">⚙️ 原生平台层</span><span class="layer-detail">Android (Kotlin+Gradle)、Windows (C++/CMake)</span><span class="layer-tech">Kotlin · C++</span></div>
     </div>
   </div>
 
   <div class="know-box" style="margin-top:24px;">
     <div class="know-box-head">📖 KOTLIN、C++、JAVASCRIPT 是什么？</div>
-    <p>这些都是<strong>编程语言</strong>。不同语言适合干不同的事：<strong>Kotlin</strong> 是 Android 系统的最佳搭档；<strong>C++</strong> 性能极高，适合视频解码这种重体力活；<strong>JavaScript</strong> 是浏览器唯一能直接执行的语言。Flutter 能把 Dart 自动翻译成这些语言，你不需要单独学它们。</p>
+    <p>这些都是<strong>编程语言</strong>。不同语言适合干不同的事：<strong>Kotlin</strong> 是 Android 系统的最佳搭档；<strong>C++</strong> 性能极高，适合视频解码这种重体力活；<strong>C++</strong> 性能极高，适合视频解码这种重体力活。Flutter 通过平台通道与原生层通信，你不需要单独学它们。</p>
   </div>
 </div>
 </section>
@@ -976,7 +976,7 @@ p code,li code,dd code,td code,.info-box code,.step-content code{font-family:'Je
     <tbody>
       <tr><td><strong>Windows</strong></td><td class="check">✅</td><td>Dart→原生x64 + C++用CMake</td><td>无</td></tr>
       <tr><td><strong>Android</strong></td><td class="check">✅</td><td>Dart→ARM64 + Gradle打包</td><td>需允许明文HTTP</td></tr>
-      <tr><td><strong>Web</strong></td><td>⚠️</td><td>Dart→JavaScript</td><td>不支持FLV/RTMP</td></tr>
+      <tr><td><strong>Web</strong></td><td>⚠️ 待配置</td><td>代码已预留（kIsWeb 分支），尚未 flutter create web</td><td>仅支持 HLS</td></tr>
       <tr><td><strong>iOS</strong></td><td class="cross">❌</td><td>—</td><td>未配置iOS编译</td></tr>
     </tbody>
   </table>
@@ -1018,7 +1018,7 @@ p code,li code,dd code,td code,.info-box code,.step-content code{font-family:'Je
       <text x="495" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">checksums.txt</text>
       <text x="495" y="111" text-anchor="middle" font-size="10" fill="#6c6a64">SHA256 数字指纹</text>
       <rect x="570" y="75" width="160" height="45" rx="8" fill="#efe9de" stroke="#e6dfd8"/>
-      <text x="650" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">release-notes.md</text>
+      <text x="650" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">release-notes-template.md</text>
       <text x="650" y="111" text-anchor="middle" font-size="10" fill="#6c6a64">发布说明模板</text>
       <text x="440" y="160" text-anchor="middle" font-size="10" fill="#8e8b82">↑ 一条命令 → 5个产物，集中输出到 dist/ 目录</text>
     </svg>
@@ -1107,7 +1107,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_release.ps1
 <!-- Footer — warm, no black -->
 <footer class="footer">
   <div class="container">
-    <p style="margin-bottom:8px;">fplayer-ff-mobile 技术全解 · 14个功能模块 · 逐词解释</p>
+    <p style="margin-bottom:8px;">fplayer-ff-mobile 技术全解 · 单文件 1,431 行 · 14 个功能领域逐词解释</p>
     <p style="font-size:13px;">基于 Anthropic / Claude 设计系统 · 支持浅色/深色主题 · 2026年5月</p>
   </div>
 </footer>

@@ -806,7 +806,7 @@ segRetain=5           <span class="cmt"># 磁盘保留 5 个片段</span></div>
 
 <div class="panel">
 <h3>启动七步 / 端口不够用 / 优雅停止</h3>
-<p><strong>启动</strong>：探测空闲端口 → 生成 ZLM 配置文件 → 启动 ZLM（子进程）→ TCP 验证 ZLM 就绪 → 启动 Gateway（子进程，注入环境变量）→ 每 0.2 秒轮询 /healthz（5 秒超时重试最多 8 次）→ 写入 runtime.json。</p>
+<p><strong>启动</strong>：探测空闲端口 → 生成 ZLM 配置文件 → 启动 ZLM（子进程）→ 启动 Gateway（Electron 模式下会先 TCP 验证 ZLM RTMP 端口就绪，Kernel Console 模式下直接启动 Gateway）（子进程，注入环境变量）→ 每 0.2 秒轮询 /healthz（5 秒超时重试最多 8 次）→ 写入 runtime.json。</p>
 <p><strong>端口不够</strong>：一台电脑 65536 个端口，一个端口只能一个程序占。默认端口被占了就请操作系统随机给个空闲的。Gateway 更顽强——healthz 不成功就换端口重启，最多 8 次。</p>
 
 <div class="diagram-box">
@@ -843,7 +843,7 @@ segRetain=5           <span class="cmt"># 磁盘保留 5 个片段</span></div>
 <div class="panel">
 <h3>IP 地址怎么选</h3>
 <p>Gateway 生成的播放地址里必须包含<strong>一个能被播放端访问到的 IP</strong>。但一台电脑可能有多个 IP——有线网卡一个、WiFi 一个、VPN 虚拟网卡一个、Docker 虚拟网卡一个、127.0.0.1 回环地址（只能本机访问）。选错了播放端就连不上。</p>
-<p>Gateway 的优先级：① 用户显式设置的公网地址 → ② 启动时探测到的第一个可达 IP → ③ 请求到达时的动态判断：路由优选（UDP 探测找到客户端可达的网卡）+ 同 /24 子网优先（IP 前三段相同优先选）+ 轮询 TCP 可达性（300ms 超时）→ ④ 从 HTTP 请求头推断 → ⑤ 回退到 127.0.0.1。</p>
+<p>Gateway 的优先级：① 用户显式设置的公网地址 → ② 启动时探测到的第一个可达 IP → ③（仅 Linux）请求到达时的动态判断：路由优选（UDP 探测找到客户端可达的网卡）+ 同 /24 子网优先（IP 前三段相同优先选）+ 轮询 TCP 可达性（300ms 超时）→ ④ 从 HTTP 请求头推断 → ⑤ 回退到 localIPv4()（遍历网卡找非回环地址，找不到才用 127.0.0.1）。</p>
 </div>
 
 <div class="diagram-box">
