@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../../img/icons/icon1.png">
+<title>C++ 多线程对比阅读 — YJ Knowledge Bank</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F8FAFC; --bg-card: #FFFFFF; --text: #1E293B; --text-secondary: #64748B;
+  --border: #E2E8F0; --primary: #2563EB; --primary-light: #DBEAFE;
+  --accent: #EA580C; --radius: 8px;
+}
+[data-theme="dark"] {
+  --bg: #0F172A; --bg-card: #1E293B; --text: #E2E8F0; --text-secondary: #94A3B8;
+  --border: #334155; --primary: #60A5FA; --primary-light: #1E3A5F;
+  --accent: #FB923C;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F172A; --bg-card: #1E293B; --text: #E2E8F0; --text-secondary: #94A3B8;
+    --border: #334155; --primary: #60A5FA; --primary-light: #1E3A5F;
+    --accent: #FB923C;
+  }
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  display: flex; flex-direction: column;
+}
+
+/* Nav */
+.nav { background: var(--bg-card); border-bottom: 1px solid var(--border); z-index: 100; flex-shrink: 0; }
+.nav-inner { margin: 0 auto; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.nav-brand { font-size: 1.15rem; font-weight: 700; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.nav-brand .icon { width: 22px; height: 22px; }
+.nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
+.nav-links a { text-decoration: none; color: var(--text-secondary); padding: 5px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; transition: all 0.15s; }
+.nav-links a:hover { color: var(--primary); background: var(--primary-light); }
+.nav-links a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+.theme-btn { background: none; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 1rem; padding: 4px 8px; color: var(--text-secondary); line-height: 1; }
+.theme-btn:hover { background: var(--bg); color: var(--primary); }
+
+/* Toolbar */
+.toolbar { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 6px 20px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.toolbar-label { font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.toolbar-label.left-label { color: var(--accent); }
+.toolbar-label.right-label { color: var(--primary); text-align: right; }
+.toolbar-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; font-size: 0.76rem; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; white-space: nowrap; font-family: inherit; }
+.toolbar-btn:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.toolbar-btn.on { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.sync-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; background: var(--text-secondary); transition: background 0.2s; }
+.toolbar-btn.on .sync-dot { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+
+/* Split */
+.split-container { display: flex; flex: 1; overflow: hidden; }
+.split-panel { flex: 1; overflow: hidden; position: relative; }
+.split-panel iframe { width: 100%; height: 100%; border: none; }
+.divider { width: 2px; background: var(--border); flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  .split-container { flex-direction: column; }
+  .split-panel { flex: none; height: 50%; }
+  .divider { width: 100%; height: 2px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../../index.html">
+      <img src="../../img/icons/icon1.png" alt="logo" class="icon"> YJ Knowledge Bank
+    </a>
+    <ul class="nav-links">
+      <li><a href="../../index.html">首页</a></li>
+      <li><a href="../frp-nginx-networking-guide.html">内网穿透</a></li>
+      <li><a href="../llm-tutorial.html">LLM 入门</a></li>
+      <li><a href="../设计模式完全指南.html">设计模式</a></li>
+      <li><a class="active" href="cpp-threading-comparison.html">C++ 多线程</a></li>
+      <li><button class="theme-btn" id="themeToggle" title="切换深色/浅色模式">🌙</button></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="toolbar">
+  <span class="toolbar-label left-label">📖 菜鸟教程 — C++ 多线程</span>
+  <button class="toolbar-btn" id="btnSyncScroll"><span class="sync-dot"></span>同步滚动</button>
+  <span class="toolbar-label right-label">🧵 std::thread — join / detach / mutex / 条件变量 / atomic / TLS</span>
+</div>
+
+<div class="split-container">
+  <div class="split-panel">
+    <iframe src="runoob-thread.html" id="iframeLeft" title="菜鸟教程 — C++ 多线程"></iframe>
+  </div>
+  <div class="divider"></div>
+  <div class="split-panel">
+    <iframe src="std-thread-deep-dive.html" id="iframeRight" title="std::thread 深度剖析"></iframe>
+  </div>
+</div>
+
+<script>
+(function() {
+  var leftIframe = document.getElementById('iframeLeft');
+  var rightIframe = document.getElementById('iframeRight');
+
+  // ====== Theme toggle + propagate to iframes ======
+  var h = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  var saved = localStorage.getItem('theme');
+
+  function sendTheme(value) {
+    var msg = { type: 'setTheme', value: value };
+    [leftIframe, rightIframe].forEach(function(f) {
+      try { f.contentWindow && f.contentWindow.postMessage(msg, '*'); } catch(e) {}
+    });
+  }
+
+  function applyTheme(t) {
+    if (t === 'dark') { h.setAttribute('data-theme','dark'); btn.textContent = '☀️'; }
+    else if (t === 'light') { h.setAttribute('data-theme','light'); btn.textContent = '🌙'; }
+    else { h.removeAttribute('data-theme'); btn.textContent = '🌙'; }
+    sendTheme(t || 'system');
+  }
+  applyTheme(saved);
+
+  btn.addEventListener('click', function() {
+    var cur = h.getAttribute('data-theme');
+    var next = (cur === 'dark') ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+  });
+
+  // When iframes load, send them the current theme
+  leftIframe.addEventListener('load', function() {
+    applyTheme(localStorage.getItem('theme'));
+    setupScrollSync();
+  });
+  rightIframe.addEventListener('load', function() {
+    applyTheme(localStorage.getItem('theme'));
+    setupScrollSync();
+  });
+
+  // ====== Sync scroll ======
+  var syncBtn = document.getElementById('btnSyncScroll');
+  var syncOn = false, syncing = false;
+
+  syncBtn.addEventListener('click', function() {
+    syncOn = !syncOn;
+    syncBtn.classList.toggle('on', syncOn);
+  });
+
+  function setupScrollSync() {
+    [leftIframe, rightIframe].forEach(function(f) {
+      try {
+        var doc = f.contentDocument || (f.contentWindow && f.contentWindow.document);
+        if (doc) {
+          doc.addEventListener('scroll', function() { doSync(f === leftIframe ? 'L' : 'R'); }, true);
+        }
+      } catch(e) {}
+    });
+  }
+
+  function doSync(from) {
+    if (!syncOn || syncing) return;
+    syncing = true;
+    try {
+      var fd = (from === 'L' ? leftIframe : rightIframe).contentDocument;
+      var td = (from === 'L' ? rightIframe : leftIframe).contentDocument;
+      if (!fd || !td) return;
+      var fe = fd.documentElement, te = td.documentElement;
+      var maxF = fe.scrollHeight - fd.documentElement.clientHeight;
+      var maxT = te.scrollHeight - td.documentElement.clientHeight;
+      if (maxF > 0 && maxT > 0) te.scrollTop = (fe.scrollTop / maxF) * maxT;
+    } catch(e) {}
+    setTimeout(function() { syncing = false; }, 30);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 's' && e.ctrlKey && !e.metaKey) { e.preventDefault(); syncBtn.click(); }
+  });
+})();
+</script>
+
+</body>
+</html>

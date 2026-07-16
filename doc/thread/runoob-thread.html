@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+  --text: #1E293B; --text-secondary: #475569; --bg: #F8FAFC;
+  --bg-code: #F1F5F9; --border: #E2E8F0; --primary: #2563EB;
+  --accent: #EA580C; --radius: 8px;
+}
+[data-theme="dark"] {
+  --text: #E2E8F0; --text-secondary: #94A3B8; --bg: #0F172A;
+  --bg-code: #1E293B; --border: #334155; --primary: #60A5FA;
+  --accent: #FB923C;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --text: #E2E8F0; --text-secondary: #94A3B8; --bg: #0F172A;
+    --bg-code: #1E293B; --border: #334155; --primary: #60A5FA;
+    --accent: #FB923C;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.85;
+  padding: 32px 36px; max-width: 100%; overflow-x: hidden;
+}
+h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 18px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+h2 { font-size: 1.2rem; font-weight: 700; margin: 30px 0 12px; color: var(--text); }
+h3 { font-size: 1.02rem; font-weight: 600; margin: 20px 0 8px; color: var(--text); }
+p { margin-bottom: 14px; color: var(--text-secondary); line-height: 1.85; }
+ul, ol { margin: 8px 0 16px 22px; color: var(--text-secondary); }
+li { margin-bottom: 4px; line-height: 1.75; }
+code { background: var(--bg-code); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono","Fira Code",Consolas,"Courier New",monospace; font-size: 0.87em; color: #e11d48; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; overflow-x: auto; margin: 16px 0; font-size: 0.87rem; line-height: 1.65; }
+pre code { background: transparent; padding: 0; color: var(--text); font-size: inherit; }
+strong { color: var(--text); }
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 26px 0; }
+blockquote { border-left: 3px solid var(--primary); margin: 16px 0; padding: 10px 18px; background: var(--bg-code); border-radius: 0 6px 6px 0; color: var(--text-secondary); }
+blockquote p { margin-bottom: 4px; }
+img { max-width: 100%; border-radius: 6px; }
+
+/* Runoob-specific */
+.code-example { background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; margin: 16px 0; overflow: hidden; }
+.code-example-label { background: #1e293b; color: #fff; font-size: 0.82rem; font-weight: 600; padding: 7px 14px; }
+[data-theme="dark"] .code-example-label { background: #334155; }
+.code-example pre { margin: 0; border: none; border-radius: 0; }
+.color_h1 { color: var(--accent); }
+.marked { background: #FEF3C7; padding: 1px 4px; border-radius: 3px; font-weight: 500; }
+[data-theme="dark"] .marked { background: #78350F; color: #FDE68A; }
+
+/* Syntax highlighting */
+.tk-keyword { color: #7c3aed; font-weight: 600; }
+.tk-type { color: #0ea5e9; }
+.tk-function { color: #2563eb; }
+.tk-string { color: #16a34a; }
+.tk-comment { color: #94a3b8; font-style: italic; }
+.tk-number { color: #db2777; }
+.tk-preprocessor { color: #ea580c; }
+[data-theme="dark"] .tk-keyword { color: #c084fc; }
+[data-theme="dark"] .tk-type { color: #38bdf8; }
+[data-theme="dark"] .tk-function { color: #60a5fa; }
+[data-theme="dark"] .tk-string { color: #4ade80; }
+[data-theme="dark"] .tk-comment { color: #64748b; }
+[data-theme="dark"] .tk-number { color: #f472b6; }
+[data-theme="dark"] .tk-preprocessor { color: #fb923c; }
+</style>
+</head>
+<body>
+
+<div class="article-intro" id="content">
+			
+			<h1>C++ <span class="color_h1">多线程</span></h1>
+<p>线程是程序中的轻量级执行单元，允许程序同时执行多个任务。</p>
+<p>多线程是多任务处理的一种特殊形式，多任务处理允许让电脑同时运行两个或两个以上的程序。</p>
+<p>一般情况下，两种类型的多任务处理：<strong>基于进程和基于线程</strong>。</p>
+<ul>
+<li>基于进程的多任务处理是程序的并发执行。</li><li>基于线程的多任务处理是同一程序的片段的并发执行。</li></ul>
+<p><img src="thread.png" alt="进程与线程关系图" ></p>
+<p>C++ 多线程编程涉及在一个程序中创建和管理多个并发执行的线程。</p><p>C++ 提供了强大的多线程支持，特别是在 C++11 标准及其之后，通过 <code>&lt;thread&gt;</code> 标准库使得多线程编程变得更加简单和安全。</p>
+
+<hr><h2>概念说明</h2>
+<h3>线程 (Thread)</h3><ul><li>线程是程序执行中的单一顺序控制流，多个线程可以在同一个进程中独立运行。</li><li>线程共享进程的地址空间、文件描述符、堆和全局变量等资源，但每个线程有自己的栈、寄存器和程序计数器。</li></ul>
+
+<h3>并发 (Concurrency) 与并行 (Parallelism)</h3><ul><li><strong>并发</strong>：多个任务在时间片段内交替执行，表现出同时进行的效果。</li><li><strong>并行</strong>：多个任务在多个处理器或处理器核上同时执行。</li></ul><p>
+C++11 及以后的标准提供了多线程支持，核心组件包括：</p><ul><li><strong><code><a href="https://www.runoob.com/cplusplus/cpp-libs-thread.html" rel="noopener" target="_blank">std::thread</a></code></strong>：用于创建和管理线程。</li>
+
+<li><strong><code><a href="https://www.runoob.com/cplusplus/cpp-libs-mutex.html" rel="noopener" target="_blank">std::mutex</a></code></strong>：用于线程之间的互斥，防止多个线程同时访问共享资源。</li><li><strong><code>std::lock_guard</code></strong> 和 <strong><code>std::unique_lock</code></strong>：用于管理锁的获取和释放。</li><li><strong><code><a href="https://www.runoob.com/cplusplus/cpp-libs-condition_variable.html" rel="noopener" target="_blank">std::condition_variable</a></code></strong>：用于线程间的条件变量，协调线程间的等待和通知。</li><li><strong><code><a href="https://www.runoob.com/cplusplus/cpp-libs-future.html" rel="noopener" target="_blank">std::future</a></code></strong> 和 <strong><code>std::promise</code></strong>：用于实现线程间的值传递和任务同步。</li></ul>
+<hr>
+<h2>创建线程</h2>
+
+<p>C++ 11 之后添加了新的标准线程库 <span class="marked">std::thread</span>，<span class="marked">std::thread</span> <strong>在 &lt;thread&gt;</strong> 头文件中声明，因此使用 <span class="marked">std::thread</span> 时需要包含 <strong>在 &lt;thread&gt;</strong> 头文件。</p>
+
+<p><strong>注意：</strong>之前一些编译器使用 C++ 11 的编译参数是 <strong>-std=c++11</strong>:</p>
+<pre><code>g++ -std=c++11 test.cpp</code></pre>
+<p><span class="marked">std::thread
+
+</span></p><pre><span class="com">#include</span><span class="str">&lt;thread&gt;</span><span class="pln">
+std</span><span class="pun">::</span><span class="pln">thread thread_object</span><span class="pun">(</span><span class="pln">callable</span><span class="pun">,</span><span class="pln"> args</span><span class="pun">...);</span></pre>
+<ul><li><strong><code>callable</code></strong>：可调用对象，可以是函数指针、函数对象、Lambda 表达式等。</li><li><strong><code>args...</code></strong>：传递给 <code>callable</code> 的参数列表。</li></ul>
+
+<h3>使用函数指针</h3><p>
+通过函数指针创建线程，这是最基本的方式：</p>
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;iostream&gt;</span>
+
+<span>#include &lt;thread&gt;</span>
+
+<span>void</span> printMessage<span>(</span><span>int</span> count<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; <span>for</span> <span>(</span><span>int</span> i <span>=</span> <span>0</span><span>;</span> i <span>&lt;</span> count<span>;</span> <span>++</span>i<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; std<span>::</span><span>cout</span> <span>&lt;&lt;</span> <span>"Hello from thread (function pointer)!<span>\n</span>"</span><span>;</span>
+
+&nbsp; &nbsp; <span>}</span>
+
+<span>}</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t1<span>(</span>printMessage, <span>5</span><span>)</span><span>;</span> <span>// 创建线程，传递函数指针和参数</span>
+
+&nbsp; &nbsp; t1.<span>join</span><span>(</span><span>)</span><span>;</span> <span>// 等待线程完成</span>
+
+&nbsp; &nbsp; <span>return</span> <span>0</span><span>;</span>
+
+<span>}</span>
+
+</code></pre></div><p>
+使用 <span class="marked">g++ -std=c++11</span> 编译后，执行输出结果为：</p>
+<pre><code>Hello from thread (function pointer)!
+Hello from thread (function pointer)!
+Hello from thread (function pointer)!
+Hello from thread (function pointer)!
+Hello from thread (function pointer)!</code></pre>
+
+<h3>使用函数对象</h3><p>通过类中的 <code>operator()</code> 方法定义函数对象来创建线程：</p>
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;iostream&gt;</span>
+
+<span>#include &lt;thread&gt;</span>
+
+<span>class</span> PrintTask <span>{</span>
+
+<span>public</span><span>:</span>
+
+&nbsp; &nbsp; <span>void</span> operator<span>(</span><span>)</span><span>(</span><span>int</span> count<span>)</span> <span>const</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>for</span> <span>(</span><span>int</span> i <span>=</span> <span>0</span><span>;</span> i <span>&lt;</span> count<span>;</span> <span>++</span>i<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; std<span>::</span><span>cout</span> <span>&lt;&lt;</span> <span>"Hello from thread (function object)!<span>\n</span>"</span><span>;</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>}</span>
+
+&nbsp; &nbsp; <span>}</span>
+
+<span>}</span><span>;</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t2<span>(</span>PrintTask<span>(</span><span>)</span>, <span>5</span><span>)</span><span>;</span> <span>// 创建线程，传递函数对象和参数</span>
+
+&nbsp; &nbsp; t2.<span>join</span><span>(</span><span>)</span><span>;</span> <span>// 等待线程完成</span>
+
+&nbsp; &nbsp; <span>return</span> <span>0</span><span>;</span>
+
+<span>}</span>
+
+</code></pre></div>
+<p>
+使用 <span class="marked">g++ -std=c++11</span> 编译后，执行输出结果为：</p>
+<pre><code>Hello from thread (function object)!
+Hello from thread (function object)!
+Hello from thread (function object)!
+Hello from thread (function object)!
+Hello from thread (function object)!</code></pre>
+
+ <h3>使用 Lambda 表达式</h3><p>Lambda 表达式可以直接内联定义线程执行的代码：</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;iostream&gt;</span>
+
+<span>#include &lt;thread&gt;</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t3<span>(</span><span>[</span><span>]</span><span>(</span><span>int</span> count<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>for</span> <span>(</span><span>int</span> i <span>=</span> <span>0</span><span>;</span> i <span>&lt;</span> count<span>;</span> <span>++</span>i<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; std<span>::</span><span>cout</span> <span>&lt;&lt;</span> <span>"Hello from thread (lambda)!<span>\n</span>"</span><span>;</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>}</span>
+
+&nbsp; &nbsp; <span>}</span>, <span>5</span><span>)</span><span>;</span> <span>// 创建线程，传递 Lambda 表达式和参数</span>
+
+&nbsp; &nbsp; t3.<span>join</span><span>(</span><span>)</span><span>;</span> <span>// 等待线程完成</span>
+
+&nbsp; &nbsp; <span>return</span> <span>0</span><span>;</span>
+
+<span>}</span>
+
+</code></pre></div>
+<p>
+使用 <span class="marked">g++ -std=c++11</span> 编译后，执行输出结果为：</p>
+
+<pre><code>Hello from thread (lambda)!
+Hello from thread (lambda)!
+Hello from thread (lambda)!
+Hello from thread (lambda)!
+Hello from thread (lambda)!</code></pre>
+<hr><h2>线程管理</h2>
+<h3>join()</h3><p>
+join() 用于等待线程完成执行。如果不调用 join() 或 detach() 而直接销毁线程对象，会导致程序崩溃。</p>
+<pre><code>t.join();</code></pre>
+<h3>detach()</h3><p>
+detach() 将线程与主线程分离，线程在后台独立运行，主线程不再等待它。</p>
+<pre><code>t.detach();</code></pre><hr>
+<h2>
+线程的传参</h2>
+<h3>值传递</h3><p>
+参数可以通过值传递给线程：</p>
+<pre><code>std::thread t(func, arg1, arg2);</code></pre>
+<h3>引用传递</h3><p>
+如果需要传递引用参数，需要使用 std::ref：</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;iostream&gt;</span>
+
+<span>#include &lt;thread&gt;</span>
+
+<span>void</span> increment<span>(</span><span>int</span><span>&amp;</span> x<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; <span>++</span>x<span>;</span>
+
+<span>}</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; <span>int</span> num <span>=</span> <span>0</span><span>;</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t<span>(</span>increment, std<span>::</span><span>ref</span><span>(</span>num<span>)</span><span>)</span><span>;</span> <span>// 使用 std::ref 传递引用</span>
+
+&nbsp; &nbsp; t.<span>join</span><span>(</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; std<span>::</span><span>cout</span> <span>&lt;&lt;</span> <span>"Value after increment: "</span> <span>&lt;&lt;</span> num <span>&lt;&lt;</span> std<span>::</span><span>endl</span><span>;</span>
+
+&nbsp; &nbsp; <span>return</span> <span>0</span><span>;</span>
+
+<span>}</span>
+
+</code></pre></div>
+
+<hr><h2>综合实例</h2><p>
+以下是一个完整的示例，展示了如何使用上述三种方式创建线程，并进行线程管理。</p>
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;iostream&gt;</span>
+
+<span>#include &lt;thread&gt;</span>
+
+<span>using</span> <span>namespace</span> std<span>;</span>
+
+<span>// 一个简单的函数，作为线程的入口函数</span>
+
+<span>void</span> foo<span>(</span><span>int</span> Z<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; <span>for</span> <span>(</span><span>int</span> i <span>=</span> <span>0</span><span>;</span> i <span>&lt;</span> Z<span>;</span> i<span>++</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>cout</span> <span>&lt;&lt;</span> <span>"线程使用函数指针作为可调用参数<span>\n</span>"</span><span>;</span>
+
+&nbsp; &nbsp; <span>}</span>
+
+<span>}</span>
+
+<span>// 可调用对象的类定义</span>
+
+<span>class</span> ThreadObj <span>{</span>
+
+<span>public</span><span>:</span>
+
+&nbsp; &nbsp; <span>void</span> operator<span>(</span><span>)</span><span>(</span><span>int</span> x<span>)</span> <span>const</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>for</span> <span>(</span><span>int</span> i <span>=</span> <span>0</span><span>;</span> i <span>&lt;</span> x<span>;</span> i<span>++</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span>cout</span> <span>&lt;&lt;</span> <span>"线程使用函数对象作为可调用参数<span>\n</span>"</span><span>;</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>}</span>
+
+&nbsp; &nbsp; <span>}</span>
+
+<span>}</span><span>;</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; <span>cout</span> <span>&lt;&lt;</span> <span>"线程 1 、2 、3 独立运行"</span> <span>&lt;&lt;</span> endl<span>;</span>
+
+&nbsp; &nbsp; <span>// 使用函数指针创建线程</span>
+
+&nbsp; &nbsp; thread th1<span>(</span>foo, <span>3</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>// 使用函数对象创建线程</span>
+
+&nbsp; &nbsp; thread th2<span>(</span>ThreadObj<span>(</span><span>)</span>, <span>3</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>// 使用 Lambda 表达式创建线程</span>
+
+&nbsp; &nbsp; thread th3<span>(</span><span>[</span><span>]</span><span>(</span><span>int</span> x<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>for</span> <span>(</span><span>int</span> i <span>=</span> <span>0</span><span>;</span> i <span>&lt;</span> x<span>;</span> i<span>++</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span>cout</span> <span>&lt;&lt;</span> <span>"线程使用 lambda 表达式作为可调用参数<span>\n</span>"</span><span>;</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>}</span>
+
+&nbsp; &nbsp; <span>}</span>, <span>3</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>// 等待所有线程完成</span>
+
+&nbsp; &nbsp; th1.<span>join</span><span>(</span><span>)</span><span>;</span> <span>// 等待线程 th1 完成</span>
+
+&nbsp; &nbsp; th2.<span>join</span><span>(</span><span>)</span><span>;</span> <span>// 等待线程 th2 完成</span>
+
+&nbsp; &nbsp; th3.<span>join</span><span>(</span><span>)</span><span>;</span> <span>// 等待线程 th3 完成</span>
+
+&nbsp; &nbsp; <span>return</span> <span>0</span><span>;</span>
+
+<span>}</span>
+
+</code></pre></div>
+
+<p>使用 C++ 11 的编译参数 <strong>-std=c++11</strong>:</p>
+<pre><code>g++ -std=c++11 test.cpp</code></pre><p>以上代码的输出结果在不同平台或每次运行时可能不同，因为线程的执行顺序由操作系统的调度算法决定，多个线程会并发运行，输出可能交错，例如：</p>
+<pre><code>线程 1 、2 、3 独立运行
+线程使用函数指针作为可调用参数
+线程使用函数对象作为可调用参数
+线程使用 lambda 表达式作为可调用参数
+线程使用函数指针作为可调用参数
+...</code></pre>
+
+<hr>
+<h2>线程同步与互斥</h2><p>在多线程编程中，线程同步与互斥是两个非常重要的概念，它们用于控制多个线程对共享资源的访问，以避免数据竞争、死锁等问题。</p>
+<h3>1. 互斥量（Mutex）</h3><p>
+互斥量是一种同步原语，用于防止多个线程同时访问共享资源。当一个线程需要访问共享资源时，它首先需要锁定（lock）互斥量。如果互斥量已经被其他线程锁定，那么请求锁定的线程将被阻塞，直到互斥量被解锁（unlock）。</p>
+<p><span class="marked">std::mutex</span>：用于保护共享资源，防止数据竞争。</p>
+
+<pre><code>std::mutex mtx;
+mtx.lock();   // 锁定互斥锁
+// 访问共享资源
+mtx.unlock(); // 释放互斥锁</code></pre><p>
+<span class="marked">std::lock_guard</span> 和 <span class="marked">std::unique_lock</span>：自动管理锁的获取和释放。</p>
+
+<pre><span class="pln">std</span><span class="pun">::</span><span class="pln">lock_guard</span><span class="pun">&lt;</span><span class="pln">std</span><span class="pun">::</span><span class="pln">mutex</span><span class="pun">&gt;</span><span class="pln"> </span><span class="kwd">lock</span><span class="pun">(</span><span class="pln">mtx</span><span class="pun">);</span><span class="pln"> </span><span class="com">// 自动锁定和解锁</span><span class="pln">
+</span><span class="com">// 访问共享资源</span></pre>
+
+<p>
+互斥量的使用示例：</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;mutex&gt;</span>
+
+std<span>::</span><span>mutex</span> mtx<span>;</span> <span>// 全局互斥量</span>
+
+<span>void</span> safeFunction<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; mtx.<span>lock</span><span>(</span><span>)</span><span>;</span> <span>// 请求锁定互斥量</span>
+
+&nbsp; &nbsp; <span>// 访问或修改共享资源</span>
+
+&nbsp; &nbsp; mtx.<span>unlock</span><span>(</span><span>)</span><span>;</span> <span>// 释放互斥量</span>
+
+<span>}</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t1<span>(</span>safeFunction<span>)</span><span>;</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t2<span>(</span>safeFunction<span>)</span><span>;</span>
+
+&nbsp; &nbsp; t1.<span>join</span><span>(</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; t2.<span>join</span><span>(</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>return</span> <span>0</span><span>;</span>
+
+<span>}</span>
+
+</code></pre></div>
+<h3>2. 锁（Locks）</h3><p>
+C++提供了多种锁类型，用于简化互斥量的使用和管理。</p><p>常见的锁类型包括：</p>
+<ul><li>
+std::lock_guard：作用域锁，当构造时自动锁定互斥量，当析构时自动解锁。</li><li>
+std::unique_lock：与std::lock_guard类似，但提供了更多的灵活性，例如可以转移所有权和手动解锁。</li></ul>
+<p>锁的使用示例：</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;mutex&gt;</span>
+
+std<span>::</span><span>mutex</span> mtx<span>;</span>
+
+<span>void</span> safeFunctionWithLockGuard<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>lock_guard</span><span>&lt;</span>std<span>::</span><span>mutex</span><span>&gt;</span> lk<span>(</span>mtx<span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>// 访问或修改共享资源</span>
+
+<span>}</span>
+
+<span>void</span> safeFunctionWithUniqueLock<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>unique_lock</span><span>&lt;</span>std<span>::</span><span>mutex</span><span>&gt;</span> ul<span>(</span>mtx<span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>// 访问或修改共享资源</span>
+
+&nbsp; &nbsp; <span>// ul.unlock(); // 可选：手动解锁</span>
+
+&nbsp; &nbsp; <span>// ...</span>
+
+<span>}</span>
+
+</code></pre></div>
+<h3>3. 条件变量（Condition Variable）</h3>
+<p>条件变量用于线程间的协调，允许一个或多个线程等待某个条件的发生。它通常与互斥量一起使用，以实现线程间的同步。</p>
+<p><span class="marked">std::condition_variable</span>用于实现线程间的等待和通知机制。</p>
+
+<pre><span class="pln">std</span><span class="pun">::</span><span class="pln">condition_variable cv</span><span class="pun">;</span><span class="pln">
+std</span><span class="pun">::</span><span class="pln">mutex mtx</span><span class="pun">;</span><span class="pln">
+</span><span class="kwd">bool</span><span class="pln"> ready </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">false</span><span class="pun">;</span><span class="pln">
+
+std</span><span class="pun">::</span><span class="pln">unique_lock</span><span class="pun">&lt;</span><span class="pln">std</span><span class="pun">::</span><span class="pln">mutex</span><span class="pun">&gt;</span><span class="pln"> </span><span class="kwd">lock</span><span class="pun">(</span><span class="pln">mtx</span><span class="pun">);</span><span class="pln">
+cv</span><span class="pun">.</span><span class="pln">wait</span><span class="pun">(</span><span class="kwd">lock</span><span class="pun">,</span><span class="pln"> </span><span class="pun">[]{</span><span class="pln"> </span><span class="kwd">return</span><span class="pln"> ready</span><span class="pun">;</span><span class="pln"> </span><span class="pun">});</span><span class="pln"> </span><span class="com">// 等待条件满足</span><span class="pln">
+</span><span class="com">// 条件满足后执行</span></pre>
+<p>
+条件变量的使用示例：</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;mutex&gt;</span>
+
+<span>#include &lt;condition_variable&gt;</span>
+
+std<span>::</span><span>mutex</span> mtx<span>;</span>
+
+std<span>::</span><span>condition_variable</span> cv<span>;</span>
+
+<span>bool</span> ready <span>=</span> <span>false</span><span>;</span>
+
+<span>void</span> workerThread<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>unique_lock</span><span>&lt;</span>std<span>::</span><span>mutex</span><span>&gt;</span> lk<span>(</span>mtx<span>)</span><span>;</span>
+
+&nbsp; &nbsp; cv.<span>wait</span><span>(</span>lk, <span>[</span><span>]</span><span>{</span> <span>return</span> ready<span>;</span> <span>}</span><span>)</span><span>;</span> <span>// 等待条件</span>
+
+&nbsp; &nbsp; <span>// 当条件满足时执行工作</span>
+
+<span>}</span>
+
+<span>void</span> mainThread<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; <span>{</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; std<span>::</span><span>lock_guard</span><span>&lt;</span>std<span>::</span><span>mutex</span><span>&gt;</span> lk<span>(</span>mtx<span>)</span><span>;</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; <span>// 准备数据</span>
+
+&nbsp; &nbsp; &nbsp; &nbsp; ready <span>=</span> <span>true</span><span>;</span>
+
+&nbsp; &nbsp; <span>}</span> <span>// 离开作用域时解锁</span>
+
+&nbsp; &nbsp; cv.<span>notify_one</span><span>(</span><span>)</span><span>;</span> <span>// 通知一个等待的线程</span>
+
+<span>}</span>
+
+</code></pre></div><h3>
+4. 原子操作（Atomic Operations）</h3><p>
+原子操作确保对共享数据的访问是不可分割的，即在多线程环境下，原子操作要么完全执行，要么完全不执行，不会出现中间状态。</p>
+
+<p>原子操作的使用示例：</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;atomic&gt;</span>
+
+<span>#include &lt;thread&gt;</span>
+
+std<span>::</span><span>atomic</span><span>&lt;</span><span>int</span><span>&gt;</span> count<span>(</span><span>0</span><span>)</span><span>;</span>
+
+<span>void</span> increment<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; count.<span>fetch_add</span><span>(</span><span>1</span>, std<span>::</span><span>memory_order_relaxed</span><span>)</span><span>;</span>
+
+<span>}</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t1<span>(</span>increment<span>)</span><span>;</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t2<span>(</span>increment<span>)</span><span>;</span>
+
+&nbsp; &nbsp; t1.<span>join</span><span>(</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; t2.<span>join</span><span>(</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>return</span> count<span>;</span> <span>// 应返回2</span>
+
+<span>}</span>
+
+</code></pre></div><h3>
+5. 线程局部存储（Thread Local Storage, TLS）</h3><p>
+线程局部存储允许每个线程拥有自己的数据副本。这可以通过thread_local关键字实现，避免了对共享资源的争用。</p>
+<p>
+线程局部存储的使用示例：</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;iostream&gt;</span>
+
+<span>#include &lt;thread&gt;</span>
+
+thread_local <span>int</span> threadData <span>=</span> <span>0</span><span>;</span>
+
+<span>void</span> threadFunction<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; threadData <span>=</span> <span>42</span><span>;</span> <span>// 每个线程都有自己的threadData副本</span>
+
+&nbsp; &nbsp; std<span>::</span><span>cout</span> <span>&lt;&lt;</span> <span>"Thread data: "</span> <span>&lt;&lt;</span> threadData <span>&lt;&lt;</span> std<span>::</span><span>endl</span><span>;</span>
+
+<span>}</span>
+
+<span>int</span> main<span>(</span><span>)</span> <span>{</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t1<span>(</span>threadFunction<span>)</span><span>;</span>
+
+&nbsp; &nbsp; std<span>::</span><span>thread</span> t2<span>(</span>threadFunction<span>)</span><span>;</span>
+
+&nbsp; &nbsp; t1.<span>join</span><span>(</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; t2.<span>join</span><span>(</span><span>)</span><span>;</span>
+
+&nbsp; &nbsp; <span>return</span> <span>0</span><span>;</span>
+
+<span>}</span>
+
+</code></pre></div>
+<h3>6. 死锁（Deadlock）和避免策略</h3><p>
+死锁发生在多个线程互相等待对方释放资源，但没有一个线程能够继续执行。避免死锁的策略包括：</p><ul>
+<li>总是以相同的顺序请求资源。</li>
+<li>使用超时来尝试获取资源。</li>
+<li>使用死锁检测算法。</li>
+</ul>
+<hr>
+ <h2>线程间通信</h2><p>
+std::future 和 std::promise：实现线程间的值传递。</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+
+std<span>::</span><span>promise</span><span>&lt;</span><span>int</span><span>&gt;</span> p<span>;</span>
+
+std<span>::</span><span>future</span><span>&lt;</span><span>int</span><span>&gt;</span> f <span>=</span> p.<span>get_future</span><span>(</span><span>)</span><span>;</span>
+
+std<span>::</span><span>thread</span> t<span>(</span><span>[</span><span>&amp;</span>p<span>]</span> <span>{</span>
+
+&nbsp; &nbsp; p.<span>set_value</span><span>(</span><span>10</span><span>)</span><span>;</span> <span>// 设置值，触发 future</span>
+
+<span>}</span><span>)</span><span>;</span>
+
+<span>int</span> result <span>=</span> f.<span>get</span><span>(</span><span>)</span><span>;</span> <span>// 获取值</span>
+
+</code></pre></div><p>
+消息队列（基于 std::queue 和 std::mutex）实现简单的线程间通信。</p><hr><p>C++17 引入了并行算法库（<code>&lt;algorithm&gt;</code>），其中部分算法支持并行执行，可以利用多核 CPU 提高性能。</p>
+
+<div class="code-example">
+<div class="code-example-label">📝 实例</div>
+<pre><code>
+<span>#include &lt;algorithm&gt;</span>
+
+<span>#include &lt;vector&gt;</span>
+
+<span>#include &lt;execution&gt;</span>
+
+std<span>::</span><span>vector</span><span>&lt;</span><span>int</span><span>&gt;</span> vec <span>=</span> <span>{</span><span>1</span>, <span>2</span>, <span>3</span>, <span>4</span>, <span>5</span><span>}</span><span>;</span>
+
+std<span>::</span><span>for_each</span><span>(</span>std<span>::</span><span>execution</span><span>::</span><span>par</span>, vec.<span>begin</span><span>(</span><span>)</span>, vec.<span>end</span><span>(</span><span>)</span>, <span>[</span><span>]</span><span>(</span><span>int</span> <span>&amp;</span>n<span>)</span> <span>{</span>
+
+&nbsp; &nbsp; n <span>*</span><span>=</span> <span>2</span><span>;</span>
+
+<span>}</span><span>)</span><span>;</span>
+
+</code></pre></div>
+
+<h2>C++ 标准库中的并行算法</h2>
+<blockquote><p>更多实例参考：</p>
+<p>
+C++ 多线程: <a href="https://www.runoob.com/w3cnote/cpp-multithread-demo.html" rel="noopener" target="_blank">http://www.runoob.com/w3cnote/cpp-multithread-demo.html</a></p>
+<p><strong>C++ std::thread</strong>: <a href="https://www.runoob.com/w3cnote/cpp-std-thread.html" rel="noopener" target="_blank">https://www.runoob.com/w3cnote/cpp-std-thread.html</a></p></blockquote>
+
+<script>(function() {
+  // Theme — read localStorage + listen for parent postMessage
+  var h = document.documentElement;
+  function setTheme(t) {
+    if (t === 'dark') h.setAttribute('data-theme','dark');
+    else if (t === 'light') h.setAttribute('data-theme','light');
+    else h.removeAttribute('data-theme');
+  }
+  setTheme(localStorage.getItem('theme'));
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'setTheme') {
+      localStorage.setItem('theme', e.data.value);
+      setTheme(e.data.value);
+    }
+  });
+
+  // C++ syntax highlighter
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  var KW = new Set('int void bool char short long float double unsigned signed size_t auto const static volatile mutable explicit inline if else for while do switch case break continue return goto try catch throw class struct enum union namespace public private protected virtual override final template typename using operator new delete sizeof typedef decltype true false nullptr this constexpr noexcept thread_local'.split(' '));
+
+  function tokenize(code) {
+    if (/<span\s/.test(code)) return code;
+    var out = '', i = 0, len = code.length;
+    while (i < len) {
+      var c = code[i];
+      // line comment
+      if (c === '/' && code[i+1] === '/') {
+        var e = code.indexOf('\n', i); if (e === -1) e = len;
+        out += '<span class="tk-comment">' + esc(code.slice(i, e)) + '</span>';
+        i = e; continue;
+      }
+      // block comment
+      if (c === '/' && code[i+1] === '*') {
+        var e = code.indexOf('*/', i+2); if (e === -1) e = len-2;
+        out += '<span class="tk-comment">' + esc(code.slice(i, e+2)) + '</span>';
+        i = e+2; continue;
+      }
+      // string
+      if (c === '"') {
+        var e = i+1;
+        while (e < len && code[e] !== '"') { if (code[e] === '\\') e++; e++; }
+        if (e < len) e++;
+        out += '<span class="tk-string">' + esc(code.slice(i, e)) + '</span>';
+        i = e; continue;
+      }
+      // preprocessor
+      if (c === '#' && (i === 0 || code[i-1] === '\n')) {
+        var e = code.indexOf('\n', i); if (e === -1) e = len;
+        out += '<span class="tk-preprocessor">' + esc(code.slice(i, e)) + '</span>';
+        i = e; continue;
+      }
+      // number
+      if (/[0-9]/.test(c) && (i === 0 || !/[a-zA-Z_]/.test(code[i-1]))) {
+        var s = i;
+        while (i < len && /[0-9a-fA-FxXbB.uUlL]/.test(code[i])) i++;
+        out += '<span class="tk-number">' + esc(code.slice(s, i)) + '</span>';
+        continue;
+      }
+      // word
+      if (/[a-zA-Z_]/.test(c)) {
+        var s = i;
+        while (i < len && /[a-zA-Z_0-9]/.test(code[i])) i++;
+        var w = code.slice(s, i);
+        if (KW.has(w)) out += '<span class="tk-keyword">' + esc(w) + '</span>';
+        else if (/^[A-Z]/.test(w) || w === 'std') out += '<span class="tk-type">' + esc(w) + '</span>';
+        else if (i < len && code[i] === '(') out += '<span class="tk-function">' + esc(w) + '</span>';
+        else out += esc(w);
+        continue;
+      }
+      out += esc(c); i++;
+    }
+    return out;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var b = 0; b < blocks.length; b++) {
+      var el = blocks[b], txt = el.textContent || el.innerText || '';
+      if (txt.trim().length === 0) continue;
+      el.innerHTML = tokenize(txt);
+    }
+  });
+})();</script>
+</body>
+</html>
