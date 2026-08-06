@@ -969,6 +969,18 @@ body {
         结构化问题诊断流程：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试。面向难以复现的 hard bugs 和性能回归，使用科学方法而非猜测来定位根因。
       </div>
       <div class="card-flow">复现 → 最小化用例 → 形成假设 → 插桩验证 → 修复 → 回归测试</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">生产环境偶发超时，日志看不出原因，复现困难</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/diagnose API /api/orders 接口偶发 5 秒以上超时，每天约 20 次，日志无异常</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">复现步骤 → 最小化用例 → 假设列表 → 插桩方案 → 定位根因 → 修复 → 回归验证</span>
+        </div>
+      </details>
     </div>
   </div>
 </section>
@@ -993,6 +1005,18 @@ body {
         检测当前 AI Agent 平台（Claude Code / Cursor / Copilot 等），生成对应的规则文件，注入代码打标规范。让项目在初始化时就具备 AI 友好结构。
       </div>
       <div class="card-flow">检测平台 → 生成规则文件 → 注入打标规范</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">新建一个项目，想让 AI 助手具备项目级的规则和规范</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/devpack-init</code> （自动检测 AI 平台，生成适配的规则文件）</span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">检测 Claude Code / Cursor / Copilot → 生成对应的 AGENTS.md / .cursorrules → 注入代码打标规范</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1004,6 +1028,18 @@ body {
         读取后端代码，提取 API 接口定义（路由、请求参数、响应格式），生成精简的接口文档。自动识别 RESTful 和 RPC 风格接口。
       </div>
       <div class="card-flow">后端代码扫描 → 提取接口定义 → 生成精简文档</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">后端写了一组 REST API，需要交付给前端团队接口文档</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/api-doc 扫描 src/api/ 目录，生成所有接口的文档</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">按模块分组的路由表 → 每个接口的请求参数/响应格式/错误码 → 精简可交付的 API 文档</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1015,6 +1051,18 @@ body {
         为当前项目初始化 CLAUDE.md 文件。分析代码库结构、技术栈和架构模式，生成包含项目规范的指导文件，帮助后续 AI 协作更精准。
       </div>
       <div class="card-flow">代码库分析 → 提取技术栈/架构 → 生成 CLAUDE.md</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">接手一个新项目或开始使用 AI 协作，需要让 AI 理解项目上下文</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/init</code> （自动扫描项目结构，生成包含技术栈和规范的 CLAUDE.md）</span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">分析目录结构/依赖/构建工具 → 提取架构模式 → 生成含项目规范和 AI 协作指导的 CLAUDE.md</span>
+        </div>
+      </details>
     </div>
   </div>
 </section>
@@ -1039,6 +1087,18 @@ body {
         生成专业级 .drawio 图表文件，支持 28+ 图表类型：流程图、架构图、ER 图、UML（序列/类图）、BPMN、网络拓扑、云架构、ML 模型图、思维导图等。可导出 PNG/SVG/PDF。
       </div>
       <div class="card-flow">Mermaid / XML 描述 → .drawio 文件 → 可导出 PNG/SVG/PDF</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">需要画一张微服务架构图给团队做技术评审，手工绘图太费时</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/drawio-skill 画一张微服务架构图：API Gateway → User Service / Order Service / Payment Service → 各自的 DB</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">生成 .drawio 文件 → 可导出 PNG/SVG/PDF → 支持 28+ 图表类型（UML/BPMN/ER/网络拓扑等）</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1050,6 +1110,18 @@ body {
         创建 Excalidraw 手绘风格图表。适合可视化工作流、架构或概念图。支持从 Mermaid 语法转换，提供设计指南确保图表美观一致。
       </div>
       <div class="card-flow">描述 / Mermaid → Excalidraw JSON → 可分享链接 / 导出图片</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">想在技术分享中快速画一张手绘风格的系统交互时序图</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/excalidraw-diagram 用户登录流程：浏览器 → POST /login → Auth Service → 查 DB → 返回 JWT → 浏览器存 cookie</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">手绘风格的流程图 JSON → 可分享的 Excalidraw 链接 → 可导出 PNG/SVG</span>
+        </div>
+      </details>
     </div>
   </div>
 </section>
@@ -1074,6 +1146,18 @@ body {
         通过 settings.json 配置 Claude Code harness。管理自动化行为（hooks）、权限规则、环境变量、主题/模型设置。支持项目级和用户级配置分离。
       </div>
       <div class="card-flow">settings.json / settings.local.json → hooks · 权限 · 环境变量</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">想让 Claude Code 在每次启动时自动设置环境变量，或允许某些命令无需确认</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/update-config 添加权限，允许 npm test 和 npm run build 命令，不需要每次确认</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">修改 settings.json → 配置 hooks / 权限 allowlist / 环境变量 / 模型偏好</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1085,6 +1169,18 @@ body {
         扫描 transcript 中的常见只读 Bash 和 MCP 工具调用，生成优先 allowlist 并添加到项目 .claude/settings.json 中，减少重复的权限确认提示。
       </div>
       <div class="card-flow">扫描历史 → 识别安全模式 → 生成 allowlist → 减少权限提示</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">频繁被"是否允许执行 git status / npm test"等提示打断工作流</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/fewer-permission-prompts</code> （自动扫描历史记录，生成安全命令白名单）</span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">分析历史 transcript → 识别安全的只读命令 → 自动添加 allowlist 到 .claude/settings.json</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1096,6 +1192,18 @@ body {
         按指定间隔循环执行 prompt 或 slash command。适用于轮询部署状态、定期检查 CI、重复性监控任务。默认间隔 10 分钟。
       </div>
       <div class="card-flow">/loop 5m /check-deploy → 每 5 分钟自动执行一次</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">部署了一个长时间运行的构建任务，想每 5 分钟检查一次状态</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/loop 5m 检查 CI 构建状态，如果失败列出错误日志</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">每 5 分钟自动执行检查命令 → 输出最新状态 → 直到用户手动停止或任务完成</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1107,6 +1215,18 @@ body {
         自定义键盘快捷键。支持重新绑定按键、添加和弦快捷键、修改提交键。修改 ~/.claude/keybindings.json 配置文件。
       </div>
       <div class="card-flow">keybindings.json → 自定义快捷键 / 和弦绑定</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">习惯 VS Code 的快捷键，想把 Claude Code 的提交键从 Ctrl+Enter 改成别的</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/keybindings-help 把提交快捷键改成 Ctrl+S，并添加 Ctrl+Shift+R 快速触发 code review</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">修改 ~/.claude/keybindings.json → 自定义快捷键和和弦绑定 → 立即生效</span>
+        </div>
+      </details>
     </div>
   </div>
 </section>
@@ -1131,6 +1251,21 @@ body {
         Claude API / Anthropic SDK 应用开发专用助手。支持 prompt caching、thinking、compaction、tool use、batch、files、citations、memory 等全部特性。同时处理模型版本迁移（4.5→4.6→4.7）。
       </div>
       <div class="card-flow">触发条件：代码导入 anthropic SDK → 自动提供 API 最佳实践</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">用 Anthropic SDK 开发一个智能客服应用，想确保正确使用 prompt caching 和 tool use</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/claude-api 帮我为这个 chatbot 加上 prompt caching，system prompt 和工具定义应该被缓存</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">检查现有代码 → 识别缓存机会 → 添加正确的 cache_control 断点 → 验证缓存命中率</span>
+        </div>
+        <div class="example-source">
+          来源：<a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching" target="_blank" rel="noopener">Anthropic Prompt Caching 文档</a>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1142,6 +1277,18 @@ body {
         对 GitHub Pull Request 进行全面审查。分析代码变更、检查逻辑正确性、评估测试覆盖、审查架构一致性，并给出结构化的 review 意见。
       </div>
       <div class="card-flow">PR URL → 代码变更分析 → 结构化 Review 意见</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">收到同事的 PR review 请求，想先用 AI 过一遍再人工审查</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/review https://github.com/org/repo/pull/123</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">按文件分组 diff 分析 → 逻辑正确性/测试覆盖/架构一致性评估 → 结构化 review 意见</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -1153,6 +1300,18 @@ body {
         懒人高级开发模式。遵循 YAGNI 原则、stdlib 优先、不引入未请求的抽象。适用于任何编码任务（编写、重构、修复、审查），不使用于非编码请求。
       </div>
       <div class="card-flow">原则：YAGNI · stdlib 优先 · 零冗余抽象 · 只写需要的代码</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">写一个简单的工具函数，不想被过度设计，就要简洁可用的代码</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/ponytail 写一个函数，把 CSV 文件解析成 JSON 数组，第一行是表头</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">用 stdlib 直接实现，不引入第三方库，不创建不必要的类/接口，代码简洁直接</span>
+        </div>
+      </details>
     </div>
   </div>
 </section>
