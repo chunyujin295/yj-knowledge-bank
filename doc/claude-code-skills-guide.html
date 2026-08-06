@@ -828,6 +828,18 @@ body {
         前端页面开发的全能助手。可生成新页面、给现有页面增加功能、修改功能、修复 UI Bug。理解组件树、状态管理和样式系统，直接产出可用的前端代码。
       </div>
       <div class="card-flow">能力：新建页面 · 增加功能 · 修改功能 · 修复 Bug</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">需要在现有 React 项目中新增一个用户设置页面，包含表单和状态管理</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/design 在 src/pages/settings/ 下新建用户设置页，包含修改密码、绑定邮箱、通知偏好三个 Tab</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">完整的前端页面代码（组件 + 样式 + 状态管理），遵循现有项目的架构模式</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -839,6 +851,18 @@ body {
         需求 + 方案对齐工具。通过反复追问，把模糊需求变成清晰的前端 PRD，并预判技术方案与架构决策。在写代码之前确保方向正确，避免返工。
       </div>
       <div class="card-flow">模糊需求 → 反复追问 → 清晰 PRD + 技术方案预判</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">产品经理说"做一个更好的首页"，需求太模糊不知道从何开始</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/probe-me 把首页改得更吸引用户</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">通过反复追问澄清目标用户、核心指标、功能边界 → 产出前端 PRD + 技术方案预判</span>
+        </div>
+      </details>
     </div>
   </div>
 </section>
@@ -863,6 +887,18 @@ body {
         自动代码审查，发现问题并给出修复建议。支持对照 PRD 和架构决策进行审查，确保代码与设计一致。也可以被其他 skill（如 workflow-build）自动触发。
       </div>
       <div class="card-flow">代码 → 对照 PRD / 架构决策 → 问题列表 + 修复建议</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">PR 提交前，想确保代码质量和设计一致性</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/code-review 对照 design.md 审查当前分支的所有变更</code></span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">问题清单（按严重程度排序）+ 逐条修复建议 + 与 PRD/架构决策的一致性评估</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -874,6 +910,18 @@ body {
         审查已修改代码的复用性、质量和效率，并自动修复发现的问题。聚焦于消除冗余、提升可读性和性能优化。
       </div>
       <div class="card-flow">变更代码 → 复用性/质量/效率审查 → 自动修复</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">刚写完一段代码，感觉有重复或可以更简洁，但不确定怎么优化</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/simplify</code> （自动扫描当前变更，检测冗余和可优化点）</span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">识别重复逻辑、冗余抽象、低效写法 → 自动内联修复，保持行为不变</span>
+        </div>
+      </details>
     </div>
 
     <div class="card">
@@ -885,6 +933,18 @@ body {
         对当前分支的待处理更改进行完整的安全审查。检测 OWASP Top 10 漏洞、注入风险、敏感信息泄露、依赖安全等问题。
       </div>
       <div class="card-flow">当前分支 diff → 安全漏洞扫描 → 风险评级 + 修复方案</div>
+      <details class="card-example">
+        <summary>📝 使用示例</summary>
+        <div class="example-item">
+          <span class="label">场景：</span><span class="content">功能开发完成，涉及用户输入和数据库查询，上线前需安全审查</span>
+        </div>
+        <div class="example-item">
+          <span class="label">提示词：</span><span class="content"><code>/security-review</code> （自动扫描当前分支 diff，检测安全风险）</span>
+        </div>
+        <div class="example-item">
+          <span class="label">预期产出：</span><span class="content">按 OWASP Top 10 分类的风险清单 → 每项标注严重等级和修复方案 → 确认无高危漏洞再上线</span>
+        </div>
+      </details>
     </div>
   </div>
 </section>
