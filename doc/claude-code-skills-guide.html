@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="../img/icons/icon1.png">
+<title>Claude Code Skills 完全指南 — YJ Knowledge Bank</title>
+<style>
+/* ===== Reset & Variables ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text: #1E293B;
+  --text-secondary: #64748B;
+  --border: #E2E8F0;
+  --primary: #2563EB;
+  --primary-light: #DBEAFE;
+  --secondary: #7C3AED;
+  --secondary-light: #EDE9FE;
+  --accent: #EA580C;
+  --accent-light: #FFF7ED;
+  --success: #059669;
+  --success-light: #ECFDF5;
+  --rose: #E11D48;
+  --rose-light: #FFF1F2;
+  --amber: #D97706;
+  --amber-light: #FFFBEB;
+  --cyan: #0891B2;
+  --cyan-light: #ECFEFF;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+[data-theme="dark"] {
+  --bg: #0F172A;
+  --bg-card: #1E293B;
+  --text: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --border: #334155;
+  --primary: #60A5FA;
+  --primary-light: #1E3A5F;
+  --secondary: #A78BFA;
+  --secondary-light: #2E1065;
+  --accent: #FB923C;
+  --accent-light: #431407;
+  --success: #34D399;
+  --success-light: #064E3B;
+  --rose: #FB7185;
+  --rose-light: #4C0519;
+  --amber: #FBBF24;
+  --amber-light: #451A03;
+  --cyan: #22D3EE;
+  --cyan-light: #083344;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F172A;
+    --bg-card: #1E293B;
+    --text: #E2E8F0;
+    --text-secondary: #94A3B8;
+    --border: #334155;
+    --primary: #60A5FA;
+    --primary-light: #1E3A5F;
+    --secondary: #A78BFA;
+    --secondary-light: #2E1065;
+    --accent: #FB923C;
+    --accent-light: #431407;
+    --success: #34D399;
+    --success-light: #064E3B;
+    --rose: #FB7185;
+    --rose-light: #4C0519;
+    --amber: #FBBF24;
+    --amber-light: #451A03;
+    --cyan: #22D3EE;
+    --cyan-light: #083344;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Navigation ===== */
+.nav {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.nav-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-brand .icon { width: 24px; height: 24px; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.theme-toggle {
+  background: none; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer;
+  font-size: 1rem; padding: 6px 10px; line-height: 1;
+  color: var(--text-secondary); transition: all 0.2s;
+}
+.theme-toggle:hover { background: var(--bg); color: var(--primary); }
+
+/* ===== Hero ===== */
+.hero {
+  text-align: center;
+  padding: 72px 24px 48px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+
+.hero .subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== Overview ===== */
+.overview {
+  max-width: 1100px;
+  margin: 0 auto 48px;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card .num {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-card .label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ===== Section ===== */
+.section {
+  max-width: 1100px;
+  margin: 0 auto 48px;
+  padding: 0 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.section-icon {
+  font-size: 1.5rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.si-workflow { background: var(--primary-light); }
+.si-frontend { background: var(--secondary-light); }
+.si-quality { background: var(--rose-light); }
+.si-diagnose { background: var(--amber-light); }
+.si-project { background: var(--success-light); }
+.si-diagram { background: var(--cyan-light); }
+.si-tools { background: var(--accent-light); }
+.si-general { background: var(--bg); border: 1px solid var(--border); }
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* ===== Cards ===== */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  color: var(--primary);
+}
+
+.card-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-core { background: var(--primary-light); color: var(--primary); }
+.badge-optional { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+.badge-specialized { background: var(--secondary-light); color: var(--secondary); }
+
+.card-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  flex: 1;
+}
+
+.card-flow {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  line-height: 1.5;
+}
+
+/* ===== Flow Diagram ===== */
+.flow-section {
+  max-width: 1100px;
+  margin: 0 auto 56px;
+  padding: 0 24px;
+}
+
+.flow-diagram {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  overflow-x: auto;
+}
+
+.flow-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.flow-node {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  text-align: center;
+  min-width: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.flow-node.active { border-color: var(--primary); background: var(--primary-light); }
+.flow-node.highlight { border-color: var(--secondary); background: var(--secondary-light); }
+
+.flow-arrow {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin: 0 6px;
+  font-weight: 700;
+}
+
+.flow-branch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 12px;
+}
+
+.flow-branch-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.flow-branch-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* ===== Footer ===== */
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.footer a:hover { text-decoration: underline; }
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.6rem; }
+  .nav-inner { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 8px; }
+  .cards { grid-template-columns: 1fr; }
+  .overview { grid-template-columns: repeat(2, 1fr); }
+  .flow-diagram { padding: 16px; }
+  .flow-row { flex-direction: column; gap: 8px; }
+  .flow-arrow { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../index.html">
+      <img src="../img/icons/icon1.png" alt="logo" class="icon"> YJ Knowledge Bank
+    </a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="llm-tutorial.html">LLM 入门</a></li>
+      <li><a href="network-tutorial.html">网络基础</a></li>
+      <li><a href="thread/cpp-threading-comparison.html">C++ 多线程</a></li>
+      <li><a href="claude-code-skills-guide.html" style="color:var(--primary);background:var(--primary-light);font-weight:600;">Skills 指南</a></li>
+      <li><button class="theme-toggle" id="themeToggle" title="切换深色模式">🌙</button></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Claude Code Skills 完全指南</h1>
+  <p class="subtitle">
+    深入理解 Claude Code 的 25 个内置 Skills：从开发工作流到代码审查，从图表生成到安全审计。<br>
+    每个 Skill 都是独立的专用子代理，按需调用，组合成完整的开发工具链。
+  </p>
+</section>
+
+<!-- Overview Stats -->
+<section class="overview">
+  <div class="stat-card">
+    <div class="num">25</div>
+    <div class="label">内置 Skills</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">8</div>
+    <div class="label">功能分类</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">5</div>
+    <div class="label">工作流阶段</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">3</div>
+    <div class="label">工作流预设路径</div>
+  </div>
+</section>
+
+<!-- ===== Section 1: Workflow ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-workflow">🔄</div>
+    <div>
+      <div class="section-title">开发工作流 (Workflow)</div>
+      <div class="section-subtitle">五阶段流程编排器 + 三条预设路径，覆盖从需求到归档的完整生命周期</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow</span>
+        <span class="card-badge badge-core">核心编排器</span>
+      </div>
+      <div class="card-desc">
+        通用开发工作流的总入口。自包含的五阶段流程编排器，自动检测当前阶段并路由到对应子命令。用户只需执行 <code>/workflow</code>，系统会自动判断进度。
+      </div>
+      <div class="card-flow">五阶段：开启 → 深度设计 → 计划与构建 → 验证与收尾 → 归档</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow-open</span>
+        <span class="card-badge badge-core">阶段 1</span>
+      </div>
+      <div class="card-desc">
+        工作流第一阶段：开启。通过结构化探索理解需求，创建 change 结构（proposal + design + tasks）。将模糊需求转化为可执行的变更计划。
+      </div>
+      <div class="card-flow">输入：用户需求 → 输出：proposal.md + design.md + tasks.md</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow-design</span>
+        <span class="card-badge badge-core">阶段 2</span>
+      </div>
+      <div class="card-desc">
+        工作流第二阶段：深度设计。结构化 brainstorming，产出完整的 design.md。在此阶段深入探索技术方案、架构决策、数据流和边界条件。
+      </div>
+      <div class="card-flow">输入：proposal → 深度技术设计 → 输出：完整 design.md</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow-build</span>
+        <span class="card-badge badge-core">阶段 3</span>
+      </div>
+      <div class="card-desc">
+        工作流第三阶段：计划与构建。基于 design.md 制定实现计划，可选择 subagent 并行执行或 sequential 顺序执行两种构建模式。
+      </div>
+      <div class="card-flow">输入：design.md → 实施计划 → subagent / sequential 构建</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow-verify</span>
+        <span class="card-badge badge-core">阶段 4</span>
+      </div>
+      <div class="card-desc">
+        工作流第四阶段：验证与收尾。验证实现是否符合设计文档，运行测试，检查边界条件，处理开发分支的合并与清理。
+      </div>
+      <div class="card-flow">输入：构建产物 → 设计符合性验证 → 测试 → 分支处理</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow-archive</span>
+        <span class="card-badge badge-core">阶段 5</span>
+      </div>
+      <div class="card-desc">
+        工作流第五阶段：归档。将已完成的变更归档，更新文档索引，清理临时文件，确保知识沉淀和可追溯。
+      </div>
+      <div class="card-flow">输入：已验证的变更 → 归档文档 → 更新索引 → 清理</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow-hotfix</span>
+        <span class="card-badge badge-optional">预设路径</span>
+      </div>
+      <div class="card-desc">
+        Bug 修复 / 热修复专用路径。跳过设计阶段，直接执行：open → build → verify → archive。适用于行为修复、不涉及新 capability 设计的场景。
+      </div>
+      <div class="card-flow">简化流程：open → build → verify → archive（无 design 阶段）</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/workflow-tweak</span>
+        <span class="card-badge badge-optional">预设路径</span>
+      </div>
+      <div class="card-desc">
+        非 Bug 的小改动路径。跳过深度设计，直接 open → lightweight build → light verify → archive。适用于文案修改、配置调整、文档更新或 prompt 的局部优化。
+      </div>
+      <div class="card-flow">轻量流程：open → 轻量构建 → 轻量验证 → 归档</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/frontend-flow</span>
+        <span class="card-badge badge-specialized">跨项目</span>
+      </div>
+      <div class="card-desc">
+        跨项目流程编排器，带有可恢复状态机。自动检测当前阶段，依次执行子 skill，支持中断后从断点恢复。用于多项目前端变更的统一编排。
+      </div>
+      <div class="card-flow">状态机驱动：自动检测阶段 → 执行子 skill → 断点可恢复</div>
+    </div>
+  </div>
+</section>
+
+<!-- Flow Diagram -->
+<section class="flow-section">
+  <div class="section-header" style="margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--border);">
+    <div class="section-icon si-workflow">🗺️</div>
+    <div>
+      <div class="section-title">工作流全景图</div>
+      <div class="section-subtitle">五阶段标准流程 + 三条预设路径的完整导航</div>
+    </div>
+  </div>
+
+  <div class="flow-diagram">
+    <!-- Standard flow -->
+    <div class="flow-row" style="margin-bottom:20px;">
+      <span style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);margin-right:12px;">标准流程</span>
+      <div class="flow-node active">① open</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node active">② design</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node active">③ build</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node active">④ verify</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node active">⑤ archive</div>
+    </div>
+
+    <!-- Hotfix path -->
+    <div class="flow-row" style="margin-bottom:12px;">
+      <span style="font-size:0.8rem;font-weight:700;color:var(--accent);margin-right:12px;">Hotfix</span>
+      <div class="flow-node highlight">① open</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight">③ build</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight">④ verify</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight">⑤ archive</div>
+    </div>
+
+    <!-- Tweak path -->
+    <div class="flow-row">
+      <span style="font-size:0.8rem;font-weight:700;color:var(--success);margin-right:12px;">Tweak</span>
+      <div class="flow-node" style="border-color:var(--success);background:var(--success-light);">① open</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node" style="border-color:var(--success);background:var(--success-light);">③ 轻量 build</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node" style="border-color:var(--success);background:var(--success-light);">④ 轻量 verify</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node" style="border-color:var(--success);background:var(--success-light);">⑤ archive</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 2: Frontend ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-frontend">🎨</div>
+    <div>
+      <div class="section-title">前端开发 (Frontend)</div>
+      <div class="section-subtitle">从需求探针到页面实现，前端工程师的完整工具箱</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/design</span>
+        <span class="card-badge badge-core">前端工程师</span>
+      </div>
+      <div class="card-desc">
+        前端页面开发的全能助手。可生成新页面、给现有页面增加功能、修改功能、修复 UI Bug。理解组件树、状态管理和样式系统，直接产出可用的前端代码。
+      </div>
+      <div class="card-flow">能力：新建页面 · 增加功能 · 修改功能 · 修复 Bug</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/probe-me</span>
+        <span class="card-badge badge-core">需求探针</span>
+      </div>
+      <div class="card-desc">
+        需求 + 方案对齐工具。通过反复追问，把模糊需求变成清晰的前端 PRD，并预判技术方案与架构决策。在写代码之前确保方向正确，避免返工。
+      </div>
+      <div class="card-flow">模糊需求 → 反复追问 → 清晰 PRD + 技术方案预判</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 3: Code Quality ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-quality">✅</div>
+    <div>
+      <div class="section-title">代码质量 (Code Quality)</div>
+      <div class="section-subtitle">审查、优化、安全审计 — 三道防线确保代码品质</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/code-review</span>
+        <span class="card-badge badge-core">代码审查</span>
+      </div>
+      <div class="card-desc">
+        自动代码审查，发现问题并给出修复建议。支持对照 PRD 和架构决策进行审查，确保代码与设计一致。也可以被其他 skill（如 workflow-build）自动触发。
+      </div>
+      <div class="card-flow">代码 → 对照 PRD / 架构决策 → 问题列表 + 修复建议</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/simplify</span>
+        <span class="card-badge badge-core">代码优化</span>
+      </div>
+      <div class="card-desc">
+        审查已修改代码的复用性、质量和效率，并自动修复发现的问题。聚焦于消除冗余、提升可读性和性能优化。
+      </div>
+      <div class="card-flow">变更代码 → 复用性/质量/效率审查 → 自动修复</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/security-review</span>
+        <span class="card-badge badge-specialized">安全审查</span>
+      </div>
+      <div class="card-desc">
+        对当前分支的待处理更改进行完整的安全审查。检测 OWASP Top 10 漏洞、注入风险、敏感信息泄露、依赖安全等问题。
+      </div>
+      <div class="card-flow">当前分支 diff → 安全漏洞扫描 → 风险评级 + 修复方案</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 4: Diagnosis ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-diagnose">🔍</div>
+    <div>
+      <div class="section-title">诊断与调试 (Diagnosis)</div>
+      <div class="section-subtitle">面向 hard bugs 和性能回归的科学诊断方法论</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/diagnose</span>
+        <span class="card-badge badge-specialized">问题诊断</span>
+      </div>
+      <div class="card-desc">
+        结构化问题诊断流程：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试。面向难以复现的 hard bugs 和性能回归，使用科学方法而非猜测来定位根因。
+      </div>
+      <div class="card-flow">复现 → 最小化用例 → 形成假设 → 插桩验证 → 修复 → 回归测试</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 5: Project & Docs ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-project">📋</div>
+    <div>
+      <div class="section-title">项目与文档 (Project & Documentation)</div>
+      <div class="section-subtitle">项目初始化、API 文档生成、规则文件管理</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/devpack-init</span>
+        <span class="card-badge badge-optional">项目初始化</span>
+      </div>
+      <div class="card-desc">
+        检测当前 AI Agent 平台（Claude Code / Cursor / Copilot 等），生成对应的规则文件，注入代码打标规范。让项目在初始化时就具备 AI 友好结构。
+      </div>
+      <div class="card-flow">检测平台 → 生成规则文件 → 注入打标规范</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/api-doc</span>
+        <span class="card-badge badge-optional">接口文档</span>
+      </div>
+      <div class="card-desc">
+        读取后端代码，提取 API 接口定义（路由、请求参数、响应格式），生成精简的接口文档。自动识别 RESTful 和 RPC 风格接口。
+      </div>
+      <div class="card-flow">后端代码扫描 → 提取接口定义 → 生成精简文档</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/init</span>
+        <span class="card-badge badge-optional">项目初始化</span>
+      </div>
+      <div class="card-desc">
+        为当前项目初始化 CLAUDE.md 文件。分析代码库结构、技术栈和架构模式，生成包含项目规范的指导文件，帮助后续 AI 协作更精准。
+      </div>
+      <div class="card-flow">代码库分析 → 提取技术栈/架构 → 生成 CLAUDE.md</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 6: Diagrams ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-diagram">📐</div>
+    <div>
+      <div class="section-title">图表与可视化 (Diagrams & Visualization)</div>
+      <div class="section-subtitle">从流程图到架构图，用可视化表达复杂系统</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/drawio-skill</span>
+        <span class="card-badge badge-core">Draw.io 图表</span>
+      </div>
+      <div class="card-desc">
+        生成专业级 .drawio 图表文件，支持 28+ 图表类型：流程图、架构图、ER 图、UML（序列/类图）、BPMN、网络拓扑、云架构、ML 模型图、思维导图等。可导出 PNG/SVG/PDF。
+      </div>
+      <div class="card-flow">Mermaid / XML 描述 → .drawio 文件 → 可导出 PNG/SVG/PDF</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/excalidraw-diagram</span>
+        <span class="card-badge badge-core">手绘风格图表</span>
+      </div>
+      <div class="card-desc">
+        创建 Excalidraw 手绘风格图表。适合可视化工作流、架构或概念图。支持从 Mermaid 语法转换，提供设计指南确保图表美观一致。
+      </div>
+      <div class="card-flow">描述 / Mermaid → Excalidraw JSON → 可分享链接 / 导出图片</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 7: Tools & Config ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-tools">🔧</div>
+    <div>
+      <div class="section-title">工具与配置 (Tools & Configuration)</div>
+      <div class="section-subtitle">配置管理、权限优化、循环任务、快捷键定制</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/update-config</span>
+        <span class="card-badge badge-core">配置管理</span>
+      </div>
+      <div class="card-desc">
+        通过 settings.json 配置 Claude Code harness。管理自动化行为（hooks）、权限规则、环境变量、主题/模型设置。支持项目级和用户级配置分离。
+      </div>
+      <div class="card-flow">settings.json / settings.local.json → hooks · 权限 · 环境变量</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/fewer-permission-prompts</span>
+        <span class="card-badge badge-optional">权限优化</span>
+      </div>
+      <div class="card-desc">
+        扫描 transcript 中的常见只读 Bash 和 MCP 工具调用，生成优先 allowlist 并添加到项目 .claude/settings.json 中，减少重复的权限确认提示。
+      </div>
+      <div class="card-flow">扫描历史 → 识别安全模式 → 生成 allowlist → 减少权限提示</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/loop</span>
+        <span class="card-badge badge-optional">循环执行</span>
+      </div>
+      <div class="card-desc">
+        按指定间隔循环执行 prompt 或 slash command。适用于轮询部署状态、定期检查 CI、重复性监控任务。默认间隔 10 分钟。
+      </div>
+      <div class="card-flow">/loop 5m /check-deploy → 每 5 分钟自动执行一次</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/keybindings-help</span>
+        <span class="card-badge badge-optional">快捷键</span>
+      </div>
+      <div class="card-desc">
+        自定义键盘快捷键。支持重新绑定按键、添加和弦快捷键、修改提交键。修改 ~/.claude/keybindings.json 配置文件。
+      </div>
+      <div class="card-flow">keybindings.json → 自定义快捷键 / 和弦绑定</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 8: API & General ===== -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-general">🚀</div>
+    <div>
+      <div class="section-title">API 开发与通用工具</div>
+      <div class="section-subtitle">Claude API 集成、PR Review 和通用开发模式</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/claude-api</span>
+        <span class="card-badge badge-specialized">API 开发</span>
+      </div>
+      <div class="card-desc">
+        Claude API / Anthropic SDK 应用开发专用助手。支持 prompt caching、thinking、compaction、tool use、batch、files、citations、memory 等全部特性。同时处理模型版本迁移（4.5→4.6→4.7）。
+      </div>
+      <div class="card-flow">触发条件：代码导入 anthropic SDK → 自动提供 API 最佳实践</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/review</span>
+        <span class="card-badge badge-optional">PR Review</span>
+      </div>
+      <div class="card-desc">
+        对 GitHub Pull Request 进行全面审查。分析代码变更、检查逻辑正确性、评估测试覆盖、审查架构一致性，并给出结构化的 review 意见。
+      </div>
+      <div class="card-flow">PR URL → 代码变更分析 → 结构化 Review 意见</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-name">/ponytail</span>
+        <span class="card-badge badge-optional">通用开发</span>
+      </div>
+      <div class="card-desc">
+        懒人高级开发模式。遵循 YAGNI 原则、stdlib 优先、不引入未请求的抽象。适用于任何编码任务（编写、重构、修复、审查），不使用于非编码请求。
+      </div>
+      <div class="card-flow">原则：YAGNI · stdlib 优先 · 零冗余抽象 · 只写需要的代码</div>
+    </div>
+  </div>
+</section>
+
+<!-- Summary Table -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-icon si-workflow">📊</div>
+    <div>
+      <div class="section-title">Skill 分类速查表</div>
+      <div class="section-subtitle">快速定位你需要的 Skill</div>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+      <thead>
+        <tr style="background:var(--bg);border-bottom:2px solid var(--border);">
+          <th style="padding:10px 14px;text-align:left;font-weight:700;">分类</th>
+          <th style="padding:10px 14px;text-align:left;font-weight:700;">Skill</th>
+          <th style="padding:10px 14px;text-align:left;font-weight:700;">一句话用途</th>
+          <th style="padding:10px 14px;text-align:left;font-weight:700;">触发场景</th>
+        </tr>
+      </thead>
+      <tbody style="color:var(--text-secondary);">
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--primary);" rowspan="9">工作流</td>
+          <td style="padding:9px 14px;"><code style="color:var(--primary);">/workflow</code></td>
+          <td style="padding:9px 14px;">五阶段流程总入口，自动检测进度</td>
+          <td style="padding:9px 14px;">任何开发任务启动时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/workflow-open</code></td>
+          <td style="padding:9px 14px;">结构化探索需求，创建 change 结构</td>
+          <td style="padding:9px 14px;">新功能/大改动启动</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/workflow-design</code></td>
+          <td style="padding:9px 14px;">深度技术设计，产出 design.md</td>
+          <td style="padding:9px 14px;">需要架构决策时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/workflow-build</code></td>
+          <td style="padding:9px 14px;">制定计划并执行构建</td>
+          <td style="padding:9px 14px;">设计完成，开始编码</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/workflow-verify</code></td>
+          <td style="padding:9px 14px;">验证实现，处理分支</td>
+          <td style="padding:9px 14px;">编码完成，准备合并</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/workflow-archive</code></td>
+          <td style="padding:9px 14px;">归档变更，更新索引</td>
+          <td style="padding:9px 14px;">变更已合并</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/workflow-hotfix</code></td>
+          <td style="padding:9px 14px;">Bug 热修复（跳过设计）</td>
+          <td style="padding:9px 14px;">紧急 Bug 修复</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/workflow-tweak</code></td>
+          <td style="padding:9px 14px;">小改动轻量路径</td>
+          <td style="padding:9px 14px;">文案/配置/文档小改</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/frontend-flow</code></td>
+          <td style="padding:9px 14px;">跨项目前端流程编排</td>
+          <td style="padding:9px 14px;">多项目前端变更</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--secondary);" rowspan="2">前端</td>
+          <td style="padding:9px 14px;"><code style="color:var(--secondary);">/design</code></td>
+          <td style="padding:9px 14px;">前端页面开发（新建/修改/修复）</td>
+          <td style="padding:9px 14px;">需要写前端代码时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;"><code>/probe-me</code></td>
+          <td style="padding:9px 14px;">需求澄清 → 前端 PRD</td>
+          <td style="padding:9px 14px;">需求模糊，需要对齐</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--rose);" rowspan="3">代码质量</td>
+          <td style="padding:9px 14px;"><code style="color:var(--rose);">/code-review</code></td>
+          <td style="padding:9px 14px;">自动代码审查 + 修复建议</td>
+          <td style="padding:9px 14px;">代码提交前 / PR 前</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/simplify</code></td>
+          <td style="padding:9px 14px;">代码简化优化</td>
+          <td style="padding:9px 14px;">代码可以更简洁时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/security-review</code></td>
+          <td style="padding:9px 14px;">安全漏洞审查</td>
+          <td style="padding:9px 14px;">涉及敏感数据/认证时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--amber);">诊断</td>
+          <td style="padding:9px 14px;"><code style="color:var(--amber);">/diagnose</code></td>
+          <td style="padding:9px 14px;">科学诊断 hard bugs</td>
+          <td style="padding:9px 14px;">难以复现/定位的 Bug</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--success);" rowspan="3">项目文档</td>
+          <td style="padding:9px 14px;"><code style="color:var(--success);">/devpack-init</code></td>
+          <td style="padding:9px 14px;">检测平台，生成规则文件</td>
+          <td style="padding:9px 14px;">新项目初始化</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/api-doc</code></td>
+          <td style="padding:9px 14px;">自动生成 API 接口文档</td>
+          <td style="padding:9px 14px;">后端接口交付</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/init</code></td>
+          <td style="padding:9px 14px;">初始化 CLAUDE.md</td>
+          <td style="padding:9px 14px;">新项目首次 AI 协作</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--cyan);" rowspan="2">图表</td>
+          <td style="padding:9px 14px;"><code style="color:var(--cyan);">/drawio-skill</code></td>
+          <td style="padding:9px 14px;">Draw.io 专业图表（28+ 类型）</td>
+          <td style="padding:9px 14px;">需要架构图/流程图/UML</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;"><code>/excalidraw-diagram</code></td>
+          <td style="padding:9px 14px;">手绘风格可视化图表</td>
+          <td style="padding:9px 14px;">需要快速可视化概念</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--accent);" rowspan="4">工具配置</td>
+          <td style="padding:9px 14px;"><code style="color:var(--accent);">/update-config</code></td>
+          <td style="padding:9px 14px;">配置 settings.json（hooks/权限）</td>
+          <td style="padding:9px 14px;">需要自动化行为时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/fewer-permission-prompts</code></td>
+          <td style="padding:9px 14px;">减少权限提示</td>
+          <td style="padding:9px 14px;">频繁被权限弹窗打断</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/loop</code></td>
+          <td style="padding:9px 14px;">循环执行命令</td>
+          <td style="padding:9px 14px;">需要定期检查/轮询</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code>/keybindings-help</code></td>
+          <td style="padding:9px 14px;">自定义快捷键</td>
+          <td style="padding:9px 14px;">需要改键位时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;font-weight:600;color:var(--text);" rowspan="3">通用</td>
+          <td style="padding:9px 14px;"><code>/claude-api</code></td>
+          <td style="padding:9px 14px;">Claude API 应用开发</td>
+          <td style="padding:9px 14px;">写 Anthropic SDK 代码时</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;"><code>/review</code></td>
+          <td style="padding:9px 14px;">审查 GitHub PR</td>
+          <td style="padding:9px 14px;">收到 PR review 请求</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg);">
+          <td style="padding:9px 14px;"><code>/ponytail</code></td>
+          <td style="padding:9px 14px;">通用编码（YAGNI 风格）</td>
+          <td style="padding:9px 14px;">任何编码任务</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Workflow Decision Tree -->
+<section class="section" style="margin-bottom:64px;">
+  <div class="section-header">
+    <div class="section-icon si-diagnose">🧭</div>
+    <div>
+      <div class="section-title">如何选择工作流路径？</div>
+      <div class="section-subtitle">根据任务类型快速决策</div>
+    </div>
+  </div>
+
+  <div class="flow-diagram">
+    <div class="flow-row" style="margin-bottom:14px;">
+      <div class="flow-node active" style="font-size:0.8rem;">我要做什么？</div>
+    </div>
+    <div class="flow-row" style="margin-bottom:10px;gap:40px;font-size:0.82rem;color:var(--text-secondary);">
+      <span>├─ 新功能 / 大改动 → <code style="color:var(--primary);font-weight:700;">/workflow</code>（五阶段全流程）</span>
+    </div>
+    <div class="flow-row" style="margin-bottom:10px;gap:40px;font-size:0.82rem;color:var(--text-secondary);">
+      <span>├─ 紧急 Bug 修复 → <code style="color:var(--accent);font-weight:700;">/workflow-hotfix</code>（跳过设计）</span>
+    </div>
+    <div class="flow-row" style="margin-bottom:10px;gap:40px;font-size:0.82rem;color:var(--text-secondary);">
+      <span>├─ 文案/配置小改 → <code style="color:var(--success);font-weight:700;">/workflow-tweak</code>（轻量流程）</span>
+    </div>
+    <div class="flow-row" style="margin-bottom:10px;gap:40px;font-size:0.82rem;color:var(--text-secondary);">
+      <span>├─ 前端页面开发 → <code style="color:var(--secondary);font-weight:700;">/design</code> 或 <code style="color:var(--secondary);font-weight:700;">/probe-me</code></span>
+    </div>
+    <div class="flow-row" style="gap:40px;font-size:0.82rem;color:var(--text-secondary);">
+      <span>└─ 不确定 → 直接描述需求，AI 会自动选择合适的 Skill</span>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>
+    <a href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">github.com/chunyujin295/yj-knowledge-bank</a>
+    &nbsp;·&nbsp; Built with ❤️ by YJ
+  </p>
+</footer>
+
+<script>
+(()=>{
+  const h=document.documentElement, b=document.getElementById('themeToggle');
+  const s=localStorage.getItem('theme');
+  if(s==='dark'){h.setAttribute('data-theme','dark');b.textContent='☀️';}
+  else if(s==='light'){h.setAttribute('data-theme','light');b.textContent='🌙';}
+  b.addEventListener('click',()=>{
+    if(h.getAttribute('data-theme')==='dark'){
+      h.setAttribute('data-theme','light');localStorage.setItem('theme','light');b.textContent='🌙';
+    }else{
+      h.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');b.textContent='☀️';
+    }
+  });
+})();
+</script>
+</body>
+</html>
