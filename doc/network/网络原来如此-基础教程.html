@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="面向初学者的计算机网络基础教程：网络分层、TCP/IP、DNS、HTTP、HTTPS、SSH 与常用排障方法。">
+  <title>网络原来如此 · 计算机网络基础教程</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="progress-line" id="progressLine"></div>
+  <header class="topbar">
+    <a class="brand" href="#top"><span class="brand-dot"></span>网络原来如此</a>
+    <nav class="topnav"><a href="#journey">访问旅程</a><a href="#tcp">TCP/IP</a><a href="#http">HTTP</a><a href="#https">HTTPS</a><a href="#ssh">SSH</a></nav>
+    <button class="theme-btn" id="themeBtn" aria-label="切换深色模式">◐</button>
+  </header>
+
+  <header class="hero" id="top">
+    <div class="hero-inner">
+      <div class="hero-copy"><div class="kicker">COMPUTER NETWORKS · 零基础长篇教程</div><h1>别再把互联网<br>想成一朵云。</h1><p>从你在浏览器输入网址的那一刻出发，沿着数据真实走过的路径，逐层理解 IP、TCP、DNS、HTTP、HTTPS 与 SSH。</p><div class="hero-actions"><a class="primary-btn" href="#foundation">开始学习</a><span>预计阅读 55 分钟</span></div></div>
+      <div class="hero-visual"><div class="visual-label">一次请求的方向</div><div class="device client"><span>◫</span><b>你的电脑</b><small>192.168.1.10</small></div><div class="signal"><i></i><i></i><i></i><span class="moving-packet">01</span></div><div class="cloud-core"><span>路由器</span><b>INTERNET</b><small>许多网络的网络</small></div><div class="signal"><i></i><i></i><i></i></div><div class="device server"><span>▤</span><b>服务器</b><small>203.0.113.8</small></div></div>
+    </div>
+    <div class="hero-stats"><div><b>9</b><span>核心章节</span></div><div><b>30+</b><span>图解与示例</span></div><div><b>4</b><span>动手实验</span></div><div><b>4</b><span>综合测验</span></div></div>
+  </header>
+
+  <div class="page-shell">
+    <aside class="sidebar"><div class="toc-title">课程目录</div><a href="#foundation"><span>01</span>网络基础</a><a href="#layers"><span>02</span>分层与封装</a><a href="#journey"><span>03</span>网页访问全程</a><a href="#ip"><span>04</span>IP、子网与 NAT</a><a href="#tcp"><span>05</span>TCP 与 UDP</a><a href="#dns"><span>06</span>DNS 域名解析</a><a href="#http"><span>07</span>HTTP 协议</a><a href="#https"><span>08</span>HTTPS 与 TLS</a><a href="#ssh"><span>09</span>SSH 远程登录</a><a href="#tools"><span>+</span>排障工具箱</a><a href="#final-quiz"><span>✓</span>综合自测</a><div class="toc-progress"><div><span>阅读进度</span><b id="progressText">0%</b></div><div class="mini-track"><i id="miniProgress"></i></div></div></aside>
+    <main class="content">
+      <section class="intro-note"><div class="note-icon">◎</div><div><b>怎么使用这份教程？</b><p>先顺序读完“网页访问全程”，建立地图；再深入 TCP、HTTP、HTTPS。碰到术语时，先看类比，再看严谨定义。每节末尾都有一个可以立刻完成的小实验。</p></div></section>
+
+      <section class="chapter" id="foundation">
+        <div class="chapter-head"><span class="chapter-no">01</span><div><div class="eyebrow">FOUNDATION</div><h2>网络到底是什么？</h2><p>网络的本质，是让不同设备上的程序交换数据。</p></div></div>
+        <p>两台电脑直接连一根网线，可以构成最小网络；许多局域网再通过路由器相连，就形成了互联网（Internet）。它并没有一个“总控制中心”，而是由家庭网络、学校网络、公司网络、运营商网络和数据中心彼此连接而成。</p>
+        <div class="concept-grid three"><article><span class="concept-icon blue">终</span><h3>终端设备</h3><p>电脑、手机、服务器。它们是数据的产生者和最终接收者，也叫主机。</p></article><article><span class="concept-icon cyan">交</span><h3>交换机</h3><p>连接同一局域网内的设备，主要依据 <b>MAC 地址</b>转发以太网帧。</p></article><article><span class="concept-icon orange">路</span><h3>路由器</h3><p>连接不同网络，依据 <b>IP 地址</b>和路由表决定数据包的下一站。</p></article></div>
+        <h3 class="subhead">理解网络必须分清的 4 个量</h3>
+        <div class="metric-list"><div><b>带宽 Bandwidth</b><span>一条链路单位时间最多能运多少数据，例如 500 Mbps。像公路的车道数。</span></div><div><b>时延 Latency</b><span>数据从起点到终点花费的时间，例如 30 ms。像一次行程所需时间。</span></div><div><b>吞吐量 Throughput</b><span>实际每秒成功传输的数据，通常小于带宽。受拥塞、协议开销等影响。</span></div><div><b>丢包率 Packet loss</b><span>数据包在途中未到达的比例。拥塞、无线干扰或设备故障都可能造成丢包。</span></div></div>
+        <div class="callout analogy"><b>类比：物流系统</b><p>数据像货物，链路像公路，交换机像小区中转站，路由器像跨城物流枢纽。带宽是车道数，时延是路程时间，丢包就是包裹在途中遗失。</p></div>
+        <h3 class="subhead">先分清楚：网络的规模</h3>
+        <div class="concept-grid three"><article><span class="concept-icon blue">个</span><h3>PAN 个人局域网</h3><p>覆盖一两米内的设备互连，例如蓝牙耳机连接手机。</p></article><article><span class="concept-icon cyan">家</span><h3>LAN 局域网</h3><p>覆盖一个房间或一栋楼，由交换机串起来的设备群。你家的 Wi‑Fi 就是一个 LAN。</p></article><article><span class="concept-icon orange">广</span><h3>WAN 广域网</h3><p>覆盖城市、国家甚至全球。互联网可以看成无数个 WAN 与 LAN 互连的结果。</p></article></div>
+        <h3 class="subhead">局域网内常见的连接方式：拓扑</h3>
+        <p>设备之间如何连线，决定了网络怎么扩展、故障怎么蔓延。四种最容易遇到的拓扑：</p>
+        <div class="metric-list"><div><b>星型 Star</b><span>所有设备都接到一台交换机，家中与办公室最常见的形态，单点故障少、易于排障。</span></div><div><b>总线 Bus</b><span>所有设备共用一条线缆，架设便宜，但一台设备出问题可能拖垮整段。</span></div><div><b>环型 Ring</b><span>设备连成闭环，数据沿环传递，可靠性有限，如今较少见。</span></div><div><b>网状 Mesh</b><span>设备彼此多路相连，互为冗余；骨干网和云数据中心常用，代价是成本高。</span></div></div>
+        <h3 class="subhead">时延不是一种：它由四段组成</h3>
+        <p>当我们说"时延 30ms"，其实包含四种成分。分清它们，才能看懂"为什么跨洋 Ping 有物理下限"：</p>
+        <div class="spec-table"><table><thead><tr><th>成分</th><th>由什么决定</th><th>典型量级</th></tr></thead><tbody><tr><td>处理时延</td><td>路由器查表、检查校验和的速度</td><td>几十微秒</td></tr><tr><td>排队时延</td><td>在路由器出口队列中等待的时间，拥塞时激增</td><td>0 ~ 数十毫秒，是网络抖动的主要来源</td></tr><tr><td>传输时延</td><td>把整段数据推上线缆的时间 = 数据长度 ÷ 带宽</td><td>1KB ÷ 100Mbps ≈ 0.08ms</td></tr><tr><td>传播时延</td><td>信号在线缆中的物理传播时间 ≈ 距离 ÷ (2/3 光速)</td><td>跨太平洋光缆单向约 60ms，几乎无从优化</td></tr></tbody></table></div>
+        <div class="callout key"><b>用一张图记住</b><p>带宽决定"传输时延"能压多低，距离决定"传播时延"的物理上限。这就是为什么再好的宽带，跨洋访问延迟也有下限。</p></div>
+      </section>
+
+      <section class="chapter" id="layers">
+        <div class="chapter-head"><span class="chapter-no">02</span><div><div class="eyebrow">LAYERS & ENCAPSULATION</div><h2>为什么网络需要分层？</h2><p>每一层只解决一类问题，并向上一层隐藏细节。</p></div></div>
+        <p>浏览器不需要知道光纤怎样表示 0 和 1，网卡也不需要理解 HTTP 的状态码。分层让不同厂商、不同系统能按照共同规则协作，也让每一层都可以独立升级。</p>
+        <div class="layer-stack"><div class="stack-row app"><strong>应用层</strong><span>用户需要什么服务？</span><code>HTTP · DNS · SSH</code><small>数据 Message</small></div><div class="stack-arrow">加入 TCP 首部 ↓</div><div class="stack-row transport"><strong>传输层</strong><span>送给哪一个程序？是否可靠？</span><code>TCP · UDP</code><small>段 Segment</small></div><div class="stack-arrow">加入 IP 首部 ↓</div><div class="stack-row network"><strong>网络层</strong><span>目标设备在哪里？如何跨网？</span><code>IP · ICMP</code><small>包 Packet</small></div><div class="stack-arrow">加入帧头帧尾 ↓</div><div class="stack-row link"><strong>链路层</strong><span>下一跳设备是谁？</span><code>Ethernet · Wi‑Fi</code><small>帧 Frame</small></div><div class="stack-arrow">转换成信号 ↓</div><div class="stack-row physical"><strong>物理层</strong><span>怎样把比特送过介质？</span><code>电 · 光 · 无线电</code><small>比特 Bit</small></div></div>
+        <h3 class="subhead">封装就像层层套信封</h3><p>发送时，应用数据从上往下经过各层，每层添加自己的控制信息（首部）；接收时则从下往上逐层拆除。路由器通常只需看到链路层和网络层，不关心里面是网页还是邮件。</p>
+        <div class="packet-demo"><div class="payload">HTTP 数据</div><div class="header tcp-h">TCP 首部<div class="payload">HTTP 数据</div></div><div class="header ip-h">IP 首部<div class="header tcp-h">TCP 首部<div class="payload">HTTP 数据</div></div></div><div class="header frame-h">帧头<div class="header ip-h">IP 首部<div class="header tcp-h">TCP<div class="payload">HTTP 数据</div></div></div><i>帧尾</i></div></div>
+        <div class="callout key"><b>关键记忆</b><p><b>MAC</b> 管“一段链路的下一站”，<b>IP</b> 管“跨网络的最终目的地”，<b>端口</b> 管“设备里的具体程序”。</p></div>
+        <h3 class="subhead">OSI 七层与“实用五层”对照</h3>
+        <p>书本上常讲 OSI 七层模型，而真实互联网实际实现的是 TCP/IP 五层。两套模型职责一一对应：</p>
+        <div class="spec-table"><table><thead><tr><th>OSI 七层</th><th>TCP/IP 五层</th><th>典型协议</th><th>典型设备</th></tr></thead><tbody><tr><td>应用层</td><td rowspan="3">应用层</td><td>HTTP · HTTPS · DNS · SSH · SMTP</td><td rowspan="3">主机、浏览器、服务器</td></tr><tr><td>表示层</td><td>加密/编码通常并入应用层实现，如 TLS</td></tr><tr><td>会话层</td><td>连接管理由传输层承担</td></tr><tr><td>传输层</td><td>传输层</td><td>TCP · UDP</td><td>操作系统</td></tr><tr><td>网络层</td><td>网络层</td><td>IP · ICMP · OSPF · BGP</td><td>路由器</td></tr><tr><td>数据链路层</td><td>链路层</td><td>Ethernet · Wi‑Fi · PPP</td><td>交换机、网卡、AP</td></tr><tr><td>物理层</td><td>物理层</td><td>电信号 · 光信号 · 无线电</td><td>网线、光纤、集线器</td></tr></tbody></table></div>
+        <h3 class="subhead">每一层还要遵守“报文大小”的限制</h3>
+        <p>数据不仅有格式，尺寸也有上限。链路层的 <code>MTU</code>（最大传输单元）决定单个数据帧最多装多少字节。以太网典型 MTU 是 1500 字节，超过它时 IP 层必须把包“分片”，到达后再重组。</p>
+        <div class="callout warning"><b>常见的理解误区</b><p>小包能 Ping 通、稍大的包断断续续，往往就是 MTU 问题：分片会增加开销与丢包概率，有些防火墙还会直接丢弃含分片的包。</p></div>
+      </section>
+
+      <section class="chapter" id="journey">
+        <div class="chapter-head"><span class="chapter-no">03</span><div><div class="eyebrow">THE FULL JOURNEY</div><h2>在浏览器按下回车后，发生了什么？</h2><p>把后面所有知识先串成一个完整故事。</p></div></div>
+        <div class="timeline"><article><span>1</span><div><h3>解析网址</h3><p>浏览器拆解 <code>https://example.com/course</code>：协议是 HTTPS，主机名是 example.com，路径是 /course；HTTPS 默认端口为 443。</p></div></article><article><span>2</span><div><h3>DNS 查询</h3><p>浏览器查看缓存并询问 DNS 解析器，将域名变成例如 <code>203.0.113.8</code>。</p></div></article><article><span>3</span><div><h3>找到本地出口</h3><p>电脑发现目标不在本地子网，通过 ARP 找到默认网关的 MAC 地址，把帧交给路由器。</p></div></article><article><span>4</span><div><h3>建立 TCP 连接</h3><p>客户端与服务器完成三次握手，确认彼此收发能力，并协商初始序号。</p></div></article><article><span>5</span><div><h3>完成 TLS 握手</h3><p>浏览器验证服务器证书，双方安全地产生会话密钥。</p></div></article><article><span>6</span><div><h3>发送 HTTP 请求</h3><p>浏览器发送 <code>GET /course HTTP/1.1</code>，并携带 Host、Cookie 等请求头。</p></div></article><article><span>7</span><div><h3>服务器响应</h3><p>服务器返回状态码、响应头和 HTML，浏览器继续请求 CSS、JavaScript、图片。</p></div></article><article><span>8</span><div><h3>渲染页面</h3><p>浏览器解析文档，执行脚本，计算布局并绘制像素。你终于看到了网页。</p></div></article></div>
+        <div class="callout key"><b>这张地图对应本书全部章节</b><p>第 1～2 步（URL 与 DNS）→ 第 6 章；第 3 步（本机出口）→ 第 4 章；第 4 步（TCP 握手）→ 第 5 章；第 5 步（TLS）→ 第 8 章；第 6～8 步（请求、响应、渲染）→ 第 7 章。先走完这 8 步，再逐章回炉。</p></div>
+        <h3 class="subhead">补充一步：局域网内如何找到“出口”</h3>
+        <p>第 3 步跳过了细节：你的电脑怎么知道把包交给路由器？在以太网里，电脑先判断目的 IP 是否与自己在同一子网。目标在公网，电脑只能把帧交给“默认网关”。但要发给网关，必须先知道它的 <b>MAC 地址</b>，于是发起 <code>ARP</code> 广播：“谁知道 192.168.1.1 的 MAC？”路由器应答后，电脑才把含公网目的 IP 的帧交给它。这个“先查 MAC，再送帧”的动作发生在每一跳。</p>
+        <div class="callout analogy"><b>类比：寄包裹</b><p>IP 地址是包裹上最终收件人的地址；MAC 地址是快递员联系“下一站中转站”的电话。每过一个中转站，快递员都要换一份通讯录——这就是逐跳转发的本质。</p></div>
+      </section>
+
+      <section class="chapter" id="ip">
+        <div class="chapter-head"><span class="chapter-no">04</span><div><div class="eyebrow">INTERNET LAYER</div><h2>IP：全球网络的寻址系统</h2><p>IP 尽力把包送到目标设备，但不承诺一定送达。</p></div></div>
+        <p>IPv4 地址由 32 位组成，通常写成四段十进制数，例如 <code>192.168.1.10</code>。IP 包中最重要的信息是源地址、目的地址和 TTL。每经过一个路由器，TTL 减 1；变成 0 时包会被丢弃，防止无限循环。</p>
+        <div class="address-card"><div><span>网络部分</span><b>192.168.1</b></div><i>.</i><div><span>主机部分</span><b>10</b></div><em>/24</em></div><p class="caption"><code>/24</code> 表示前 24 位是网络号，等价于子网掩码 <code>255.255.255.0</code>。</p>
+        <div class="split-grid"><article class="panel"><h3>私有 IP 与公网 IP</h3><p><b>私有地址</b>只在局域网内使用，例如 10.0.0.0/8、172.16.0.0/12、192.168.0.0/16；<b>公网地址</b>在互联网中唯一、可路由。</p></article><article class="panel"><h3>NAT 为什么存在？</h3><p>家中多台设备共享一个公网 IP。路由器记录“内网 IP:端口 ↔ 公网端口”的映射，让返回数据找到正确设备。</p></article></div>
+        <div class="nat-diagram"><div class="lan"><b>家庭局域网</b><span>手机<br><code>192.168.1.3:51001</code></span><span>电脑<br><code>192.168.1.10:51002</code></span></div><div class="nat-router"><small>NAT 路由器</small><b>198.51.100.7</b><span>端口映射表</span></div><div class="internet-box">互联网<br><small>只看到一个公网 IP</small></div></div>
+        <div class="callout warning"><b>常见误区</b><p>IP 地址不是设备永久不变的“身份证”。家庭设备的私有 IP 往往由 DHCP 动态分配，公网 IP 也可能变化。</p></div>
+        <h3 class="subhead">打开一个 IP 包，看它带了什么</h3>
+        <p>IPv4 首部固定 20 字节。除了收发地址，还有几个字段决定了包如何被转发与重组：</p>
+        <div class="spec-table"><table><thead><tr><th>字段</th><th>作用</th><th>值得记住的点</th></tr></thead><tbody><tr><td>版本 Version</td><td>标识 IPv4 还是 IPv6</td><td>值为 4 或 6</td></tr><tr><td>TTL</td><td>每经过一台路由器减 1，归零即丢弃</td><td>防路由环路，“Ping 不通”时先想想它</td></tr><tr><td>协议号 Protocol</td><td>传输层用的是哪种协议</td><td>TCP = 6 · UDP = 17 · ICMP = 1</td></tr><tr><td>总长度</td><td>整个 IP 包的大小</td><td>单包最大 65535 字节</td></tr><tr><td>标识/标志/片偏移</td><td>分片与重组的依据</td><td>D 位 = 1 表示“不许分片”</td></tr><tr><td>首部校验和</td><td>校验 IP 首部有没有损坏</td><td>每跳路由器改 TTL 后都要重算</td></tr><tr><td>源地址 / 目的地址</td><td>32 位源与目的</td><td>目的地址决定查哪条路由</td></tr></tbody></table></div>
+        <h3 class="subhead">子网划分：把一个大网“切成小段”</h3>
+        <p>把 <code>192.168.1.0/24</code> 平均切成 4 个子网：需要再借 2 位主机位，前缀变成 <code>/26</code>。每段都遵循“网络地址 + 可用主机 + 广播地址”的固定结构：</p>
+        <div class="spec-table"><table><thead><tr><th>子网</th><th>网络地址</th><th>可用主机范围</th><th>广播地址</th></tr></thead><tbody><tr><td>子网 0</td><td>192.168.1.0/26</td><td>192.168.1.1 – 192.168.1.62</td><td>192.168.1.63</td></tr><tr><td>子网 1</td><td>192.168.1.64/26</td><td>192.168.1.65 – 192.168.1.126</td><td>192.168.1.127</td></tr><tr><td>子网 2</td><td>192.168.1.128/26</td><td>192.168.1.129 – 192.168.1.190</td><td>192.168.1.191</td></tr><tr><td>子网 3</td><td>192.168.1.192/26</td><td>192.168.1.193 – 192.168.1.254</td><td>192.168.1.255</td></tr></tbody></table></div>
+        <div class="callout key"><b>切分的通用公式</b><p>前缀每加 1，可用主机减半；主机数 = 2^(32 − 前缀长度) − 2（网络地址与广播地址不可作主机）。/26 即 2^6 − 2 = 62 台。</p></div>
+        <h3 class="subhead">私有地址完整画像</h3>
+        <div class="spec-table"><table><thead><tr><th>地址段</th><th>CIDR</th><th>地址数量</th><th>常见用途</th></tr></thead><tbody><tr><td>10.0.0.0 – 10.255.255.255</td><td>10.0.0.0/8</td><td>约 1677 万</td><td>大型企业内网、云 VPC</td></tr><tr><td>172.16.0.0 – 172.31.255.255</td><td>172.16.0.0/12</td><td>约 104 万</td><td>中型网络、Docker 默认网段</td></tr><tr><td>192.168.0.0 – 192.168.255.255</td><td>192.168.0.0/16</td><td>65536</td><td>家庭、办公室最常见</td></tr></tbody></table></div>
+        <p>还有一些特殊地址值得认识：<code>127.0.0.1</code>（环回地址，指向本机，即 <code>localhost</code>）、<code>169.254.x.x</code>（DHCP 失败时的自动配置地址）、<code>0.0.0.0</code>（在本机语境表示“所有地址”）。</p>
+        <h3 class="subhead">家里的网速背后：DHCP 自动分配</h3>
+        <p>你的电脑开机时怎么知道用哪个 IP？靠 <code>DHCP</code> 的四个消息完成“租约”配置。整个过程约 1 秒，通常在你连接 Wi‑Fi 的瞬间悄悄发生：</p>
+        <div class="dns-path"><div><span>1</span><b>Discover</b><small>广播寻找 DHCP 服务器</small></div><i>→</i><div><span>2</span><b>Offer</b><small>服务器提供 IP 与租期</small></div><i>→</i><div><span>3</span><b>Request</b><small>客户端确认接受</small></div><i>→</i><div><span>4</span><b>Ack</b><small>服务器最终确认并写入租约</small></div></div>
+        <h3 class="subhead">NAT 不只是“上网共享”</h3>
+        <p>最常见的 NAT（NAPT/PAT）把多个 <code>内网 IP:端口</code> 映射到同一个公网 IP 的不同公网端口，每条内网主动发起的连接占一行 NAT 表项。</p>
+        <div class="callout warning"><b>NAT 的副作用</b><p>外网无法主动连接内网主机，除非配置“端口映射/转发”。这正是内网穿透（如 frp）要解决的问题：让一台公网服务器先“拉”一条隧道，帮你把请求送进内网。</p></div>
+        <h3 class="subhead">IPv6：地址不够了，主角轮换</h3>
+        <p>IPv4 地址只有约 43 亿个，早就不够全球设备分配。IPv6 把地址扩大到 128 位，写法改为 8 组十六进制，如 <code>2001:db8:85a3::8a2e:370:7334</code>（连续全零段可用 <code>::</code> 省略）。它带来的不止是“地址多”，还让端到端直连成为常态，不再依赖 NAT。</p>
+        <details class="experiment"><summary><span>动手实验 01</span>查看自己的网络配置</summary><div><p>Windows 打开终端运行 <code>ipconfig</code>。找到 IPv4 地址、子网掩码和默认网关。思考：你的地址属于哪个私有地址段？</p></div></details>
+      </section>
+
+      <section class="chapter" id="tcp">
+        <div class="chapter-head"><span class="chapter-no">05</span><div><div class="eyebrow">TRANSPORT LAYER</div><h2>TCP：在不可靠网络上实现可靠传输</h2><p>网络会丢包、乱序、重复，TCP 把这些麻烦挡在应用程序之外。</p></div></div>
+        <h3 class="subhead">三次握手：先确认双方都能收发</h3>
+        <div class="sequence"><div class="seq-party"><b>客户端</b><span>CLOSED</span></div><div class="seq-lines"><div class="to-right"><code>SYN, seq=x</code><i>① 请求建立连接</i></div><div class="to-left"><code>SYN+ACK, seq=y, ack=x+1</code><i>② 同意，并确认客户端</i></div><div class="to-right"><code>ACK, ack=y+1</code><i>③ 确认服务器</i></div></div><div class="seq-party"><b>服务器</b><span>LISTEN</span></div></div>
+        <p>第三次让服务器知道自己的回复已经成功到达客户端。<code>SYN</code> 用于同步序号，<code>ACK</code> 表示确认。</p>
+        <h3 class="subhead">TCP 靠什么保证可靠？</h3>
+        <div class="mechanism-grid"><article><b>序号</b><p>给字节编号，发现缺失、重复与乱序。</p></article><article><b>确认应答</b><p>收到数据后返回 ACK，报告下一段期望位置。</p></article><article><b>超时重传</b><p>未按时收到确认，就重新发送。</p></article><article><b>校验和</b><p>检测传输中是否发生比特错误。</p></article><article><b>流量控制</b><p>接收方用窗口限制发送量，避免被撑爆。</p></article><article><b>拥塞控制</b><p>根据网络状况调节速度，保护中间网络。</p></article></div>
+        <h3 class="subhead">四次挥手与 TIME_WAIT</h3><p>TCP 是全双工，两个方向要分别关闭。主动关闭方会短暂进入 <code>TIME_WAIT</code>，确保最后的 ACK 有机会重传，并让旧连接的数据包在网络中消失。</p>
+        <div class="compare-table"><div class="compare-head"><span>维度</span><b>TCP</b><b>UDP</b></div><div><span>连接</span><p>建立连接后通信</p><p>无连接，直接发送</p></div><div><span>可靠性</span><p>可靠、有序、不重复</p><p>不保证到达和顺序</p></div><div><span>开销</span><p>较高</p><p>低、延迟小</p></div><div><span>场景</span><p>网页、文件、邮件、SSH</p><p>语音、直播、游戏、DNS</p></div></div>
+        <h3 class="subhead">TCP 段首部长什么样</h3>
+        <p>应用数据被切成“段”，每段都带着至少 20 字节的 TCP 首部。这些字段相互配合，才实现了可靠传输：</p>
+        <div class="spec-table"><table><thead><tr><th>字段</th><th>作用</th><th>例子</th></tr></thead><tbody><tr><td>源端口 / 目的端口</td><td>识别两台机器上的具体程序</td><td>浏览器 51001 → 服务器 443</td></tr><tr><td>序号 Sequence</td><td>本段携带的是第几个字节</td><td>seq = 已发送字节数 + 1</td></tr><tr><td>确认号 Ack</td><td>下一个期望收到的字节号</td><td>ack = 已连续收到字节数 + 1</td></tr><tr><td>标志位</td><td>SYN / ACK / PSH / RST / FIN 开关</td><td>握手用 SYN，关闭用 FIN</td></tr><tr><td>窗口 Window</td><td>接收方还能收多少，流量控制的核心</td><td>64KB，随接收能力动态变化</td></tr><tr><td>校验和</td><td>检测数据是否被破坏</td><td>出错则丢弃并等待重传</td></tr></tbody></table></div>
+        <h3 class="subhead">握手为什么从“随机序号”开始？</h3>
+        <p>seq 从随机初始序号（ISN）开始，而不是从 1 开始，是为了防止上一条连接在网络里“游荡”的迟到数据包，被误认成本条连接的数据。随机起始 + 每字节递增，让 TCP 能可靠区分新旧数据，这也是面试常问的三次握手动机之一。</p>
+        <h3 class="subhead">丢包了怎么办：两种重传</h3>
+        <div class="mechanism-grid"><article><b>超时重传</b><p>发送方启动计时器，RTO 到期仍没等到 ACK 就重发。RTO 会跟随实测 RTT 自适应调整，而不是写死。</p></article><article><b>快速重传</b><p>收到连续 3 个重复 ACK 就立即重传，不必等超时。重复 ACK 说明中间丢了段，但网络还活着。</p></article><article><b>选择性确认 SACK</b><p>接收方用 SACK 选项告诉发送方“我具体缺哪几段”，避免把已收好的数据也重发一遍。</p></article></div>
+        <h3 class="subhead">拥塞控制：不只看人，还要护网络</h3>
+        <p>流量控制保护“接收方”，拥塞控制保护“整张网络”。TCP 用拥塞窗口 <code>cwnd</code> 配合四步走，像开车一样先试探、再加速：</p>
+        <div class="spec-table"><table><thead><tr><th>阶段</th><th>行为</th><th>直观类比</th></tr></thead><tbody><tr><td>慢启动 Slow Start</td><td>cwnd 从 1 个报文段开始，每收到一个 ACK 翻倍，指数增长到 ssthresh</td><td>刚上路先轻踩油门</td></tr><tr><td>拥塞避免</td><td>超过 ssthresh 后改为线性增长，每轮 RTT 只 +1 段</td><td>进入巡航，稳定提速</td></tr><tr><td>快速重传</td><td>3 个重复 ACK 立即重传，并进入快速恢复</td><td>发现前车亮灯，立刻点刹</td></tr><tr><td>快速恢复</td><td>cwnd 减半后从线性增长继续，而不是回到慢启动</td><td>轻微减速后重新并道</td></tr></tbody></table></div>
+        <div class="callout key"><b>一条锯齿形曲线</b><p>没有丢包时 cwnd 一路增长；一旦发生丢包（超时或重复 ACK），cwnd 被砍掉再重新试探。速度的锯齿波动，就是 TCP 在保护网络。</p></div>
+        <h3 class="subhead">用状态机读懂 netstat</h3>
+        <p>TCP 是严格的状态机。用 <code>netstat -ano</code> 看到的每行都对应一个状态：客户端发起时走 <code>CLOSED → SYN_SENT → ESTABLISHED</code>，服务器走 <code>LISTEN → SYN_RCVD → ESTABLISHED</code>；关闭连接还会穿过 <code>FIN_WAIT_1/2</code>、<code>CLOSE_WAIT</code>、<code>LAST_ACK</code>、<code>TIME_WAIT</code>。看到大量 <code>CLOSE_WAIT</code>，多半是服务器程序忘了关闭 socket。</p>
+        <div class="callout warning"><b>常被追问的 TIME_WAIT</b><p>主动关闭方最后停在 TIME_WAIT 约 2 × MSL（约 2 分钟），不是 bug：它要保证最后一个 ACK 丢失时可以重发，并让旧连接的数据包在网络中彻底消散。</p></div>
+        <details class="experiment"><summary><span>动手实验 02</span>感受时延与丢包</summary><div><p>运行 <code>ping example.com</code>。观察往返时间 RTT 和丢包率。ping 使用 ICMP，不是 TCP，但很适合测试基础连通性。</p></div></details>
+      </section>
+
+      <section class="chapter" id="dns">
+        <div class="chapter-head"><span class="chapter-no">06</span><div><div class="eyebrow">NAME SYSTEM</div><h2>DNS：互联网的分布式电话簿</h2><p>人记域名，网络设备使用 IP 地址。</p></div></div>
+        <p>DNS 不是一台服务器。它是分层、分布式数据库。查询前会先检查本地缓存；没有结果时，递归解析器再替你逐级寻找答案。</p>
+        <div class="dns-path"><div><span>1</span><b>本地缓存</b><small>以前查过吗？</small></div><i>→</i><div><span>2</span><b>递归解析器</b><small>替客户端找答案</small></div><i>→</i><div><span>3</span><b>根服务器</b><small>去问 .com</small></div><i>→</i><div><span>4</span><b>顶级域服务器</b><small>去问权威服务器</small></div><i>→</i><div><span>5</span><b>权威服务器</b><small>返回最终 IP</small></div></div>
+        <h3 class="subhead">常见 DNS 记录</h3><div class="record-list"><div><code>A</code><span>域名 → IPv4 地址</span><small>example.com → 203.0.113.8</small></div><div><code>AAAA</code><span>域名 → IPv6 地址</span><small>example.com → 2001:db8::8</small></div><div><code>CNAME</code><span>一个域名 → 另一个域名</span><small>域名别名</small></div><div><code>MX</code><span>接收邮件的服务器</span><small>邮件路由</small></div><div><code>TXT</code><span>文本与验证信息</span><small>SPF、域名验证</small></div></div>
+        <div class="callout key"><b>缓存与 TTL</b><p>每条记录都有 TTL，表示可以缓存多久。缓存减少查询时间和服务器压力，但也意味着 DNS 修改不会立刻被所有人看到。</p></div>
+        <h3 class="subhead">域名本身也是分层的树</h3>
+        <p>域名从右往左越读越具体。整棵域名树的形状，决定了 DNS 查询可以“逐级往下问”：</p>
+        <div class="terminal"><div class="terminal-bar"><span></span><span></span><span></span><b>example.com 的层级</b></div><pre><code>                  .          ← 根（13 组根服务器）
+                   │
+                 "com"        ← 顶级域 TLD
+                   │
+              "example"       ← 二级域（通常由你注册）
+                   │
+      "www" · "api" · "mail"  ← 子域 / 主机名</code></pre></div>
+        <p>注意：<code>www.example.com</code> 不是三个“域”，而是一个完整域名（FQDN）。<code>example.com</code> 这个域的一切解析权，归它的权威 DNS 服务器所有。</p>
+        <h3 class="subhead">递归查询，还是迭代查询？</h3>
+        <p>上一节的 5 步流程里，<b>客户端 → 递归解析器</b>是递归查询（解析器替你跑完全部流程）；<b>递归解析器 → 根 / TLD / 权威</b>是迭代查询（每一层只告诉你“去问谁”）。分清这两个词，面试和读文档都不含糊。</p>
+        <div class="callout analogy"><b>类比：找一间陌生办公室</b><p>你问前台（递归解析器）：“行政部在哪？”前台自己一层层问，最后带回答案给你——这是递归。前台问保安：“财务部怎么走？”保安说“去问 3 楼接待处”——这是迭代。</p></div>
+        <h3 class="subhead">记录类型的完整清单</h3>
+        <p>除了最常用的 A/AAAA/CNAME/MX/TXT，权威区里还有这些关键角色：</p>
+        <div class="spec-table"><table><thead><tr><th>记录</th><th>含义</th><th>典型值</th></tr></thead><tbody><tr><td><code>NS</code></td><td>该域由哪个服务器负责解析</td><td>ns1.cloudflare.com</td></tr><tr><td><code>SOA</code></td><td>区域权威数据的起点：主服务器、刷新间隔、序列号</td><td>每个正解区必备</td></tr><tr><td><code>A</code> / <code>AAAA</code></td><td>域名 → IPv4 / IPv6 地址</td><td>example.com → 203.0.113.8</td></tr><tr><td><code>CNAME</code></td><td>别名指向另一个域名</td><td>www → example.com</td></tr><tr><td><code>MX</code></td><td>收件服务器及优先级</td><td>10 mail.example.com</td></tr><tr><td><code>PTR</code></td><td>IP 反查域名（反解）</td><td>8.113.0.203.in-addr.arpa</td></tr><tr><td><code>SRV</code></td><td>指定服务所在主机与端口</td><td>_sip._tcp.example.com</td></tr></tbody></table></div>
+        <h3 class="subhead">域名怎么被用来做负载均衡</h3>
+        <p>一个域名可以配多条 <code>A</code> 记录，权威服务器每次按策略返回不同 IP，把用户分摊到不同机群；CDN 更是把“离你最近的边缘节点 IP”编进回答。所以别惊讶：全球不同地点 <code>nslookup</code> 同一个域名，得到的结果可能不同。</p>
+        <details class="experiment"><summary><span>动手实验 03</span>查询域名记录</summary><div><p>运行 <code>nslookup example.com</code>，观察回答服务器和解析地址。再尝试 <code>nslookup -type=mx qq.com</code> 查看邮件记录。</p></div></details>
+      </section>
+
+      <section class="chapter" id="http">
+        <div class="chapter-head"><span class="chapter-no">07</span><div><div class="eyebrow">APPLICATION LAYER</div><h2>HTTP：浏览器与服务器如何对话</h2><p>HTTP 定义请求与响应的格式和语义，本身不负责寻路与可靠传输。</p></div></div>
+        <h3 class="subhead">HTTP 请求与响应</h3>
+        <div class="code-window"><div class="code-title"><span></span><span></span><span></span><b>请求报文</b></div><pre><code><mark>GET</mark> /articles/network HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0
+Accept: text/html
+Cookie: session_id=abc123
+
+</code></pre><div class="code-notes"><span><b>请求行</b> 方法 + 路径 + 版本</span><span><b>请求头</b> 客户端与上下文</span><span><b>空行</b> 分隔首部与请求体</span></div></div>
+        <div class="code-window response"><div class="code-title"><span></span><span></span><span></span><b>响应报文</b></div><pre><code>HTTP/1.1 <mark>200 OK</mark>
+Content-Type: text/html; charset=utf-8
+Content-Length: 2841
+Cache-Control: max-age=3600
+Set-Cookie: session_id=xyz789; Secure; HttpOnly
+
+&lt;!doctype html&gt; ...</code></pre></div>
+        <div class="split-grid"><div><h3 class="subhead">常用方法</h3><div class="method-list"><p><code>GET</code><span>读取资源</span></p><p><code>POST</code><span>提交数据或触发处理</span></p><p><code>PUT</code><span>整体替换资源</span></p><p><code>PATCH</code><span>部分修改资源</span></p><p><code>DELETE</code><span>删除资源</span></p></div></div><div><h3 class="subhead">状态码家族</h3><div class="status-list"><p><b class="s2">2xx</b><span>成功：200、201</span></p><p><b class="s3">3xx</b><span>重定向：301、302、304</span></p><p><b class="s4">4xx</b><span>客户端问题：400、401、403、404</span></p><p><b class="s5">5xx</b><span>服务器问题：500、502、503</span></p></div></div></div>
+        <h3 class="subhead">Cookie、Session 与登录状态</h3><p>HTTP 本身是无状态的。常见做法是登录后由服务器创建 Session，并通过 <code>Set-Cookie</code> 把随机会话标识交给浏览器。之后浏览器自动带上 Cookie，服务器据此找到登录状态。Cookie 只是浏览器保存的数据，不等于 Session 本身。</p>
+        <h3 class="subhead">HTTP 的演进</h3><div class="version-road"><div><b>HTTP/1.1</b><span>持久连接，但并发处理受限</span></div><i>→</i><div><b>HTTP/2</b><span>二进制分帧、多路复用、头部压缩</span></div><i>→</i><div><b>HTTP/3</b><span>基于 QUIC/UDP，改善连接与阻塞</span></div></div>
+        <h3 class="subhead">先看清 URL 的每个零件</h3>
+        <p>网址不是一串糊在一起的字，而是明确分割的几部分。以 <code>https://user:pass@example.com:8080/path?q=网络#sec1</code> 为例：</p>
+        <div class="spec-table"><table><thead><tr><th>部分</th><th>示例</th><th>作用</th></tr></thead><tbody><tr><td>协议 scheme</td><td>https</td><td>用什么协议访问</td></tr><tr><td>主机 host</td><td>example.com</td><td>哪台服务器（早期可带用户名密码，现已不提倡）</td></tr><tr><td>端口 port</td><td>:8080</td><td>可省略，http 默认 80、https 默认 443</td></tr><tr><td>路径 path</td><td>/path</td><td>服务器上的资源位置</td></tr><tr><td>查询 query</td><td>?q=网络</td><td>传给服务器的参数，也叫 query string</td></tr><tr><td>片段 fragment</td><td>#sec1</td><td>仅用于浏览器内部的定位锚点，不会发给服务器</td></tr></tbody></table></div>
+        <h3 class="subhead">方法语义再挖一层：幂等性</h3>
+        <p>方法不只是“动作”，还约定了幂等性——同一个请求执行多次，结果是否一致。这决定了客户端能否安全地重试。</p>
+        <div class="spec-table"><table><thead><tr><th>方法</th><th>用途</th><th>幂等？</th><th>补充记忆点</th></tr></thead><tbody><tr><td>GET</td><td>读取资源</td><td>是</td><td>不应产生副作用</td></tr><tr><td>HEAD</td><td>只要响应头，不要正文</td><td>是</td><td>常用于探测链接是否有效</td></tr><tr><td>POST</td><td>提交数据</td><td>否</td><td>表单、创建资源的常用方法</td></tr><tr><td>PUT</td><td>整体替换资源</td><td>是</td><td>语义：客户端定义完整状态</td></tr><tr><td>PATCH</td><td>部分更新资源</td><td>否</td><td>增量修改，更省流量</td></tr><tr><td>DELETE</td><td>删除资源</td><td>是</td><td>重复删除返回 404 也合理</td></tr><tr><td>OPTIONS</td><td>询问服务器支持哪些能力</td><td>是</td><td>CORS 预检请求用的就是它</td></tr></tbody></table></div>
+        <h3 class="subhead">状态码别再只记 404</h3>
+        <div class="spec-table"><table><thead><tr><th>状态码</th><th>含义</th><th>典型场景</th></tr></thead><tbody><tr><td>201</td><td>创建成功</td><td>POST 之后资源已建立，响应带 Location 指向新资源</td></tr><tr><td>204</td><td>成功但无正文</td><td>删除成功，响应体为空</td></tr><tr><td>301 / 302</td><td>永久 / 临时重定向</td><td>域名换新址；302 常见于登录后跳转</td></tr><tr><td>403 / 404</td><td>禁止访问 / 找不到</td><td>某些站点为掩盖 403 故意返回 404</td></tr><tr><td>405</td><td>方法不允许</td><td>对只读资源发 DELETE</td></tr><tr><td>429</td><td>请求过于频繁</td><td>限流触发，一般配合 Retry-After</td></tr><tr><td>502 / 503 / 504</td><td>网关坏 / 忙 / 超时</td><td>反代背后的服务挂了、过载或没响应</td></tr></tbody></table></div>
+        <h3 class="subhead">请求头与响应头速查</h3>
+        <div class="split-grid"><div><h3 class="subhead">请求头</h3><div class="record-list"><div><code>Host</code><span>目标域名+端口</span><small>HTTP/1.1 起必带</small></div><div><code>User-Agent</code><span>客户端身份</span><small>浏览器 / 爬虫标识</small></div><div><code>Accept</code><span>期望的返回格式</span><small>text/html · application/json</small></div><div><code>Cookie</code><span>携带已有会话</span><small>由服务器 Set-Cookie 种下</small></div><div><code>Authorization</code><span>认证凭据</span><small>Bearer token / Basic</small></div><div><code>Referer</code><span>来源页面</span><small>防盗链主要依据</small></div></div></div><div><h3 class="subhead">响应头</h3><div class="record-list"><div><code>Content-Type</code><span>正文格式</span><small>text/html; charset=utf-8</small></div><div><code>Content-Length</code><span>正文字节数</span><small>供分段接收</small></div><div><code>Cache-Control</code><span>缓存策略</span><small>max-age / no-store</small></div><div><code>Location</code><span>重定向目标</span><small>配合 3xx</small></div><div><code>Set-Cookie</code><span>让浏览器种下 Cookie</span><small>含过期与安全属性</small></div><div><code>Access-Control-*</code><span>跨域许可</span><small>CORS 核心字段族</small></div></div></div></div>
+        <h3 class="subhead">Cookie 的安全属性才是重点</h3>
+        <p>Cookie 不只是 Key‑Value 两件事，后面那串属性决定了它的生命周期与攻击面：</p>
+        <div class="mechanism-grid"><article><b>Expires / Max-Age</b><p>会话 Cookie 关浏览器即失效；带过期时间则会持久化保存。</p></article><article><b>HttpOnly</b><p>禁止 <code>document.cookie</code> 读取，断了 XSS 偷 Cookie 这条路。</p></article><article><b>Secure</b><p>只允许在 HTTPS 连接中发送，明文 HTTP 下不生效。</p></article><article><b>SameSite</b><p>限制跨站携带，是 CSRF 的第一道防线，Lax 已是常见默认。</p></article><article><b>Domain / Path</b><p>限定 Cookie 归属的域名与路径范围。</p></article><article><b>Identifier / Partitioned</b><p>补充字段：分片淘汰优先级与 CHIPS 隐私分区。</p></article></div>
+        <h3 class="subhead">浏览器缓存是怎么“省流量”的</h3>
+        <p>再次访问网页时，浏览器先看本地缓存：副本还新鲜就直接复用，根本不发请求；副本过期，就带着条件头问服务器，服务器回 <code>304 Not Modified</code> 表示“没变，继续用你的”。</p>
+        <div class="spec-table"><table><thead><tr><th>机制</th><th>客户端发出的头</th><th>服务端返回的头</th><th>含义</th></tr></thead><tbody><tr><td>强缓存</td><td>—</td><td>Cache-Control: max-age=3600</td><td>1 小时内直接用本地副本</td></tr><tr><td>协商缓存·时间</td><td>If-Modified-Since</td><td>Last-Modified</td><td>修改时间没变 → 304</td></tr><tr><td>协商缓存·指纹</td><td>If-None-Match</td><td>ETag</td><td>内容指纹没变 → 304（更精确）</td></tr></tbody></table></div>
+        <h3 class="subhead">三个版本不是“更快”这么简单</h3>
+        <div class="compare-table"><div class="compare-head"><span>维度</span><b>HTTP/1.1</b><b>HTTP/2</b><b>HTTP/3</b></div><div><span>连接方式</span><p>一条 TCP 一次只传一个请求，队头阻塞</p><p>一条 TCP 内二进制多路复用并发流</p><p>UDP 上的 QUIC，多路复用</p></div><div><span>传输格式</span><p>纯文本可读</p><p>二进制分帧</p><p>二进制分帧，0-RTT 快速建连</p></div><div><span>头部压缩</span><p>无</p><p>HPACK</p><p>QPACK</p></div><div><span>残留痛点</span><p>并发受限、头部重复浪费</p><p>TLS 三次握手 + TCP 队头阻塞仍在</p><p>丢包不阻塞其他流，适合弱网</p></div></div>
+        <details class="experiment"><summary><span>动手实验 04</span>亲眼看一个 HTTP 请求</summary><div><p>打开浏览器开发者工具（F12）→ Network → 刷新页面。点击任意请求，观察 Method、Status、Request Headers、Response Headers 和 Timing。</p></div></details>
+      </section>
+
+      <section class="chapter" id="https">
+        <div class="chapter-head"><span class="chapter-no">08</span><div><div class="eyebrow">SECURE WEB</div><h2>HTTPS：在不可信网络中建立安全通道</h2><p>HTTPS = HTTP + TLS。它解决保密、身份与完整性三件事。</p></div></div>
+        <div class="security-triad"><article><span>◉</span><h3>机密性</h3><p>内容被加密，旁观者抓到数据也不能直接读懂。</p></article><article><span>◇</span><h3>身份认证</h3><p>证书帮助浏览器确认服务器代表目标域名。</p></article><article><span>✓</span><h3>完整性</h3><p>传输内容若被篡改，校验会失败。</p></article></div>
+        <h3 class="subhead">TLS 1.3 握手的简化过程</h3>
+        <div class="tls-flow"><div class="tls-side"><b>浏览器</b><small>访问 example.com</small></div><div class="tls-middle"><p class="right"><b>ClientHello →</b><span>支持的算法 + 随机参数 + 密钥材料</span></p><p class="left"><b>← ServerHello + 证书</b><span>选择算法，发回证书与密钥材料</span></p><p class="center">验证域名、有效期和证书签发链</p><p class="both"><b>双方算出同一个会话密钥</b><span>之后用高效的对称加密传输 HTTP</span></p></div><div class="tls-side"><b>服务器</b><small>证书绑定域名</small></div></div>
+        <p>非对称密码适合身份认证和安全协商，但成本较高；对称加密速度快，适合大量数据。TLS 将二者组合起来。现代 TLS 1.3 的密钥交换还提供前向保密。</p>
+        <h3 class="subhead">先补齐加密的三件工具</h3>
+        <p>TLS 不是一种算法，而是一套“组合拳”，用到三类密码学工具，各司其职：</p>
+        <div class="spec-table"><table><thead><tr><th>工具</th><th>特点</th><th>在 TLS 中的角色</th></tr></thead><tbody><tr><td>对称加密</td><td>同一个密钥加解密，速度极快</td><td>用 AES‑GCM 加密实际传输的 HTTP 数据</td></tr><tr><td>非对称加密</td><td>公钥加密 / 私钥解密，慢，可做签名</td><td>证书签名、密钥交换</td></tr><tr><td>哈希</td><td>任意输入 → 固定长度指纹，不可逆</td><td>校验完整性、证书指纹、密钥派生</td></tr></tbody></table></div>
+        <div class="callout analogy"><b>类比：加密邮包</b><p>对称密钥像“家里的钥匙”，开锁快，但钥匙本身不能走不安全的路；非对称加密像“门口上了锁的邮箱”，谁都能往里投递，只有你有钥匙能打开。TLS 用非对称加密安全地交换对称密钥，之后业务数据全用对称加密——快且安全。</p></div>
+        <h3 class="subhead">浏览器怎么确认证书可信？</h3>
+        <p>服务器发来的证书不是“空口无凭”，而是一张由 <b>CA（证书颁发机构）</b>签名的凭证。验证要过三关：</p>
+        <div class="mechanism-grid"><article><b>域名匹配</b><p>证书的 CN/SAN 必须包含你访问的域名，防止 A 网站的证书被用到 B 网站。</p></article><article><b>有效期</b><p>证书在 notBefore 与 notAfter 之间才有效，过期直接拦截。</p></article><article><b>签名链</b><p>证书由谁签？签发者又由谁签？一路向上，直到操作系统预置的根证书。</p></article></div>
+        <p>证书链是一棵信任树：<b>根 CA</b>（预置在系统里）→ <b>中间 CA</b> → <b>你的域名证书</b>。正因为根证书泄露会造成信任崩塌，浏览器还要求“中间 CA 不能直接签发终端用户证书”。</p>
+        <h3 class="subhead">TLS 1.2 与 1.3：握手瘦身</h3>
+        <div class="compare-table"><div class="compare-head"><span>对比项</span><b>TLS 1.2</b><b>TLS 1.3</b></div><div><span>握手往返</span><p>通常需要 2 RTT</p><p>1 RTT；会话复用时接近 0 RTT</p></div><div><span>算法选择</span><p>双方各宣告一串算法再取交集，易受降级攻击</p><p>只保留少数强算法，旧算法直接移除</p></div><div><span>密钥交换</span><p>可选 RSA 或 DH 类</p><p>只允许 ECDHE/DHE 等前向保密方案</p></div><div><span>握手加密时机</span><p>ServerHello 之后才加密</p><p>ServerHello 之后立即加密后续握手消息</p></div></div>
+        <h3 class="subhead">前向保密：为什么 RSA 密钥交换被淘汰</h3>
+        <p>早期 TLS 用服务器的 RSA 私钥参与密钥协商。代价是：只要某天私钥泄露，攻击者就能用之前录下的流量反推出当年的会话密钥，历史加密数据全部“裸奔”。改用 <code>ECDHE</code>（临时椭圆曲线 Diffie‑Hellman）后，每次握手的临时密钥<b>用完即焚</b>，即便服务器私钥日后泄露，也解密不了过去的会话。</p>
+        <h3 class="subhead">证书从哪来</h3>
+        <p>DV / OV / EV 是按验证强度划分的证书等级。个人与中小站点的现代标准做法：用 <code>Let's Encrypt</code> 这类免费自动化 CA 签发 DV 证书（通常 90 天 + certbot 自动续期）；本地开发则可用 <code>mkcert</code> 给自己签发受本机信任的证书。</p>
+        <div class="callout warning"><b>小锁不代表网站“绝对安全”</b><p>HTTPS 只说明你与当前域名之间的通道安全，并不保证网站内容诚信，也挡不住相似域名钓鱼。仍要检查域名。</p></div>
+      </section>
+
+      <section class="chapter" id="ssh">
+        <div class="chapter-head"><span class="chapter-no">09</span><div><div class="eyebrow">SECURE SHELL</div><h2>SSH：安全地控制远程计算机</h2><p>SSH 默认使用 TCP 22 端口，为登录、命令执行和文件传输提供加密通道。</p></div></div>
+        <div class="terminal"><div class="terminal-bar"><span></span><span></span><span></span><b>Terminal</b></div><pre><code><i>$</i> ssh alice@203.0.113.8
+The authenticity of host can't be established.
+Are you sure you want to continue connecting? <em>yes</em>
+alice@203.0.113.8's password:
+<strong>Welcome to Ubuntu 24.04 LTS</strong></code></pre></div>
+        <h3 class="subhead">SSH 连接验证两种身份</h3><div class="ssh-auth"><article><span>01</span><h3>客户端验证服务器</h3><p>首次连接显示主机指纹，确认后写入 <code>known_hosts</code>。以后指纹突然改变时，SSH 会警告。</p></article><article><span>02</span><h3>服务器验证用户</h3><p>可以用密码，更推荐密钥。私钥留在本机，公钥放进服务器的 <code>authorized_keys</code>。</p></article></div>
+        <div class="key-pair"><div class="private-key"><span>绝不外传</span><b>私钥 Private Key</b><small>保存在客户端，并设置强口令</small></div><div class="key-action">签名证明<br><i>──────→</i><small>私钥本身不会发送</small></div><div class="public-key"><span>可以分发</span><b>公钥 Public Key</b><small>存放在允许登录的服务器</small></div></div>
+        <h3 class="subhead">常用命令速查</h3><div class="command-list"><div><code>ssh user@host</code><span>登录远程服务器</span></div><div><code>ssh -p 2222 user@host</code><span>连接非默认端口</span></div><div><code>ssh-keygen -t ed25519</code><span>生成 Ed25519 密钥对</span></div><div><code>scp file.txt user@host:/tmp/</code><span>安全复制文件到远端</span></div><div><code>sftp user@host</code><span>交互式安全文件传输</span></div><div><code>ssh -L 8080:localhost:80 user@host</code><span>建立本地端口转发</span></div></div>
+        <h3 class="subhead">一次 SSH 连接的三个阶段</h3>
+        <p>SSH 协议把一次连接切成三层，理解这三层就理解了 SSH 的安全模型：</p>
+        <div class="timeline"><article><span>1</span><div><h3>传输层：建立加密通道</h3><p>协商算法并进行密钥交换（Curve25519、DH 类），客户端先确认服务器主机密钥的指纹，此后一切通信都走对称加密——“没人能偷听”。</p></div></article><article><span>2</span><div><h3>认证层：证明你是谁</h3><p>通道已安全，现在验证用户身份：密码或公钥。认证通过后才进入会话。</p></div></article><article><span>3</span><div><h3>连接层：复用通道</h3><p>在同一条加密通道上跑多个会话：shell、SCP、端口转发。这也是 ControlMaster 复用连接的技术基础。</p></div></article></div>
+        <h3 class="subhead">密钥登录到底做了什么</h3>
+        <p>你执行 <code>ssh-keygen</code> 生成一对密钥后，把“公钥”追加到服务器的 <code>~/.ssh/authorized_keys</code>。登录时服务器发起一个“挑战”：用你的公钥加密随机数，只有持有对应<b>私钥</b>的客户端能解密并回执。整个过程<b>私钥从不离开你的电脑</b>，也不会在网络上传输。</p>
+        <div class="callout key"><b>为什么推荐密钥而非密码</b><p>密码会被暴力破解、可能在输入时被偷看；密钥是 256 位随机数，破解难度远超任何人工密码，配合 ssh-agent 还能做到免密登录。</p></div>
+        <h3 class="subhead">用配置文件简写常用主机</h3>
+        <p>经常登录的机器写进 <code>~/.ssh/config</code>，从此 <code>ssh myserver</code> 就能直达：</p>
+        <div class="terminal"><div class="terminal-bar"><span></span><span></span><span></span><b>~/.ssh/config</b></div><pre><code>Host myserver
+    HostName 203.0.113.8
+    Port 2222
+    User alice
+    IdentityFile ~/.ssh/id_ed25519
+    ServerAliveInterval 30</code></pre></div>
+        <h3 class="subhead">端口转发：把远程机器当“跳板”</h3>
+        <div class="mechanism-grid"><article><b>-L 本地转发</b><p>把本机端口映射到远程能访问的地址，如 <code>ssh -L 8080:db:3306 jump</code>：本机 8080 → 内网 db 的 3306。</p></article><article><b>-R 远程转发</b><p>把远程端口映射回本机，常用于让外网访问家里或内网的服务。</p></article><article><b>-D 动态转发</b><p>变成 SOCKS5 代理：<code>ssh -D 1080 host</code>，浏览器把流量交给 1080 端口即可穿越网络边界。</p></article></div>
+        <h3 class="subhead">给服务器上一把锁：sshd 加固要点</h3>
+        <div class="terminal"><div class="terminal-bar"><span></span><span></span><span></span><b>/etc/ssh/sshd_config（节选）</b></div><pre><code>PermitRootLogin no              # 禁止 root 直接登录
+PasswordAuthentication no       # 只允许密钥认证
+PubkeyAuthentication yes
+Port 2222                       # 换掉默认 22 端口，减少扫描噪音
+AllowUsers alice                # 白名单模式</code></pre></div>
+        <div class="callout key"><b>安全建议</b><p>私钥不要发给任何人；使用密钥口令；确认主机指纹；服务器应禁用弱密码与 root 直接登录。</p></div>
+      </section>
+
+      <section class="chapter" id="tools">
+        <div class="chapter-head compact"><span class="chapter-no">+</span><div><div class="eyebrow">TOOLBOX</div><h2>网络不通时，怎样一步步排查？</h2></div></div>
+        <div class="diagnose-flow"><div><span>1</span><b>本机配置</b><code>ipconfig</code><small>有 IP、网关、DNS 吗？</small></div><i>→</i><div><span>2</span><b>本地网关</b><code>ping 网关IP</code><small>局域网能通吗？</small></div><i>→</i><div><span>3</span><b>外部 IP</b><code>ping 1.1.1.1</code><small>能到互联网吗？</small></div><i>→</i><div><span>4</span><b>域名解析</b><code>nslookup 域名</code><small>DNS 正常吗？</small></div><i>→</i><div><span>5</span><b>路径与端口</b><code>tracert / TNC</code><small>卡在哪？端口开吗？</small></div></div>
+        <div class="command-list toolbox"><div><code>tracert example.com</code><span>查看数据经过的路由跳数</span></div><div><code>netstat -ano</code><span>查看连接、监听端口与 PID</span></div><div><code>Test-NetConnection host -Port 443</code><span>测试 TCP 端口</span></div><div><code>curl -I https://example.com</code><span>查看 HTTP 响应头</span></div></div>
+        <h3 class="subhead">症状 → 命令对照表</h3>
+        <div class="spec-table"><table><thead><tr><th>症状</th><th>先跑什么</th><th>看什么</th></tr></thead><tbody><tr><td>网页打不开</td><td>先 <code>nslookup</code> 确认域名能解析，再 <code>curl -I</code> 看状态码</td><td>DNS 挂了，还是服务端 5xx</td></tr><tr><td>能上微信但打不开网页</td><td>ping 网关 → ping 114.114.114.114</td><td>本地通而公网不通 → 运营商侧问题</td></tr><tr><td>网站时好时坏</td><td><code>ping -t</code> 观察丢包率与 RTT 抖动</td><td>无线信号弱 / 线路拥塞</td></tr><tr><td>端口死活连不上</td><td><code>Test-NetConnection host -Port 443</code></td><td>防火墙挡了，还是服务没监听</td></tr><tr><td>怀疑被扫描</td><td><code>netstat -ano</code> 看已建立连接与监听端口</td><td>异常外联的远程地址与对应 PID</td></tr></tbody></table></div>
+        <div class="callout key"><b>排障口诀</b><p>本机 → 网关 → 公网 IP → DNS → 端口/路径。每步都能把范围缩小一段，快速定位“是哪一段在说谎”。</p></div>
+      </section>
+
+      <section class="chapter quiz-section" id="final-quiz">
+        <div class="chapter-head compact"><span class="chapter-no">✓</span><div><div class="eyebrow">FINAL CHECK</div><h2>用 4 道题检验你的网络直觉</h2><p>选择答案后立即获得解释。</p></div></div>
+        <div class="quiz-card" data-answer="b"><div class="quiz-number">01</div><h3>路由器主要依据什么决定跨网络转发方向？</h3><div class="options"><button data-value="a">A. 域名</button><button data-value="b">B. 目的 IP 地址</button><button data-value="c">C. HTTP 状态码</button></div><p class="feedback" data-ok="正确。路由器查路由表，并依据目的 IP 选择下一跳。" data-no="不对。域名会先被 DNS 解析；路由转发看目的 IP。"></p></div>
+        <div class="quiz-card" data-answer="c"><div class="quiz-number">02</div><h3>TCP 的接收窗口主要解决什么问题？</h3><div class="options"><button data-value="a">A. 域名解析</button><button data-value="b">B. 网站身份认证</button><button data-value="c">C. 避免发送方压垮接收方</button></div><p class="feedback" data-ok="正确。这是流量控制；拥塞控制保护中间网络。" data-no="不对。接收窗口属于 TCP 流量控制。"></p></div>
+        <div class="quiz-card" data-answer="a"><div class="quiz-number">03</div><h3>HTTPS 相比 HTTP，核心多了哪一层？</h3><div class="options"><button data-value="a">A. TLS</button><button data-value="b">B. DNS</button><button data-value="c">C. NAT</button></div><p class="feedback" data-ok="正确。HTTPS 是在 TLS 安全通道中传输 HTTP。" data-no="不对。答案是 TLS。"></p></div>
+        <div class="quiz-card" data-answer="b"><div class="quiz-number">04</div><h3>SSH 密钥登录时，哪一个必须保密？</h3><div class="options"><button data-value="a">A. 公钥</button><button data-value="b">B. 私钥</button><button data-value="c">C. 服务器 IP</button></div><p class="feedback" data-ok="正确。私钥只保存在可信客户端；公钥可以放到服务器。" data-no="不对。必须保密的是私钥。"></p></div>
+        <div class="quiz-score"><span>已答对</span><b><i id="score">0</i> / 4</b><button id="resetQuiz">重新作答</button></div>
+      </section>
+
+      <section class="next-step"><div><span>你已经拥有一张网络地图</span><h2>下一步：用抓包把抽象概念变成真实数据</h2><p>安装 Wireshark，抓一次 DNS 查询、TCP 三次握手和 HTTPS 连接。眼睛看到的数据包，比死记十遍更有效。</p></div><a href="#top">回到顶部 ↑</a></section>
+    </main>
+  </div>
+  <footer><div><b>网络原来如此</b><span>面向初学者的计算机网络基础教程</span></div><p>理解协议，不靠死记；先看全程，再逐层深入。</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>
