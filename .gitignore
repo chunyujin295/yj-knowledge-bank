@@ -1,1 +1,13 @@
 node_modules/
+
+# 日志
+*.log
+
+# IDE / 编辑器
+.idea/
+
+# Claude 本地个人设置
+.claude/settings.local.json
+
+# Obsidian 本地会话状态
+.obsidian/workspace.json
