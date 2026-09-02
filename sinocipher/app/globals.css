@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --font-sans: 'Microsoft YaHei UI', 'PingFang SC', system-ui, sans-serif;
+  --font-heading: 'Microsoft YaHei UI', 'PingFang SC', system-ui, sans-serif;
+  --font-mono: 'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
+  --radius-xl: 0.85rem;
+  --radius-2xl: 1.1rem;
+}
+
+:root {
+  --background: #f4f5f1;
+  --foreground: #14262c;
+  --card: #fcfcf8;
+  --card-foreground: #14262c;
+  --popover: #fcfcf8;
+  --popover-foreground: #14262c;
+  --muted: #e8ece6;
+  --muted-foreground: #607077;
+  --primary: #123c47;
+  --primary-foreground: #f8fbf7;
+  --secondary: #e6ece8;
+  --secondary-foreground: #17323a;
+  --accent: #dcece7;
+  --accent-foreground: #15353d;
+  --destructive: #b4232f;
+  --border: #d8ded8;
+  --input: #d8ded8;
+  --ring: #2c7b83;
+  --signal: #86efe3;
+}
+
+.dark {
+  --background: #101a1e;
+  --foreground: #eef5f0;
+  --card: #162328;
+  --card-foreground: #eef5f0;
+  --popover: #162328;
+  --popover-foreground: #eef5f0;
+  --muted: #213238;
+  --muted-foreground: #9badb0;
+  --primary: #8de6da;
+  --primary-foreground: #102126;
+  --secondary: #24363c;
+  --secondary-foreground: #eef5f0;
+  --accent: #29434a;
+  --accent-foreground: #eef5f0;
+  --destructive: #f06b74;
+  --border: #2b3c41;
+  --input: #2b3c41;
+  --ring: #8de6da;
+  --signal: #f2c86a;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { @apply font-sans; }
+  body { @apply bg-background text-foreground antialiased; }
+  button, a, input { -webkit-tap-highlight-color: transparent; }
+}
+
+body {
+  background-image: linear-gradient(rgb(18 60 71 / 0.025) 1px, transparent 1px), linear-gradient(90deg, rgb(18 60 71 / 0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
