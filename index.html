@@ -3,466 +3,208 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="YJ Knowledge Bank：从底层原理到工程实践，建立可迁移的技术心智模型。">
 <link rel="icon" type="image/png" href="img/icons/icon1.png">
 <title>YJ Knowledge Bank — 技术知识库</title>
 <style>
-/* ===== Reset & Variables ===== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+*, *::before, *::after { box-sizing: border-box; }
 :root {
-  --bg: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --text: #1E293B;
-  --text-secondary: #64748B;
-  --border: #E2E8F0;
-  --primary: #2563EB;
-  --primary-light: #DBEAFE;
-  --secondary: #7C3AED;
-  --secondary-light: #EDE9FE;
-  --accent: #EA580C;
-  --accent-light: #FFF7ED;
-  --success: #059669;
-  --success-light: #ECFDF5;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
-  --radius: 12px;
-  --radius-sm: 8px;
+  --page: #f4f1e9; --surface: #fbfaf6; --surface-strong: #fff;
+  --ink: #132a26; --muted: #65736e; --line: #d8ddd6; --line-strong: #b7c1b8;
+  --brand: #0b5b4b; --brand-strong: #08483c; --brand-soft: #dcebe4;
+  --sun: #ef8354; --sun-soft: #f8e4d8; --blue: #3468a8; --blue-soft: #e1eaf4;
+  --purple: #76538f; --purple-soft: #eee6f1;
+  --shadow: 0 18px 50px rgba(27,52,45,.09); --shadow-hover: 0 22px 50px rgba(27,52,45,.15);
 }
-
 [data-theme="dark"] {
-  --bg: #0F172A;
-  --bg-card: #1E293B;
-  --text: #E2E8F0;
-  --text-secondary: #94A3B8;
-  --border: #334155;
-  --primary: #60A5FA;
-  --primary-light: #1E3A5F;
-  --secondary: #A78BFA;
-  --secondary-light: #2E1065;
-  --accent: #FB923C;
-  --accent-light: #431407;
-  --success: #34D399;
-  --success-light: #064E3B;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow: 0 1px 3px rgba(0,0,0,0.4);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+  --page: #0c1715; --surface: #11211e; --surface-strong: #162824;
+  --ink: #edf4ef; --muted: #99aaa4; --line: #29403a; --line-strong: #3e5b53;
+  --brand: #78d5b5; --brand-strong: #9fe6ca; --brand-soft: #183b32;
+  --sun: #ff9b70; --sun-soft: #492a20; --blue: #8bb8ed; --blue-soft: #1d334b;
+  --purple: #c5a1dc; --purple-soft: #382642;
+  --shadow: 0 18px 50px rgba(0,0,0,.24); --shadow-hover: 0 22px 50px rgba(0,0,0,.36);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0F172A;
-    --bg-card: #1E293B;
-    --text: #E2E8F0;
-    --text-secondary: #94A3B8;
-    --border: #334155;
-    --primary: #60A5FA;
-    --primary-light: #1E3A5F;
-    --secondary: #A78BFA;
-    --secondary-light: #2E1065;
-    --accent: #FB923C;
-    --accent-light: #431407;
-    --success: #34D399;
-    --success-light: #064E3B;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-    --shadow: 0 1px 3px rgba(0,0,0,0.4);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
-    --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
-  }
-}
-
+html { scroll-behavior: smooth; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  margin: 0; min-width: 320px; min-height: 100vh; color: var(--ink);
+  background: linear-gradient(rgba(19,42,38,.035) 1px,transparent 1px), linear-gradient(90deg,rgba(19,42,38,.035) 1px,transparent 1px), var(--page);
+  background-size: 40px 40px;
+  font-family: "Inter","SF Pro Display","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  line-height: 1.6; -webkit-font-smoothing: antialiased;
 }
-
-/* ===== Navigation ===== */
-.nav {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+button,input { font: inherit; } a { color: inherit; }
+.skip-link { position: fixed; top: 10px; left: 10px; z-index: 999; padding: 8px 12px; color: #fff; background: var(--brand-strong); border-radius: 8px; transform: translateY(-150%); }
+.skip-link:focus { transform: translateY(0); }
+.nav { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid color-mix(in srgb,var(--line) 75%,transparent); background: color-mix(in srgb,var(--page) 88%,transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.nav-inner { width: min(1180px,calc(100% - 40px)); height: 72px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface-strong); box-shadow: 0 5px 18px rgba(27,52,45,.08); }
+.brand-mark img { width: 31px; height: 31px; }
+.brand-name { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-name strong { font-size: .92rem; letter-spacing: .025em; }
+.brand-name span { margin-top: 4px; color: var(--muted); font: .66rem/1.1 ui-monospace,"SFMono-Regular",Consolas,monospace; letter-spacing: .12em; text-transform: uppercase; }
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-link,.icon-button { display: inline-flex; align-items: center; justify-content: center; height: 40px; border: 1px solid transparent; border-radius: 999px; color: var(--muted); background: transparent; text-decoration: none; cursor: pointer; transition: 180ms ease; }
+.nav-link { padding: 0 15px; font-size: .88rem; font-weight: 650; }
+.icon-button { width: 40px; padding: 0; }
+.nav-link:hover,.icon-button:hover { color: var(--ink); border-color: var(--line); background: var(--surface); }
+.nav-link.primary { color: var(--surface-strong); background: var(--ink); }
+.nav-link.primary:hover { color: var(--surface-strong); background: var(--brand-strong); border-color: var(--brand-strong); transform: translateY(-1px); }
+.icon-button svg,.nav-link svg { width: 18px; height: 18px; }
+.hero { position: relative; width: min(1180px,calc(100% - 40px)); margin: 0 auto; padding: 88px 0 72px; display: grid; grid-template-columns: minmax(0,1.25fr) minmax(330px,.75fr); gap: 80px; align-items: center; }
+.hero::before { content: ""; position: absolute; width: 360px; height: 360px; top: 10px; left: -190px; z-index: -1; border-radius: 50%; background: color-mix(in srgb,var(--sun) 13%,transparent); filter: blur(2px); }
+.eyebrow { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 22px; color: var(--brand); font: 700 .76rem/1 ui-monospace,"SFMono-Regular",Consolas,monospace; letter-spacing: .14em; text-transform: uppercase; }
+.eyebrow::before { content: ""; width: 28px; height: 2px; background: currentColor; }
+.hero h1 { max-width: 760px; margin: 0; font-size: clamp(3rem,6vw,5.6rem); line-height: 1.02; letter-spacing: -.065em; font-weight: 850; }
+.hero h1 em { position: relative; color: var(--brand); font-style: normal; white-space: nowrap; }
+.hero h1 em::after { content: ""; position: absolute; left: 2%; right: -1%; bottom: .02em; height: .11em; z-index: -1; border-radius: 999px; background: var(--sun); transform: rotate(-1.5deg); }
+.hero-copy { max-width: 640px; margin: 28px 0 0; color: var(--muted); font-size: clamp(1rem,1.6vw,1.18rem); line-height: 1.85; }
+.hero-actions { margin-top: 34px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cta { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 20px; border: 1px solid var(--ink); border-radius: 12px; font-size: .92rem; font-weight: 750; text-decoration: none; transition: 180ms ease; }
+.cta svg { width: 18px; height: 18px; }
+.cta.solid { color: var(--surface-strong); background: var(--ink); }
+.cta.solid:hover { background: var(--brand-strong); border-color: var(--brand-strong); transform: translateY(-2px); box-shadow: var(--shadow); }
+.cta.ghost { border-color: var(--line-strong); background: color-mix(in srgb,var(--surface) 65%,transparent); }
+.cta.ghost:hover { border-color: var(--ink); background: var(--surface); }
+.map-card { position: relative; min-height: 390px; padding: 25px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 24px; background: var(--surface-strong); box-shadow: var(--shadow); transform: rotate(1.2deg); }
+.map-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 80% 16%,color-mix(in srgb,var(--sun) 20%,transparent),transparent 33%); }
+.map-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.map-header span:first-child { font: 700 .73rem/1 ui-monospace,"SFMono-Regular",Consolas,monospace; letter-spacing: .12em; text-transform: uppercase; }
+.map-status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: .72rem; }
+.map-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #37a579; box-shadow: 0 0 0 4px color-mix(in srgb,#37a579 15%,transparent); }
+.map-list { position: relative; z-index: 1; margin-top: 26px; display: grid; gap: 13px; }
+.map-item { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: color-mix(in srgb,var(--surface) 84%,transparent); }
+.map-index { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; color: var(--brand); background: var(--brand-soft); font: 700 .72rem/1 ui-monospace,"SFMono-Regular",Consolas,monospace; }
+.map-item:nth-child(2) .map-index { color: var(--blue); background: var(--blue-soft); }
+.map-item:nth-child(3) .map-index { color: var(--sun); background: var(--sun-soft); }
+.map-item strong { display: block; font-size: .88rem; line-height: 1.35; }
+.map-item small { display: block; margin-top: 3px; color: var(--muted); font-size: .72rem; }
+.map-item svg { width: 16px; height: 16px; color: var(--muted); }
+.map-note { position: relative; z-index: 1; margin: 19px 3px 0; display: flex; justify-content: space-between; color: var(--muted); font: .7rem/1.5 ui-monospace,"SFMono-Regular",Consolas,monospace; }
+.stats { width: min(1180px,calc(100% - 40px)); margin: 0 auto 88px; padding: 22px 0; display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+.stat { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 13px; border-right: 1px solid var(--line); }
+.stat:last-child { border-right: 0; }
+.stat strong { font-size: 1.45rem; line-height: 1; letter-spacing: -.03em; }
+.stat span { color: var(--muted); font-size: .8rem; line-height: 1.35; }
+.library { width: min(1180px,calc(100% - 40px)); margin: 0 auto; padding: 0 0 100px; }
+.section-head { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 30px; }
+.section-kicker { margin: 0 0 8px; color: var(--brand); font: 700 .72rem/1 ui-monospace,"SFMono-Regular",Consolas,monospace; letter-spacing: .13em; text-transform: uppercase; }
+.section-head h2 { margin: 0; font-size: clamp(1.8rem,4vw,3rem); line-height: 1.1; letter-spacing: -.045em; }
+.section-head p { max-width: 430px; margin: 0; color: var(--muted); font-size: .92rem; }
+.library-tools { position: sticky; top: 72px; z-index: 50; margin: 0 -12px 28px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: color-mix(in srgb,var(--page) 90%,transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.filters::-webkit-scrollbar { display: none; }
+.filter { height: 38px; padding: 0 15px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--surface); font-size: .8rem; font-weight: 700; cursor: pointer; transition: 160ms ease; }
+.filter:hover { color: var(--ink); border-color: var(--line-strong); }
+.filter.active { color: var(--surface-strong); border-color: var(--ink); background: var(--ink); }
+.search { position: relative; width: min(310px,32vw); flex: 0 0 auto; }
+.search svg { position: absolute; left: 13px; top: 50%; width: 17px; height: 17px; color: var(--muted); transform: translateY(-50%); pointer-events: none; }
+.search input { width: 100%; height: 40px; padding: 0 14px 0 39px; border: 1px solid var(--line); border-radius: 11px; outline: none; color: var(--ink); background: var(--surface-strong); font-size: .84rem; transition: 160ms ease; }
+.search input::placeholder { color: var(--muted); }
+.search input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb,var(--brand) 14%,transparent); }
+.cards { display: grid; grid-template-columns: repeat(12,1fr); gap: 18px; }
+.card { --card-accent: var(--brand); position: relative; grid-column: span 4; min-height: 285px; padding: 25px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); background: var(--surface-strong); text-decoration: none; box-shadow: 0 3px 0 color-mix(in srgb,var(--card-accent) 28%,transparent); transition: transform 190ms ease,border-color 190ms ease,box-shadow 190ms ease; }
+.card::before { content: ""; position: absolute; top: 0; left: 25px; width: 52px; height: 4px; border-radius: 0 0 4px 4px; background: var(--card-accent); }
+.card:hover { transform: translateY(-6px); border-color: color-mix(in srgb,var(--card-accent) 52%,var(--line)); box-shadow: var(--shadow-hover); }
+.card:focus-visible { outline: 3px solid color-mix(in srgb,var(--card-accent) 32%,transparent); outline-offset: 3px; }
+.card[data-category="ai"] { --card-accent: var(--purple); }
+.card[data-category="media"] { --card-accent: var(--sun); }
+.card[data-category="cpp"] { --card-accent: var(--blue); }
+.card.featured { grid-column: span 8; min-height: 312px; background: var(--ink); color: var(--surface-strong); box-shadow: none; }
+.card.featured::after { content: "TCP  →  TLS  →  HTTP"; position: absolute; right: -19px; bottom: 27px; color: color-mix(in srgb,var(--surface-strong) 8%,transparent); font: 800 clamp(1.5rem,3vw,2.7rem)/1 ui-monospace,"SFMono-Regular",Consolas,monospace; transform: rotate(-8deg); white-space: nowrap; }
+.card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tag { display: inline-flex; align-items: center; gap: 7px; color: var(--card-accent); font: 750 .68rem/1 ui-monospace,"SFMono-Regular",Consolas,monospace; letter-spacing: .09em; text-transform: uppercase; }
+.tag::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: currentColor; transform: rotate(45deg); }
+.featured .tag { color: #86dbbd; }
+.card-no { color: var(--muted); font: .7rem/1 ui-monospace,"SFMono-Regular",Consolas,monospace; }
+.featured .card-no { color: #80938e; }
+.card h3 { max-width: 95%; margin: 26px 0 12px; font-size: 1.22rem; line-height: 1.35; letter-spacing: -.02em; }
+.card.featured h3 { max-width: 650px; margin-top: 34px; font-size: clamp(1.65rem,3vw,2.35rem); line-height: 1.2; }
+.card p { max-width: 96%; margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.75; }
+.card.featured p { max-width: 610px; color: #aebbb7; font-size: .93rem; }
+.card-bottom { position: relative; z-index: 1; margin-top: auto; padding-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.meta { color: var(--muted); font: .68rem/1.5 ui-monospace,"SFMono-Regular",Consolas,monospace; }
+.featured .meta { color: #90a09b; }
+.open-icon { width: 36px; height: 36px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 50%; transition: 180ms ease; }
+.open-icon svg { width: 16px; height: 16px; }
+.featured .open-icon { border-color: #3c514b; }
+.card:hover .open-icon { color: var(--surface-strong); border-color: var(--card-accent); background: var(--card-accent); transform: rotate(-8deg); }
+.empty-state { display: none; padding: 64px 24px; grid-column: 1/-1; text-align: center; border: 1px dashed var(--line-strong); border-radius: 18px; color: var(--muted); background: var(--surface); }
+.empty-state strong { display: block; margin-bottom: 4px; color: var(--ink); font-size: 1rem; }
+.footer { border-top: 1px solid var(--line-strong); background: color-mix(in srgb,var(--surface) 70%,transparent); }
+.footer-inner { width: min(1180px,calc(100% - 40px)); min-height: 116px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+.footer strong { display: block; font-size: .86rem; }
+.footer small { display: block; margin-top: 4px; color: var(--muted); font-size: .72rem; }
+.footer-links { display: flex; gap: 22px; }
+.footer-links a { color: var(--muted); font-size: .8rem; text-decoration: none; }
+.footer-links a:hover { color: var(--brand); }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+@media (max-width: 980px) { .hero { grid-template-columns: 1fr; gap: 54px; padding-top: 68px; } .hero-copy { max-width: 720px; } .map-card { width: min(100%,610px); min-height: auto; transform: none; } .card { grid-column: span 6; } .card.featured { grid-column: 1/-1; } }
+@media (max-width: 720px) {
+  .nav-inner,.hero,.stats,.library,.footer-inner { width: min(100% - 28px,1180px); }
+  .nav-inner { height: 64px; } .brand-name span,.nav-link:not(.primary) { display: none; }
+  .nav-link.primary { width: 40px; padding: 0; font-size: 0; } .nav-link.primary svg { margin: 0; }
+  .hero { padding: 54px 0 48px; } .hero h1 { font-size: clamp(2.65rem,14vw,4.3rem); } .hero h1 em { white-space: normal; }
+  .map-card { padding: 20px; border-radius: 20px; } .stats { margin-bottom: 66px; }
+  .stat { flex-direction: column; gap: 6px; text-align: center; } .stat strong { font-size: 1.2rem; } .stat span { font-size: .68rem; }
+  .section-head { display: block; } .section-head p { margin-top: 13px; }
+  .library-tools { top: 64px; display: grid; grid-template-columns: 1fr; gap: 10px; } .search { width: 100%; grid-row: 1; }
+  .card,.card.featured { grid-column: 1/-1; min-height: 275px; } .card.featured { min-height: 330px; }
+  .footer-inner { padding: 28px 0; flex-direction: column; align-items: flex-start; }
 }
-
-.nav-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 56px;
-}
-
-.nav-brand {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.nav-brand .icon { width: 24px; height: 24px; }
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  list-style: none;
-}
-
-.nav-links a {
-  text-decoration: none;
-  color: var(--text-secondary);
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.nav-links a:hover {
-  color: var(--primary);
-  background: var(--primary-light);
-}
-
-.nav-links a.gh-link {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-}
-
-.nav-links a.gh-link:hover {
-  background: var(--text);
-  color: #fff;
-  border-color: var(--text);
-}
-
-.theme-toggle {
-  background: none; border: 1px solid var(--border);
-  border-radius: var(--radius-sm); cursor: pointer;
-  font-size: 1rem; padding: 6px 10px; line-height: 1;
-  color: var(--text-secondary); transition: all 0.2s;
-}
-.theme-toggle:hover { background: var(--bg); color: var(--primary); }
-
-/* ===== Hero ===== */
-.hero {
-  text-align: center;
-  padding: 72px 24px 48px;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.hero h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 12px;
-}
-
-.hero .subtitle {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-/* ===== Section ===== */
-.section {
-  max-width: 1100px;
-  margin: 0 auto 64px;
-  padding: 0 24px;
-}
-
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 16px;
-  padding-left: 4px;
-}
-
-/* ===== Cards Grid ===== */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
-}
-
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  text-decoration: none;
-  color: var(--text);
-  transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary);
-  transform: translateY(-2px);
-}
-
-.card-tag {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  width: fit-content;
-}
-
-.tag-network { background: var(--primary-light); color: var(--primary); }
-.tag-ai { background: var(--secondary-light); color: var(--secondary); }
-.tag-media { background: var(--success-light); color: var(--success); }
-.tag-cpp { background: var(--accent-light); color: var(--accent); }
-
-.card-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.card-desc {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  flex: 1;
-}
-
-.card-meta {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* ===== Footer ===== */
-.footer {
-  margin-top: auto;
-  border-top: 1px solid var(--border);
-  padding: 24px;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.footer a {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-.footer a:hover { text-decoration: underline; }
-
-/* ===== Responsive ===== */
-@media (max-width: 640px) {
-  .hero h1 { font-size: 1.8rem; }
-  .nav-inner { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 8px; }
-  .cards { grid-template-columns: 1fr; }
-}
+@media (max-width: 430px) { .brand-name strong { font-size: .82rem; } .hero-actions { align-items: stretch; } .cta { width: 100%; } .map-item { grid-template-columns: 32px 1fr; } .map-item>svg { display: none; } .card { padding: 22px; } }
 </style>
 </head>
 <body>
-
-<!-- Navigation -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a class="nav-brand" href="index.html">
-      <img src="img/icons/icon1.png" alt="logo" class="icon"> YJ Knowledge Bank
-    </a>
-    <ul class="nav-links">
-      <li><a href="index.html">首页</a></li>
-      <li><a href="doc/frp-nginx-networking-guide.html">内网穿透</a></li>
-      <li><a href="doc/llm-tutorial.html">LLM 入门</a></li>
-      <li><a href="doc/设计模式完全指南.html">设计模式</a></li>
-	      <li><a href="doc/FPlayer-技术面试准备.html">流媒体面试</a></li>
-	      <li><a href="doc/thread/cpp-threading-comparison.html">C++ 多线程</a></li>
-      <li><a href="doc/network-tutorial.html">网络基础</a></li>
-	      <li><a href="doc/network/网络原来如此-基础教程.html">网络原来如此</a></li>
-	      <li><a href="doc/claude-code-skills-guide.html">Skills 指南</a></li>
-      <li><button class="theme-toggle" id="themeToggle" title="切换深色模式">🌙</button></li>
-      <li><a class="gh-link" href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        GitHub
-      </a></li>
-    </ul>
-  </div>
-</nav>
-
-<!-- Hero -->
-<section class="hero">
-  <h1>技术知识库</h1>
-  <p class="subtitle">
-    深入理解计算机底层原理与工程实践。<br>
-    每篇指南从基本概念出发，逐步构建完整心智模型。
-  </p>
-</section>
-
-<!-- Knowledge Guides -->
-<section class="section">
-  <div class="section-title">知识指南</div>
-  <div class="cards">
-
-    <!-- Card: 内网穿透 -->
-    <a class="card" href="doc/frp-nginx-networking-guide.html">
-      <span class="card-tag tag-network">网络</span>
-      <div class="card-title">内网穿透 + Nginx HTTPS 详解</div>
-      <div class="card-desc">
-        从公网到内网的完整网络链路：frp 隧道原理、Nginx 反向代理、SSL/TLS 终止、防火墙与 NAT 穿透。
-      </div>
-      <div class="card-meta">📄 约 68 KB · 中文</div>
-    </a>
-
-    <!-- Card: 网络基础 -->
-    <a class="card" href="doc/network-tutorial.html">
-      <span class="card-tag tag-network">网络</span>
-      <div class="card-title">互联网公司必备网络基础知识</div>
-      <div class="card-desc">
-        从 IP 地址到 CDN 分发，覆盖互联网公司日常所需的全部网络概念：DNS、HTTP、TCP/IP、负载均衡、网络安全等。
-      </div>
-      <div class="card-meta">📄 中文</div>
-    </a>
-
-    <!-- Card: LLM -->
-    <a class="card" href="doc/llm-tutorial.html">
-      <span class="card-tag tag-ai">AI / ML</span>
-      <div class="card-title">大模型（LLM）完全入门指南</div>
-      <div class="card-desc">
-        从 Transformer 架构到 Prompt Engineering，全面理解大语言模型的工作原理与实践技巧。
-      </div>
-      <div class="card-meta">📄 中文</div>
-    </a>
-
-    <!-- Card: 设计模式 -->
-    <a class="card" href="doc/设计模式完全指南.html">
-      <span class="card-tag tag-cpp">C++ / Qt</span>
-      <div class="card-title">设计模式完全指南</div>
-      <div class="card-desc">
-        GoF 23 种设计模式的 C++ 实现，结合 Qt 框架源码分析：从 SOLID 原则到创建型、结构型、行为型模式的完整教学。
-      </div>
-      <div class="card-meta">📄 中文</div>
-    </a>
-
-    <!-- Card: FPlayer Desktop -->
-    <a class="card" href="doc/FPlayer-Desktop-技术全景教程.html">
-      <span class="card-tag tag-media">多媒体</span>
-      <div class="card-title">FPlayer Desktop — 技术全景教程</div>
-      <div class="card-desc">
-        桌面端播放器技术全解：从音视频编解码基础到硬解码渲染管线，深入理解桌面播放器的完整技术栈。
-      </div>
-      <div class="card-meta">📄 中文</div>
-    </a>
-
-    <!-- Card: FPlayer FF Mobile -->
-    <a class="card" href="doc/FPlayer-FF-Mobile-技术全景教程.html">
-      <span class="card-tag tag-media">多媒体</span>
-      <div class="card-title">fplayer-ff-mobile 技术全解</div>
-      <div class="card-desc">
-        移动端流媒体播放器技术全解：Flutter + media_kit (libmpv) 拉流，HLS/HTTP-FLV/RTMP 三协议。
-      </div>
-      <div class="card-meta">📄 中文</div>
-    </a>
-
-    <!-- Card: FPlayer FF Service -->
-    <a class="card" href="doc/FPlayer-FF-Service-技术全景教程.html">
-      <span class="card-tag tag-media">多媒体</span>
-      <div class="card-title">FPlayer FF Service — 技术全景教程</div>
-      <div class="card-desc">
-        服务端流媒体分发技术全解：Go Gateway + ZLMediaKit，控制面/数据面分离，RTMP→多协议转封装。
-      </div>
-      <div class="card-meta">📄 中文</div>
-    </a>
-
-
-    <!-- Card: C++ 多线程 -->
-    <a class="card" href="doc/thread/cpp-threading-comparison.html">
-      <span class="card-tag tag-cpp">C++ / 并发</span>
-      <div class="card-title">C++ 多线程对比阅读</div>
-      <div class="card-desc">
-        左右分栏对比阅读：菜鸟教程 C++ 多线程入门 vs std::thread 深度剖析（join/detach/mutex/条件变量/atomic/线程局部存储）。支持独立滚动与同步滚动。
-      </div>
-      <div class="card-meta">📄 分栏对比 · 中文</div>
-    </a>
-
-	    <!-- Card: Skills 指南 -->
-	    <a class="card" href="doc/claude-code-skills-guide.html">
-	      <span class="card-tag tag-ai">AI / 工具链</span>
-	      <div class="card-title">Claude Code Skills 完全指南</div>
-	      <div class="card-desc">
-	        25 个内置 Skills 的完整教学：从五阶段工作流到代码审查，从图表生成到安全审计。学会用 Skills 提升开发效率。
-	      </div>
-	      <div class="card-meta">📄 中文 · 含流程图</div>
-	    </a>
-
-
-    <!-- Card: FPlayer 面试准备 -->
-    <a class="card" href="doc/FPlayer-技术面试准备.html">
-      <span class="card-tag tag-media">多媒体</span>
-      <div class="card-title">FPlayer 技术面试准备</div>
-      <div class="card-desc">
-        三端流媒体系统面试问答清单：架构设计、C++音视频核心、流媒体协议、工程能力、代码位置速查表。
-      </div>
-      <div class="card-meta">📄 中文 · 含架构图</div>
-    </a>
-
-    <!-- Card: 网络原来如此 -->
-    <a class="card" href="doc/network/网络原来如此-基础教程.html">
-      <span class="card-tag tag-network">网络</span>
-      <div class="card-title">网络原来如此 · 计算机网络基础教程</div>
-      <div class="card-desc">
-        从网络分层到TCP/IP、DNS、HTTP、HTTPS、SSH，用图文并茂的方式理解计算机网络核心概念。面向初学者的完整教程。
-      </div>
-      <div class="card-meta">📄 中文 · 含交互测验</div>
-    </a>
-  </div>
-</section>
-
-<!-- Footer -->
-<footer class="footer">
-  <p>
-    <a href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">github.com/chunyujin295/yj-knowledge-bank</a>
-    &nbsp;·&nbsp; Built with ❤️ by YJ
-  </p>
-</footer>
-
+<a class="skip-link" href="#library">跳到知识库</a>
+<header class="nav"><div class="nav-inner">
+  <a class="brand" href="index.html" aria-label="YJ Knowledge Bank 首页"><span class="brand-mark"><img src="img/icons/icon1.png" alt=""></span><span class="brand-name"><strong>YJ Knowledge Bank</strong><span>Learn · Connect · Build</span></span></a>
+  <nav class="nav-actions" aria-label="主导航">
+    <a class="nav-link" href="#library">知识指南</a>
+    <button class="icon-button" id="themeToggle" type="button" aria-label="切换深色模式" title="切换深色模式"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg></button>
+    <a class="nav-link primary" href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .7A11.3 11.3 0 0 0 8.4 22.8c.6.1.8-.2.8-.5v-2c-3.4.7-4.1-1.4-4.1-1.4-.5-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.8.1-.8 1.3.1 1.9 1.3 1.9 1.3 1.1 1.9 2.9 1.3 3.6 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6a4.7 4.7 0 0 1 1.3-3.2c-.2-.3-.6-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.7 11.7 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.3 2.9.1 3.2A4.7 4.7 0 0 1 20 11c0 4.7-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.1v3.2c0 .3.2.6.8.5A11.3 11.3 0 0 0 12 .7Z"/></svg>GitHub</a>
+  </nav>
+</div></header>
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div><div class="eyebrow">A personal tech atlas</div><h1 id="hero-title">把复杂技术<br>拆成<em>清晰路径</em></h1><p class="hero-copy">这里不只是答案的集合，而是一张持续生长的技术地图。从底层原理出发，连接概念、代码与真实工程实践。</p><div class="hero-actions"><a class="cta solid" href="#library">开始探索<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="cta ghost" href="doc/network/网络原来如此-基础教程.html">从网络基础读起</a></div></div>
+    <aside class="map-card" aria-label="推荐学习路径"><div class="map-header"><span>Learning Path / 01</span><span class="map-status">持续更新</span></div><div class="map-list">
+      <div class="map-item"><span class="map-index">01</span><span><strong>理解网络如何连接</strong><small>DNS · TCP/IP · HTTP</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"/></svg></div>
+      <div class="map-item"><span class="map-index">02</span><span><strong>深入工程系统</strong><small>C++ · 并发 · 设计模式</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"/></svg></div>
+      <div class="map-item"><span class="map-index">03</span><span><strong>探索智能与媒体</strong><small>LLM · Audio · Video</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"/></svg></div>
+    </div><div class="map-note"><span>FOUNDATION → PRACTICE</span><span>YJ / 2026</span></div></aside>
+  </section>
+  <section class="stats" aria-label="知识库概览"><div class="stat"><strong>11</strong><span>篇深度<br>技术指南</span></div><div class="stat"><strong>4</strong><span>个核心<br>知识领域</span></div><div class="stat"><strong>100%</strong><span>中文<br>系统梳理</span></div></section>
+  <section class="library" id="library" aria-labelledby="library-title">
+    <div class="section-head"><div><p class="section-kicker">Knowledge library</p><h2 id="library-title">选择一条探索路径</h2></div><p>每篇内容都从基础概念逐层展开，并用架构图、代码与真实场景串起完整心智模型。</p></div>
+    <div class="library-tools"><div class="filters" role="group" aria-label="按主题筛选"><button class="filter active" type="button" data-filter="all">全部 <span>11</span></button><button class="filter" type="button" data-filter="network">网络 <span>3</span></button><button class="filter" type="button" data-filter="ai">AI / 工具 <span>2</span></button><button class="filter" type="button" data-filter="media">多媒体 <span>4</span></button><button class="filter" type="button" data-filter="cpp">C++ / 工程 <span>2</span></button></div><label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="searchInput" type="search" placeholder="搜索知识主题…" autocomplete="off"></label></div>
+    <div class="cards" id="guideGrid">
+      <a class="card featured" data-category="network" data-search="内网穿透 nginx https frp ssl tls 防火墙 nat 网络" href="doc/frp-nginx-networking-guide.html"><div class="card-top"><span class="tag">Network / Featured</span><span class="card-no">DOC.001</span></div><h3>内网穿透 + Nginx HTTPS 详解</h3><p>沿着一次真实请求，拆解 frp 隧道、Nginx 反向代理、SSL/TLS 终止、防火墙与 NAT 穿透之间的完整链路。</p><div class="card-bottom"><span class="meta">深度指南 · 约 68 KB · 中文</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="network" data-search="网络原来如此 计算机网络 tcp ip dns http https ssh 初学者" href="doc/network/网络原来如此-基础教程.html"><div class="card-top"><span class="tag">Network</span><span class="card-no">DOC.002</span></div><h3>网络原来如此 · 计算机网络基础教程</h3><p>从网络分层到 TCP/IP、DNS、HTTP、HTTPS、SSH，用图解和交互测验理解核心概念。</p><div class="card-bottom"><span class="meta">基础教程 · 交互测验</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="network" data-search="互联网公司 网络基础 ip cdn dns http tcp 负载均衡 安全" href="doc/network-tutorial.html"><div class="card-top"><span class="tag">Network</span><span class="card-no">DOC.003</span></div><h3>互联网公司必备网络基础知识</h3><p>从 IP 地址到 CDN 分发，覆盖 DNS、HTTP、TCP/IP、负载均衡与网络安全等常用概念。</p><div class="card-bottom"><span class="meta">知识全景 · 中文</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="ai" data-search="大模型 llm transformer prompt engineering ai ml 人工智能" href="doc/llm-tutorial.html"><div class="card-top"><span class="tag">AI / ML</span><span class="card-no">DOC.004</span></div><h3>大模型（LLM）完全入门指南</h3><p>从 Transformer 架构到 Prompt Engineering，建立对大语言模型工作原理与实践方法的完整认识。</p><div class="card-bottom"><span class="meta">入门指南 · 中文</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="cpp" data-search="设计模式 gof 23 c++ qt solid 创建型 结构型 行为型" href="doc/设计模式完全指南.html"><div class="card-top"><span class="tag">C++ / Qt</span><span class="card-no">DOC.005</span></div><h3>设计模式完全指南</h3><p>用 C++ 实现 GoF 23 种设计模式，并结合 Qt 源码理解 SOLID 原则与模式的真实应用。</p><div class="card-bottom"><span class="meta">工程实践 · 23 种模式</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="cpp" data-search="c++ 多线程 并发 thread join detach mutex 条件变量 atomic tls" href="doc/thread/cpp-threading-comparison.html"><div class="card-top"><span class="tag">C++ / Concurrency</span><span class="card-no">DOC.006</span></div><h3>C++ 多线程对比阅读</h3><p>左右分栏对比入门与深度剖析，串联 thread、mutex、条件变量、atomic 与线程局部存储。</p><div class="card-bottom"><span class="meta">分栏对比 · 独立滚动</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="media" data-search="fplayer desktop 桌面 播放器 音视频 编解码 硬解码 渲染" href="doc/FPlayer-Desktop-技术全景教程.html"><div class="card-top"><span class="tag">Multimedia</span><span class="card-no">DOC.007</span></div><h3>FPlayer Desktop · 技术全景教程</h3><p>从音视频编解码基础到硬解码渲染管线，完整梳理桌面播放器的核心技术栈。</p><div class="card-bottom"><span class="meta">桌面端 · 技术全景</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="media" data-search="fplayer ff mobile flutter media kit libmpv hls http flv rtmp 移动端 流媒体" href="doc/FPlayer-FF-Mobile-技术全景教程.html"><div class="card-top"><span class="tag">Multimedia</span><span class="card-no">DOC.008</span></div><h3>fplayer-ff-mobile 技术全解</h3><p>解析 Flutter + media_kit（libmpv）拉流，以及 HLS、HTTP-FLV、RTMP 三协议的移动端实现。</p><div class="card-bottom"><span class="meta">移动端 · 三协议</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="media" data-search="fplayer ff service go gateway zlmediakit 服务端 流媒体 rtmp 协议 转封装" href="doc/FPlayer-FF-Service-技术全景教程.html"><div class="card-top"><span class="tag">Multimedia</span><span class="card-no">DOC.009</span></div><h3>FPlayer FF Service · 技术全景教程</h3><p>理解 Go Gateway + ZLMediaKit 的控制面与数据面分离，以及 RTMP 到多协议的转封装。</p><div class="card-bottom"><span class="meta">服务端 · 系统架构</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="media" data-search="fplayer 技术面试 准备 三端 流媒体 架构 c++ 音视频 协议 工程" href="doc/FPlayer-技术面试准备.html"><div class="card-top"><span class="tag">Multimedia</span><span class="card-no">DOC.010</span></div><h3>FPlayer 技术面试准备</h3><p>聚合三端流媒体系统的架构、C++ 音视频核心、协议与工程能力问答，并附代码位置速查。</p><div class="card-bottom"><span class="meta">面试清单 · 架构图</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="card" data-category="ai" data-search="claude code skills agent 工具链 代码审查 安全审计 工作流 ai" href="doc/claude-code-skills-guide.html"><div class="card-top"><span class="tag">AI / Tooling</span><span class="card-no">DOC.011</span></div><h3>Claude Code Skills 完全指南</h3><p>从五阶段工作流到代码审查与安全审计，系统掌握 25 个内置 Skills 的使用方法。</p><div class="card-bottom"><span class="meta">工具指南 · 含流程图</span><span class="open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+      <div class="empty-state" id="emptyState"><strong>没有找到匹配的内容</strong>换一个关键词或分类试试看。</div>
+    </div>
+  </section>
+</main>
+<footer class="footer"><div class="footer-inner"><div><strong>YJ Knowledge Bank</strong><small>在理解中建立连接，在实践中沉淀知识。</small></div><div class="footer-links"><a href="#library">返回知识库</a><a href="https://github.com/chunyujin295/yj-knowledge-bank" target="_blank" rel="noopener">GitHub ↗</a></div></div></footer>
 <script>
-(()=>{
-  const h=document.documentElement, b=document.getElementById('themeToggle');
-  const s=localStorage.getItem('theme');
-  if(s==='dark'){h.setAttribute('data-theme','dark');b.textContent='☀️';}
-  else if(s==='light'){h.setAttribute('data-theme','light');b.textContent='🌙';}
-  b.addEventListener('click',()=>{
-    if(h.getAttribute('data-theme')==='dark'){
-      h.setAttribute('data-theme','light');localStorage.setItem('theme','light');b.textContent='🌙';
-    }else{
-      h.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');b.textContent='☀️';
-    }
-  });
+(() => {
+  const root=document.documentElement, themeButton=document.getElementById('themeToggle');
+  const moon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg>';
+  const sun='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  if(localStorage.getItem('theme')==='dark'){ root.dataset.theme='dark'; themeButton.innerHTML=sun; themeButton.setAttribute('aria-label','切换浅色模式'); }
+  themeButton.addEventListener('click',()=>{ const dark=root.dataset.theme!=='dark'; root.dataset.theme=dark?'dark':'light'; localStorage.setItem('theme',dark?'dark':'light'); themeButton.innerHTML=dark?sun:moon; themeButton.setAttribute('aria-label',dark?'切换浅色模式':'切换深色模式'); });
+  const buttons=[...document.querySelectorAll('.filter')], cards=[...document.querySelectorAll('.card')], input=document.getElementById('searchInput'), empty=document.getElementById('emptyState'); let active='all';
+  function update(){ const key=input.value.trim().toLowerCase(); let visible=0; cards.forEach(card=>{ const show=(active==='all'||card.dataset.category===active)&&(!key||card.dataset.search.toLowerCase().includes(key)||card.textContent.toLowerCase().includes(key)); card.hidden=!show; if(show) visible++; }); empty.style.display=visible?'none':'block'; }
+  buttons.forEach(button=>button.addEventListener('click',()=>{ active=button.dataset.filter; buttons.forEach(item=>item.classList.toggle('active',item===button)); update(); })); input.addEventListener('input',update);
 })();
 </script>
 </body>

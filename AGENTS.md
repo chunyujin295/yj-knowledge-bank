@@ -10,6 +10,10 @@ This is a personal knowledge bank (`yj-knowledge-bank`). It stores reference gui
 
 Each markdown file is a self-contained deep-dive guide on a single technical topic, written in Chinese. The guides are designed to be comprehensive reference material — they explain the full mental model behind a technology, from foundational concepts to implementation details.
 
+## Frontend design system
+
+Before creating, redesigning, or changing styles or interactions in any HTML page, read `FRONTEND_DESIGN_SYSTEM.md` completely and follow it. Shared visual tokens and components live in `assets/css/kb-design-system.css`; shared navigation, theme, and reading interactions live in `assets/js/kb-design-system.js`. New pages must reuse these files instead of creating another independent visual system.
+
 ## Writing style for new guides
 
 - Written in Chinese (Simplified)
