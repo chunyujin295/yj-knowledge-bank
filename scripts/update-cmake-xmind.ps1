@@ -70,7 +70,11 @@ try {
         (New-Topic '目标平台与对象文件格式' @(
             (New-Topic 'CPU 架构：x86 / x64 / ARM64 必须匹配'),
             (New-Topic 'Windows MSVC 目标通常生成 COFF .obj；Linux 通常使用 ELF；macOS 使用 Mach-O'),
-            (New-Topic '目标三元组比“编译器品牌”更能说明产物属于哪套生态')
+            (New-Topic '目标三元组比“编译器品牌”更能说明产物属于哪套生态' @(
+                (New-Topic 'i686-pc-windows-msvc：32 位 Windows + Microsoft ABI 环境'),
+                (New-Topic 'x86_64-pc-windows-msvc：64 位 Windows + Microsoft ABI 环境'),
+                (New-Topic 'x86_64-w64-windows-gnu：同为 Windows，但属于 MinGW/GNU 环境')
+            ))
         )),
         (New-Topic 'ABI（二进制合同）' @(
             (New-Topic '规定调用约定、名称修饰、类/结构体布局、虚表、异常、RTTI 等'),
@@ -83,9 +87,14 @@ try {
         )),
         (New-Topic '库与运行时（不要再统称“运行库”）' @(
             (New-Topic 'C++ 标准库：MSVC STL / libc++ / libstdc++；提供 string、vector、iostream 等'),
-            (New-Topic 'C/平台运行时：Windows 的 UCRT + VCRuntime；提供启动、堆、stdio、异常底座等'),
-            (New-Topic '编译器运行时：LLVM compiler-rt / GCC libgcc；提供编译器生成的底层辅助操作'),
-            (New-Topic '操作系统 SDK：Windows SDK 头文件和导入库，例如 windows.h、kernel32.lib')
+            (New-Topic 'C/平台运行时：Windows 的 UCRT + VCRuntime' @(
+                (New-Topic 'UCRT：ISO C、stdio、heap、locale 等；/MT 对应 libucrt.lib，/MD 对应 ucrt.lib → ucrtbase.dll'),
+                (New-Topic 'VCRuntime：程序启动、C++ EH、RTTI、运行时检查；/MT 对应 libvcruntime.lib，/MD 对应 vcruntime.lib → 版本化 DLL')
+            )),
+            (New-Topic '编译器运行时：LLVM compiler-rt / GCC libgcc；提供编译器隐式生成的底层辅助操作；它补充而不是替代 UCRT/VCRuntime'),
+            (New-Topic '操作系统 SDK：Windows SDK 头文件和导入库，例如 windows.h、kernel32.lib'),
+            (New-Topic '默认库机制：对象文件 .drectve 段可携带 /DEFAULTLIB；/NODEFAULTLIB 后必须显式补齐全部依赖'),
+            (New-Topic 'LTO/ThinLTO 是额外兼容轴：还需匹配 LLVM bitcode、链接器插件和版本')
         ))
     )
 
@@ -106,7 +115,10 @@ try {
 
     $caseStudy = New-Topic '本次 Chromium / client.dll 实例' @(
         (New-Topic '实际组合：clang-cl 17 + Windows x86/MSVC ABI/COFF + Chromium libc++ + Microsoft CRT /MT + clang_rt.builtins-i386 + lld-link'),
-        (New-Topic '浏览器侧 std::string 来自 Chromium libc++，符号特征为 std::__Cr::basic_string'),
+        (New-Topic '浏览器侧 std::string 来自 Chromium libc++，符号特征为 std::__Cr::basic_string' @(
+            (New-Topic 'libc++ 默认 inline ABI namespace 通常为 std::__1；vendor 可用 LIBCXX_ABI_NAMESPACE 定制'),
+            (New-Topic '__Cr 解决符号隔离，但不能单独证明结构布局、ABI flags 与配置头完全一致')
+        )),
         (New-Topic '旧 client.lib 使用 MSVC STL；两种 string 的符号、布局、内联实现和 allocator 约定可能不同'),
         (New-Topic '必须同时匹配：libc++ 头文件、__config_site、ABI 宏、预编译 libc++.lib、Clang 版本、架构和 CRT 模式'),
         (New-Topic '验证链路' @(

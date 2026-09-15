@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GPT-5.6 Sol、Terra、Luna 的模型选型与思考强度实战指南。">
+  <title>GPT-5.6 三模型与思考强度指南 — YJ Knowledge Bank</title>
+  <link rel="icon" type="image/png" href="../img/icons/icon1.png">
+  <style>
+    :root { --accent-sol: #d76645; --accent-terra: #34749a; --accent-luna: #76538f; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--kb-page); color: var(--kb-text); font-family: var(--kb-font-sans); line-height: 1.82; }
+    a { color: var(--kb-brand); text-underline-offset: 3px; }
+    .hero { padding: 104px 24px 64px; border-bottom: 1px solid var(--kb-line); background: linear-gradient(135deg, var(--kb-surface) 0%, var(--kb-brand-soft) 100%); }
+    .hero-inner, .layout { max-width: 1200px; margin: 0 auto; }
+    .eyebrow { margin: 0 0 16px; color: var(--kb-coral); font: 700 .75rem/1.4 var(--kb-font-mono); letter-spacing: .12em; }
+    h1 { max-width: 900px; margin: 0; color: var(--kb-ink); font-size: clamp(2.5rem, 6vw, 5.2rem); line-height: 1.06; letter-spacing: -.05em; }
+    .lede { max-width: 770px; margin: 24px 0 0; font-size: 1.13rem; color: var(--kb-text); }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+    .meta span { padding: 5px 10px; border: 1px solid var(--kb-line); border-radius: 999px; background: var(--kb-surface-strong); color: var(--kb-muted); font: 600 .73rem var(--kb-font-mono); }
+    .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 64px; padding: 56px 24px 88px; }
+    .toc { position: sticky; top: 82px; align-self: start; border-left: 1px solid var(--kb-line); padding-left: 16px; }
+    .toc strong { display: block; margin-bottom: 10px; color: var(--kb-ink); font-size: .8rem; }
+    .toc a { display: block; padding: 6px 0; color: var(--kb-muted); font-size: .84rem; text-decoration: none; }
+    .toc a:hover { color: var(--kb-brand); }
+    article { min-width: 0; }
+    section { scroll-margin-top: 76px; margin-bottom: 74px; }
+    h2 { margin: 0 0 18px; color: var(--kb-ink); font-size: clamp(1.65rem, 3vw, 2.35rem); line-height: 1.22; letter-spacing: -.03em; }
+    h3 { margin: 28px 0 10px; color: var(--kb-ink); font-size: 1.16rem; }
+    p { margin: 0 0 14px; }
+    .callout { margin: 24px 0; padding: 18px 20px; border-left: 4px solid var(--kb-brand); border-radius: 0 var(--kb-radius-md) var(--kb-radius-md) 0; background: var(--kb-brand-soft); }
+    .callout strong { color: var(--kb-ink); }
+    .model-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 26px 0; }
+    .model-card { padding: 24px; border: 1px solid var(--kb-line); border-top: 5px solid var(--card-color); border-radius: var(--kb-radius-lg); background: var(--kb-surface-strong); }
+    .model-card h3 { margin: 0 0 8px; }
+    .model-card .role { min-height: 3.5em; color: var(--kb-muted); font-size: .9rem; }
+    .model-card dl { margin: 18px 0 0; font-size: .88rem; }
+    .model-card dt { margin-top: 10px; color: var(--kb-muted); font: 600 .7rem var(--kb-font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    .model-card dd { margin: 2px 0; color: var(--kb-text); }
+    .sol { --card-color: var(--accent-sol); } .terra { --card-color: var(--accent-terra); } .luna { --card-color: var(--accent-luna); }
+    .table-wrap { overflow-x: auto; margin: 22px 0; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); }
+    table { width: 100%; min-width: 650px; border-collapse: collapse; font-size: .9rem; }
+    th, td { padding: 13px 15px; border-bottom: 1px solid var(--kb-line); text-align: left; vertical-align: top; }
+    th { color: var(--kb-ink); background: var(--kb-brand-soft); font-size: .8rem; }
+    tr:last-child td { border-bottom: 0; }
+    .task-grid { display: grid; gap: 14px; margin-top: 22px; }
+    .task { display: grid; grid-template-columns: 126px 1fr; gap: 18px; padding: 18px 20px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    .task-model { color: var(--kb-brand); font: 700 .8rem var(--kb-font-mono); }
+    .task p { margin: 0; font-size: .93rem; }
+    .ladder { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 24px 0; }
+    .rung { min-height: 125px; padding: 14px 12px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    .rung b { display: block; color: var(--kb-ink); font: 700 .83rem var(--kb-font-mono); }
+    .rung span { display: block; margin-top: 8px; color: var(--kb-muted); font-size: .8rem; line-height: 1.55; }
+    pre { overflow-x: auto; margin: 20px 0; padding: 18px 20px; border-radius: var(--kb-radius-md); background: var(--kb-code); color: #dce8e1; font: .83rem/1.7 var(--kb-font-mono); }
+    code { font-family: var(--kb-font-mono); }
+    .source-list { padding-left: 20px; }
+    .source-list li { margin-bottom: 10px; }
+    .footer { padding: 28px 24px 46px; border-top: 1px solid var(--kb-line); color: var(--kb-muted); text-align: center; font-size: .85rem; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; gap: 28px; padding-top: 38px; } .toc { position: static; display: flex; flex-wrap: wrap; gap: 0 16px; padding: 12px 0; border: 0; border-bottom: 1px solid var(--kb-line); } .toc strong { width: 100%; } .toc a { padding: 4px 0; } .model-grid { grid-template-columns: 1fr; } .ladder { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 560px) { .hero { padding: 82px 18px 46px; } .layout { padding-inline: 18px; } .task { grid-template-columns: 1fr; gap: 7px; } .ladder { grid-template-columns: repeat(2, 1fr); } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+  <link rel="stylesheet" href="../assets/css/kb-design-system.css">
+  <script defer src="../assets/js/kb-design-system.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">MODEL SELECTION FIELD GUIDE · 2026-09</p>
+      <h1>GPT-5.6：三种模型，怎样选才不浪费？</h1>
+      <p class="lede">把 Sol、Terra、Luna 看成同一代能力的三档工作引擎：不是“哪个永远更好”，而是用任务风险、规模、时延与预算，挑一套恰当的模型 × 思考强度组合。</p>
+      <div class="meta"><span>GPT-5.6 Sol / Terra / Luna</span><span>模型选型</span><span>思考强度</span><span>官方资料核对：2026-09-15</span></div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <nav class="toc" aria-label="文章目录">
+      <strong>本页目录</strong>
+      <a href="#map">先给结论</a><a href="#models">三模型的分工</a><a href="#examples">任务怎么选</a><a href="#effort">什么是思考强度</a><a href="#pairing">如何组合</a><a href="#api">API 配置</a><a href="#checklist">速查表</a>
+    </nav>
+    <article>
+      <section id="map">
+        <h2>先给结论：把选择拆成两次</h2>
+        <p>第一次决定<strong>模型档位</strong>：任务是否复杂、是否高风险、是否海量；第二次决定<strong>思考强度</strong>：这一次具体请求是否真的需要更长的内部推理。模型决定“能力 / 单价”的基线，思考强度决定一次调用愿意花多少时间和推理预算来换可靠性。</p>
+        <div class="callout"><strong>最实用的默认值：</strong>不确定时先用 <strong>Terra + medium</strong>。复杂且错误代价高时升级到 <strong>Sol + high</strong>；大量规则清晰、可验证的请求则用 <strong>Luna + none / low</strong>。先用评测或线上指标验证收益，再上调强度，而不是一开始就把所有请求推到最高档。</div>
+      </section>
+
+      <section id="models">
+        <h2>三模型的分工：同一代，不同经济性</h2>
+        <p>OpenAI 将 Sol 定位为复杂专业工作的旗舰模型；Terra 用于平衡智能与成本；Luna 面向成本敏感的高吞吐工作负载。三者都有 105 万 token 上下文、12.8 万最大输出，支持文本输入输出与图像输入；也都支持函数调用、网页 / 文件搜索与计算机使用等工具。差别的核心不是“能不能做”，而是复杂任务的余量与单位成本。</p>
+        <div class="model-grid">
+          <div class="model-card sol"><h3>GPT-5.6 Sol</h3><p class="role">旗舰档：复杂、专业、结果错误代价高的工作。</p><dl><dt>API ID</dt><dd><code>gpt-5.6-sol</code>（<code>gpt-5.6</code> 指向它）</dd><dt>文本价格 / 百万 token</dt><dd>输入 $4 · 输出 $20</dd><dt>适合</dt><dd>深度代码改造、复杂分析、长链路 Agent、正式交付物</dd></dl></div>
+          <div class="model-card terra"><h3>GPT-5.6 Terra</h3><p class="role">平衡档：多数生产工作流的质量、延迟与成本折中点。</p><dl><dt>API ID</dt><dd><code>gpt-5.6-terra</code></dd><dt>文本价格 / 百万 token</dt><dd>输入 $2 · 输出 $12</dd><dt>适合</dt><dd>日常编码、文档分析、客服升级单、常规工具调用</dd></dl></div>
+          <div class="model-card luna"><h3>GPT-5.6 Luna</h3><p class="role">吞吐档：规则明确、可批处理、需要极低单价的任务。</p><dl><dt>API ID</dt><dd><code>gpt-5.6-luna</code></dd><dt>文本价格 / 百万 token</dt><dd>输入 $0.20 · 输出 $1.20</dd><dt>适合</dt><dd>分类、抽取、标签、初筛、批量改写与路由</dd></dl></div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>如果你的首要约束是…</th><th>优先模型</th><th>为什么</th></tr></thead><tbody><tr><td>正确性、复杂推理、难以返工</td><td>Sol</td><td>旗舰档更适合复杂专业工作；先将预算给最关键的决策点。</td></tr><tr><td>大部分产品功能的性价比</td><td>Terra</td><td>官方定位就是智能与成本的平衡，适合作为生产默认候选。</td></tr><tr><td>百万级重复请求的单位成本</td><td>Luna</td><td>价格约为 Terra 的十分之一，针对成本敏感、高量任务设计。</td></tr><tr><td>音频输入 / 输出</td><td>另选专用音频模型</td><td>这三个模型不支持音频；不要仅因同属 GPT-5.6 就硬套。</td></tr></tbody></table></div>
+      </section>
+
+      <section id="examples">
+        <h2>具体任务：到底该用哪一个？</h2>
+        <p>下面的建议假设任务允许使用这三个模型。它们是工程起点，不是替代评测的绝对答案：当你有真实数据集、延迟 SLA 与人工抽检结果时，应以自己的结果为准。</p>
+        <div class="task-grid">
+          <div class="task"><div class="task-model">Sol + high</div><p><strong>“重构一个跨 30 个文件的支付模块，并列出回归风险。”</strong><br>依赖关系、边界条件和错误代价都高。先用 Sol 深入规划与实施；把测试失败后的定位也保留在 Sol，避免在关键链路上省错地方。</p></div>
+          <div class="task"><div class="task-model">Terra + medium</div><p><strong>“读一组合同，提炼付款条款并生成待人工确认的摘要。”</strong><br>需要理解与结构化输出，但结果仍有人工复核。Terra + medium 是合理起点；若涉及最终法律结论，应把它设计为辅助与升级流程，而不是直接替人下结论。</p></div>
+          <div class="task"><div class="task-model">Luna + none / low</div><p><strong>“给 200 万条商品标题打类目、提取品牌和容量。”</strong><br>模式固定、字段明确、可用 JSON Schema 验证。用 Luna 批处理并设置异常队列；对置信度低或校验失败的少量记录，升级给 Terra。</p></div>
+          <div class="task"><div class="task-model">Terra + low</div><p><strong>“客服机器人根据知识库回答常见的退换货问题。”</strong><br>检索与回答路径较短，低强度能降低等待时间。若用户表达投诉、退款争议或需要跨系统操作，再路由至 Terra + medium 或 Sol。</p></div>
+          <div class="task"><div class="task-model">Sol + xhigh</div><p><strong>“基于销售、库存、促销三份互相矛盾的报表，找出异常并提出调查步骤。”</strong><br>这是少量但高价值的歧义推理任务。提升强度有意义，但要给明确的停止标准，例如“列证据、标不确定项、不可自行编造数据”。</p></div>
+          <div class="task"><div class="task-model">Luna → Terra</div><p><strong>“从 10 万份简历中初筛，再为候选人生成结构化面试摘要。”</strong><br>第一层规则和字段抽取交给 Luna；失败、冲突或高匹配样本升级至 Terra。分层比“所有简历都用 Sol”更可持续。</p></div>
+        </div>
+      </section>
+
+      <section id="effort">
+        <h2>思考强度是什么：一枚可调的推理预算旋钮</h2>
+        <p><strong>思考强度（reasoning effort）</strong>控制模型在给出最终回答前投入多少推理工作。提高它通常可能改善多步骤规划、约束权衡、工具使用与复杂问题的可靠性；代价则是更高的延迟和 token 成本。它不是“回答写得更长”的开关，也不等价于把 prompt 写得更详细。</p>
+        <p>Sol、Terra、Luna 都支持 <code>none</code>、<code>low</code>、<code>medium</code>（默认）、<code>high</code>、<code>xhigh</code> 与 <code>max</code>。实务上，从 <code>medium</code> 起步最稳妥；工具调用、规划或多步判断仍然重要时，官方建议先尝试 <code>low</code>，而不是直接退到 <code>none</code>。只有评测证实有增益，才继续提高。</p>
+        <div class="ladder" aria-label="思考强度梯度"><div class="rung"><b>none</b><span>极限时延；纯抽取、固定分类、简单变换。</span></div><div class="rung"><b>low</b><span>快速但仍要做少量判断；短链路检索、工具路由。</span></div><div class="rung"><b>medium</b><span>默认平衡；日常分析、编码、文档任务。</span></div><div class="rung"><b>high</b><span>多约束规划、复杂排错、重要交付前的审查。</span></div><div class="rung"><b>xhigh</b><span>少量高价值、歧义多、验证困难的问题。</span></div><div class="rung"><b>max</b><span>仅在评测显示仍有显著收益时使用。</span></div></div>
+        <div class="callout"><strong>一个常见误区：</strong>“越高越好”不成立。若提示词目标模糊、相互冲突，或工具权限过宽，高强度反而可能带来过度搜索、过度推敲和更长时间。因此先写清目标、约束、可用工具、完成条件，再讨论升档。</div>
+      </section>
+
+      <section id="pairing">
+        <h2>组合策略：模型档位 × 思考强度</h2>
+        <div class="table-wrap"><table><thead><tr><th>工作负载</th><th>建议组合</th><th>配合方式</th></tr></thead><tbody><tr><td>实时 UI 小任务</td><td>Luna + none</td><td>只做确定性抽取 / 分类；用 schema、正则或业务规则兜底。</td></tr><tr><td>高频但含少量判断</td><td>Luna + low</td><td>测量尾延迟；不确定样本进入升级队列。</td></tr><tr><td>常规业务 Agent</td><td>Terra + medium</td><td>将检索、工具权限和停止条件写清，观察任务成功率而非只看“感觉”。</td></tr><tr><td>棘手的编码 / 分析请求</td><td>Sol + high</td><td>让模型先列计划与验证项，再执行；把人审放在不可逆动作前。</td></tr><tr><td>极少数关键决策</td><td>Sol + xhigh / max</td><td>先做小规模 A/B 评测；要求引用依据、标注不确定性、输出可审计中间结论。</td></tr></tbody></table></div>
+        <h3>推荐的两级路由</h3>
+        <pre>请求进入
+  │
+  ├─ 规则明确、可机器验证？ ── 是 ──► Luna + none / low
+  │                                      │
+  │                                  校验失败 / 低置信度
+  │                                      ▼
+  └─ 否 ───────────────────────────► Terra + medium
+                                         │
+                                   高风险、复杂、多轮失败
+                                         ▼
+                                      Sol + high</pre>
+        <p>路由的重点是<strong>可升级</strong>：不是一开始猜出“最强模型”，而是让便宜、快速的路径处理大多数明确任务，把预算集中到少数真正复杂的例外上。</p>
+      </section>
+
+      <section id="api">
+        <h2>API 中如何设置</h2>
+        <p>在 Responses API 中通过 <code>reasoning.effort</code> 指定强度；Chat Completions 使用 <code>reasoning_effort</code>。下面是一个将“模型选择”和“思考强度”显式写入配置的最小示例。</p>
+        <pre>from openai import OpenAI
+
+client = OpenAI()
+
+response = client.responses.create(
+    model="gpt-5.6-terra",       # 生产默认候选
+    reasoning={"effort": "medium"},
+    input="把这份产品需求整理为验收标准，并标记不确定项。"
+)
+
+print(response.output_text)</pre>
+        <p>生产系统里建议把模型与强度抽成配置，而不是散落在业务代码中；记录任务类型、模型、强度、延迟、成本、自动校验结果与人工评分。这样下一轮选型才有依据。</p>
+      </section>
+
+      <section id="checklist">
+        <h2>关键概念速查表</h2>
+        <div class="table-wrap"><table><thead><tr><th>问题</th><th>快速答案</th></tr></thead><tbody><tr><td>不知道该从哪里开始？</td><td>Terra + medium；用真实任务评测后再调整。</td></tr><tr><td>何时选 Sol？</td><td>复杂专业工作、失败代价高、难以自动验证、需要多步规划时。</td></tr><tr><td>何时选 Luna？</td><td>高量、成本敏感、模式稳定且可校验的任务；设计升级通道。</td></tr><tr><td>Terra 的角色？</td><td>大多数生产工作流的平衡档，而不是“低配版 Sol”。</td></tr><tr><td>思考强度越高越好吗？</td><td>不是。它换来潜在可靠性，也增加时间与成本；只在评测证明值得时升档。</td></tr><tr><td>默认思考强度？</td><td>三款 GPT-5.6 模型的默认值都是 medium。</td></tr><tr><td>三个模型支持音频吗？</td><td>不支持；音频场景应选 OpenAI 的专用音频 / 实时模型。</td></tr></tbody></table></div>
+        <h3>权威来源</h3>
+        <ul class="source-list"><li><a href="https://developers.openai.com/api/docs/models" target="_blank" rel="noopener">OpenAI API Models</a>：模型定位、能力、价格与上下文规格。</li><li><a href="https://developers.openai.com/api/docs/models/gpt-5.6-sol" target="_blank" rel="noopener">GPT-5.6 Sol</a>、<a href="https://developers.openai.com/api/docs/models/gpt-5.6-terra" target="_blank" rel="noopener">Terra</a>、<a href="https://developers.openai.com/api/docs/models/gpt-5.6-luna" target="_blank" rel="noopener">Luna</a>：各模型官方页面。</li><li><a href="https://developers.openai.com/api/docs/guides/latest-model" target="_blank" rel="noopener">OpenAI Model Guidance</a>：思考强度的默认值与调节建议。</li></ul>
+      </section>
+    </article>
+  </main>
+  <footer class="footer">YJ Knowledge Bank · GPT-5.6 模型选型与思考强度指南 · 资料以 OpenAI 官方文档为准</footer>
+</body>
+</html>

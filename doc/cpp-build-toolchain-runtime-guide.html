@@ -100,6 +100,35 @@
     .source-list a { display: block; padding: 16px 18px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); text-decoration: none; }
     .source-list strong { display: block; margin-bottom: 4px; color: var(--kb-ink); }
     .source-list span { color: var(--kb-muted); font-size: .84rem; }
+    .map-shell { overflow: hidden; margin: 24px 0; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-xl); background: var(--kb-surface-strong); }
+    .map-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--kb-line); background: var(--kb-surface); }
+    .map-toolbar button, .map-toolbar input { min-height: 40px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-sm); background: var(--kb-surface-strong); color: var(--kb-ink); font: .78rem var(--kb-font-sans); }
+    .map-toolbar button { padding: 0 12px; cursor: pointer; }
+    .map-toolbar button:hover { border-color: var(--kb-brand); color: var(--kb-brand); }
+    .map-toolbar input { flex: 1 1 210px; min-width: 160px; padding: 0 12px; }
+    .map-zoom { min-width: 52px; color: var(--kb-muted); text-align: center; font: 700 .72rem var(--kb-font-mono); }
+    .mindmap-viewport { min-height: 620px; max-height: 76vh; overflow: auto; background-image: radial-gradient(var(--kb-line) .7px, transparent .7px); background-size: 18px 18px; }
+    .mindmap-svg { display: block; transition: width 180ms ease, height 180ms ease; }
+    .mindmap-edge { fill: none; stroke: var(--kb-line); stroke-width: 1.5; }
+    .mindmap-node { cursor: pointer; outline: none; }
+    .mindmap-node:focus .mm-card, .mindmap-node:hover .mm-card { border-color: var(--kb-brand); }
+    .mm-card { display: flex; gap: 8px; align-items: center; width: 100%; height: 100%; padding: 8px 11px; overflow: hidden; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-sm); background: var(--kb-surface-strong); color: var(--kb-text); font: 600 12px/1.35 var(--kb-font-sans); }
+    .mm-card.root { border-color: var(--kb-brand); background: var(--kb-brand); color: var(--kb-page); font-size: 14px; font-weight: 800; }
+    .mm-card.branch { border-left: 4px solid var(--kb-brand); color: var(--kb-ink); font-weight: 800; }
+    .mm-card.case { border-left-color: var(--kb-coral); }
+    .mm-card.is-match { box-shadow: inset 0 0 0 2px var(--kb-coral); }
+    .mm-toggle { flex: 0 0 18px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--kb-brand-soft); color: var(--kb-brand); font: 800 11px var(--kb-font-mono); }
+    .mm-card.root .mm-toggle { background: color-mix(in srgb, var(--kb-page) 20%, transparent); color: inherit; }
+    .map-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--kb-line); color: var(--kb-muted); font-size: .76rem; }
+    .map-caption a { font-weight: 750; text-decoration: none; }
+    .precision-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0; }
+    .precision-item { padding: 17px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    .precision-item span { display: block; color: var(--kb-coral); font: 700 .66rem var(--kb-font-mono); letter-spacing: .08em; }
+    .precision-item strong { display: block; margin: 7px 0 5px; color: var(--kb-ink); }
+    .precision-item p { margin: 0; color: var(--kb-muted); font-size: .84rem; line-height: 1.6; }
+    .compat td:first-child { min-width: 190px; color: var(--kb-ink); font-weight: 750; }
+    .risk-low { color: var(--kb-brand); font-weight: 800; }
+    .risk-high { color: var(--kb-coral); font-weight: 800; }
     @media (max-width: 900px) {
       .hero-inner { grid-template-columns: 1fr; gap: 38px; }
       .layout { grid-template-columns: 1fr; }
@@ -120,6 +149,8 @@
       .abi-contract, .ownership { grid-template-columns: 1fr; }
       .abi-center { min-height: auto; }
       .ownership-arrow { transform: rotate(90deg); justify-self: center; }
+      .precision-grid { grid-template-columns: 1fr; }
+      .mindmap-viewport { min-height: 520px; }
     }
   </style>
   <link rel="stylesheet" href="../assets/css/kb-design-system.css">
@@ -147,6 +178,7 @@
   <div class="layout">
     <aside class="toc" aria-label="本页目录">
       <p class="toc-title">CONTENTS</p>
+      <a href="#xmind-map">全景思维导图</a>
       <a href="#mental-model">01 重新画工具链</a>
       <a href="#pipeline">02 源码如何变成程序</a>
       <a href="#compiler-runtime">03 编译器与运行时</a>
@@ -162,6 +194,27 @@
     </aside>
 
     <main class="content">
+      <section class="chapter" id="xmind-map">
+        <div class="chapter-head"><span class="chapter-no">INTERACTIVE MAP</span><h2>C/C++ 构建全景思维导图</h2></div>
+        <p class="lead">这是原 XMind 的网页化重绘版。它保留“CMake → 原生构建系统 → 二进制工具链”的主干，并把最容易被一句“MSVC 工具链”掩盖的内部组件全部展开。</p>
+        <div class="map-shell">
+          <div class="map-toolbar" aria-label="思维导图工具栏">
+            <button type="button" id="mapExpand">全部展开</button>
+            <button type="button" id="mapCollapse">聚焦主干</button>
+            <button type="button" id="mapZoomOut" aria-label="缩小思维导图" title="缩小">−</button>
+            <span class="map-zoom" id="mapZoomLabel">100%</span>
+            <button type="button" id="mapZoomIn" aria-label="放大思维导图" title="放大">＋</button>
+            <button type="button" id="mapReset">重置视图</button>
+            <input id="mapSearch" type="search" placeholder="搜索 ABI、libc++、/MT…" aria-label="搜索思维导图节点">
+          </div>
+          <div class="mindmap-viewport" id="mindmapViewport" tabindex="0" aria-label="可滚动的构建工具链思维导图">
+            <svg class="mindmap-svg" id="mindmapSvg" role="img" aria-label="C/C++ 构建工具层次与二进制兼容关系图"></svg>
+          </div>
+          <div class="map-caption"><span>点击含 ± 标记的节点可折叠；键盘聚焦后按 Enter/Space 亦可操作。</span><a href="../assets/mindmaps/CMake工具层次-扩展版.xmind" download>下载可编辑 XMind 源文件 ↓</a></div>
+        </div>
+        <div class="callout"><div class="callout-title">为什么不直接 iframe 嵌入 XMind</div><p><code>.xmind</code> 本质上是包含 JSON、资源与元数据的 ZIP 文档格式，浏览器没有原生渲染器。网页重绘能离线工作、响应主题、可搜索且无需把文件上传到第三方服务；原文件仍作为可编辑附件保留。</p></div>
+      </section>
+
       <section class="chapter" id="mental-model">
         <div class="chapter-head"><span class="chapter-no">CHAPTER 01</span><h2>把“工具链”从一个盒子拆成零件</h2></div>
         <p class="lead">原来的三层模型——CMake、构建系统、工具链——是正确的，但最下面的“工具链”仍然太大。真正遇到二进制兼容问题时，必须继续拆。</p>
@@ -174,6 +227,12 @@
           <div class="layer"><div class="layer-kicker">LINKER</div><div><strong>链接器</strong><p>解析符号、重定位地址，把 .obj 与 .lib 组合为 EXE 或 DLL。</p></div><span class="layer-example">lld-link · link</span></div>
         </div>
         <div class="callout"><div class="callout-title">新的判断方式</div><p>不要只问“这个库是不是 MSVC 编的”，而要分别问：目标架构、对象格式、ABI、标准库、CRT、编译选项和依赖是否兼容。</p></div>
+        <h3>术语必须精确到组件</h3>
+        <div class="precision-grid">
+          <div class="precision-item"><span>DRIVER</span><strong>clang-cl ≠ LLVM 全家桶</strong><p>它是驱动程序：解析参数、选择 target、调用 Clang/LLVM 阶段并组织默认库。</p></div>
+          <div class="precision-item"><span>TOOLSET</span><strong>MSVC 不只是 cl.exe</strong><p>语境中可能指编译器、ABI、VC Tools、STL、VCRuntime、链接器或整套 Visual Studio 环境。</p></div>
+          <div class="precision-item"><span>RUNTIME</span><strong>“运行时”是集合名</strong><p>必须继续区分 UCRT、VCRuntime、C++ 标准库以及 compiler-rt builtins。</p></div>
+        </div>
       </section>
 
       <section class="chapter" id="pipeline">
@@ -231,6 +290,23 @@ void* p = malloc(128);
           <tr><td>目标文件格式</td><td>链接器无法读取目标文件</td></tr>
         </tbody></table></div>
         <p>Clang 在 Windows 的 MSVC target 下会生成 COFF，并努力兼容 Microsoft C++ ABI；<code>clang-cl</code> 还提供与 <code>cl.exe</code> 相似的命令行界面。这就是混用成为可能的基础。</p>
+        <h3>Target triple 决定“面向哪个二进制世界”</h3>
+        <pre><code>x86_64-pc-windows-msvc
+│      │  │       └── ABI / 环境：Microsoft
+│      │  └────────── OS：Windows
+│      └───────────── Vendor：pc（通常不是兼容判断重点）
+└──────────────────── Architecture：x86-64
+
+x86_64-w64-windows-gnu   // 同样是 Windows，但属于 MinGW/GNU 环境</code></pre>
+        <p>“都由 Clang 编译”或“都运行在 Windows”都不足以证明兼容。至少还需确定环境字段、对象格式、运行时选择以及库自身的 ABI 配置。</p>
+        <h3>接口类型决定跨模块风险</h3>
+        <div class="table-wrap"><table class="compat"><thead><tr><th>跨模块内容</th><th>主要契约</th><th>风险判断</th></tr></thead><tbody>
+          <tr><td><code>extern "C" int f(int)</code></td><td>C 调用约定、整数宽度、导出名</td><td><span class="risk-low">较低</span>，仍需核对架构和 calling convention</td></tr>
+          <tr><td>固定布局 C 结构体</td><td>字段宽度、对齐、packing、版本</td><td>可控，建议携带 <code>size/version</code></td></tr>
+          <tr><td>C++ 类、虚函数、RTTI</td><td>完整 C++ ABI、编译器特性与布局</td><td><span class="risk-high">高</span></td></tr>
+          <tr><td>异常跨 DLL</td><td>异常对象、unwind、handler、CRT</td><td><span class="risk-high">高</span>，需同生态验证</td></tr>
+          <tr><td><code>std::string/vector</code></td><td>标准库实现、ABI namespace、allocator、配置宏</td><td><span class="risk-high">极高</span>，不同 STL 不可直接互传</td></tr>
+        </tbody></table></div>
       </section>
 
       <section class="chapter" id="libraries">
@@ -241,6 +317,14 @@ void* p = malloc(128);
           <tr><td><strong>编译器运行时</strong></td><td>编译器生成的低层辅助操作、sanitizer 支撑</td><td>compiler-rt、libgcc</td><td>整数运算 helpers、builtins</td></tr>
         </tbody></table></div>
         <div class="callout warning"><div class="callout-title">最常见的概念误判</div><p><strong>Clang 不等于 libc++。</strong> Windows 上的 clang-cl 默认经常搭配 MSVC STL。更换编译器，并不自动更换 <code>&lt;string&gt;</code> 的实现。</p></div>
+        <h3>现代 Microsoft CRT 的实际拆分</h3>
+        <div class="table-wrap"><table><thead><tr><th>组件</th><th>职责</th><th><code>/MT</code> 静态侧</th><th><code>/MD</code> 动态侧</th></tr></thead><tbody>
+          <tr><td><strong>UCRT</strong></td><td>ISO C、POSIX/Microsoft 扩展、stdio、heap 等通用 C 能力</td><td><code>libucrt.lib</code></td><td><code>ucrt.lib</code> → <code>ucrtbase.dll</code></td></tr>
+          <tr><td><strong>VCRuntime</strong></td><td>程序启动、C++ 异常、RTTI、运行时检查、编译器相关支撑</td><td><code>libvcruntime.lib</code></td><td><code>vcruntime.lib</code> → 版本化 DLL</td></tr>
+          <tr><td><strong>MSVC STL</strong></td><td>微软的 C++ 标准库实现</td><td><code>libcpmt.lib</code></td><td><code>msvcprt.lib</code> → <code>msvcp*.dll</code></td></tr>
+          <tr><td><strong>compiler-rt</strong></td><td>LLVM 可能隐式调用的 builtins、sanitizer 等编译器辅助能力</td><td colspan="2"><code>clang_rt.*</code>；它补充而不是替代 UCRT/VCRuntime</td></tr>
+        </tbody></table></div>
+        <p>工程口语中的“MSVC runtime”有时泛指前三项，但排错时必须说出具体库名。尤其是 <code>_CxxFrameHandler3</code> 属于异常处理支撑，而 <code>std::string</code> 属于 C++ 标准库；它们不是同一层问题。</p>
       </section>
 
       <section class="chapter" id="windows">
@@ -283,7 +367,26 @@ void* p = malloc(128);
                          ▼
                   client.lib + client.dll</code></pre>
         <h3>为什么 <code>std::__Cr</code> 很重要</h3>
-        <p>标准只规定源码里写 <code>std::string</code>，并不规定某一家标准库内部必须怎样布局。libc++ 可以使用内部 ABI 命名空间区分不兼容实现。Chromium 的构建配置把它表现为 <code>std::__Cr::basic_string</code>；这既是符号特征，也是“必须使用同一套头文件、配置宏与库”的警报器。</p>
+        <p>标准只规定源码里写 <code>std::string</code>，并不规定某一家标准库内部必须怎样布局。libc++ 默认使用类似 <code>std::__1</code> 的 inline ABI namespace，vendor 可在构建时通过 <code>LIBCXX_ABI_NAMESPACE</code> 定制。Chromium 的配置表现为 <code>std::__Cr::basic_string</code>；它改变名称修饰，用于隔离不同 libc++ 实例，但<strong>名字隔离并不会自动证明布局和配置一致</strong>。</p>
+        <p>还必须匹配 <code>__config_site</code> 中的 ABI flags。LLVM 明确指出，部分 ABI flags 会改变 <code>basic_string</code>、容器、智能指针等可观察类型的布局；这些 flags 应由 vendor 在构建 libc++ 时确定，而不是由使用者临时拼凑。</p>
+        <h3>从源文件到 client.dll 的符号责任链</h3>
+        <pre><code>client.cpp
+  │ include libc++/string + Chromium __config_site
+  ▼
+clang-cl 17  ── 语义/模板实例化/LLVM CodeGen
+  │            └─ 生成 i686-pc-windows-msvc 的 COFF .obj
+  │
+  ├─ 未定义 C++ 标准库符号 ───────► libc++.lib
+  ├─ 未定义 C / heap / stdio 符号 ─► libucrt.lib       (/MT)
+  ├─ 未定义 EH / RTTI / startup ───► libvcruntime.lib  (/MT)
+  ├─ 未定义 LLVM builtins ─────────► clang_rt.builtins-i386.lib
+  └─ Win32 API 导入符号 ───────────► Windows SDK import libraries
+                                      │
+                                      ▼
+                                  lld-link
+                                      │
+                                      ▼
+                              client.dll + client.lib</code></pre>
         <div class="split">
           <article class="concept-card"><div class="mini-label">BROWSER SIDE</div><h3>Chromium libc++</h3><p>调用者按 Chromium 的 string 布局、内联实现和 ABI 配置生成代码。</p></article>
           <article class="concept-card"><div class="mini-label">OLD CLIENT SIDE</div><h3>MSVC STL</h3><p>被调用方按另一套 string 布局生成代码。名字、尺寸和成员语义都可能不同。</p></article>
@@ -358,6 +461,9 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY
   sdk:            Windows SDK,
   flags_and_macros: exactly matched
 }</code></pre>
+        <h3>默认库机制也是构建的一部分</h3>
+        <p>在 MSVC 风格工具链中，编译器驱动与头文件可能通过对象文件的 <code>.drectve</code> 段写入 <code>/DEFAULTLIB</code> 指令，链接器据此自动选择库。使用 <code>/NODEFAULTLIB</code>、自定义 libc++ 或手写链接命令时，相当于接管这套责任，必须显式补齐 UCRT、VCRuntime、builtins、系统导入库及正确顺序。</p>
+        <div class="callout warning"><div class="callout-title">LTO 是另一条兼容轴</div><p>普通 COFF 对象能被多个兼容链接器读取，不代表 LLVM bitcode/LTO 产物可被任意版本工具处理。启用 ThinLTO/LTO 后，还要匹配 LLVM bitcode 版本、链接器插件和优化配置。</p></div>
       </section>
 
       <section class="chapter" id="diagnosis">
@@ -396,8 +502,12 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY
         <div class="source-list">
           <a href="https://clang.llvm.org/docs/UsersManual.html#clang-cl" target="_blank" rel="noopener"><strong>Clang Compiler User’s Manual · clang-cl</strong><span>clang-cl 的定位、Windows 头文件与库查找，以及 CMake 配置示例。</span></a>
           <a href="https://clang.llvm.org/docs/MSVCCompatibility.html" target="_blank" rel="noopener"><strong>Clang · MSVC compatibility</strong><span>Microsoft ABI、语言扩展与编译器兼容性的不同维度。</span></a>
+          <a href="https://clang.llvm.org/docs/Toolchain.html" target="_blank" rel="noopener"><strong>Clang · Assembling a Complete Toolchain</strong><span>Clang 只是完整工具链的一部分，以及 compiler-rt builtins 的职责。</span></a>
+          <a href="https://libcxx.llvm.org/ABIGuarantees.html" target="_blank" rel="noopener"><strong>libc++ · ABI Guarantees</strong><span>布局稳定性、ABI flags 与 inline ABI namespace 的正式说明。</span></a>
+          <a href="https://libcxx.llvm.org/VendorDocumentation.html" target="_blank" rel="noopener"><strong>libc++ · Vendor Documentation</strong><span>LIBCXX_ABI_NAMESPACE、ABI version 与 vendor 配置责任。</span></a>
           <a href="https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library" target="_blank" rel="noopener"><strong>Microsoft Learn · /MD, /MT, /LD</strong><span>Microsoft 运行时链接模式及对应预处理定义。</span></a>
           <a href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features" target="_blank" rel="noopener"><strong>Microsoft Learn · CRT and C++ standard library files</strong><span>区分基础 CRT 与 C++ 标准库，并查看相应库文件。</span></a>
+          <a href="https://learn.microsoft.com/en-us/cpp/porting/upgrade-your-code-to-the-universal-crt" target="_blank" rel="noopener"><strong>Microsoft Learn · Universal CRT refactoring</strong><span>UCRT、VCRuntime 与 Windows SDK/VC Tools 的边界。</span></a>
           <a href="https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html" target="_blank" rel="noopener"><strong>CMake · Generators</strong><span>Generator 与原生构建系统之间的正式定义。</span></a>
           <a href="https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html" target="_blank" rel="noopener"><strong>CMake · CMAKE_&lt;LANG&gt;_COMPILER</strong><span>编译器选择、构建树缓存与 IDE Generator 的注意事项。</span></a>
         </div>
@@ -407,6 +517,230 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY
 
   <script>
     (() => {
+      const mapData = {
+        title: 'C/C++ 构建工具层次', children: [
+          { title: '上层：元构建系统', children: [
+            { title: 'CMake：读取 CMakeLists.txt，生成原生构建系统的输入文件', children: [
+              { title: 'Generator 必须和下层构建工具匹配', children: [
+                { title: 'Visual Studio Generator → .sln / .vcxproj → MSBuild' },
+                { title: 'Ninja Generator → build.ninja → Ninja' },
+                { title: 'Unix Makefiles Generator → Makefile → make' }
+              ]},
+              { title: 'CMake 还可以通过 cmake --build 调度原生构建工具' },
+              { title: 'CMake 不编译 C++，也不决定二进制 ABI' }
+            ]}
+          ]},
+          { title: '中层：原生构建系统', children: [
+            { title: '构建工具读取自己的构建描述，执行依赖排序、增量构建和命令调度', children: [
+              { title: 'MSBuild：消费 .sln / .vcxproj' },
+              { title: 'Ninja：消费 build.ninja，跨平台且专注高速调度' },
+              { title: 'make：消费 Makefile' },
+              { title: '构建工具只负责“何时调用什么”，不解析 C++ 语义' }
+            ]}
+          ]},
+          { title: '下层：工具链与二进制生态（可组合）', children: [
+            { title: '编译器驱动 / 前端 / 后端', children: [
+              { title: 'clang-cl：Clang 的 cl.exe 兼容驱动' },
+              { title: 'cl.exe：Microsoft C/C++ 编译器驱动' },
+              { title: '前端解析语言；LLVM/MSVC 后端完成优化与机器码生成' }
+            ]},
+            { title: '目标平台与对象文件格式', children: [
+              { title: '架构：x86 / x64 / ARM64 必须匹配' },
+              { title: 'Windows MSVC target：COFF .obj / PE image' },
+              { title: 'Target triple：architecture-vendor-os-environment' },
+              { title: 'windows-msvc 与 windows-gnu 属于不同二进制生态' }
+            ]},
+            { title: 'ABI：二进制合同', children: [
+              { title: '调用约定、参数传递、名称修饰' },
+              { title: '类布局、虚表、RTTI、异常展开、结构体对齐' },
+              { title: 'clang-cl 面向 MSVC target 时生成 Microsoft ABI 兼容产物' },
+              { title: 'API 相同不等于 ABI 相同；链接成功不等于运行安全' }
+            ]},
+            { title: '链接器', children: [
+              { title: 'link.exe 与 lld-link：读取 COFF，生成 PE/COFF EXE 或 DLL' },
+              { title: '解析符号、处理重定位与 /DEFAULTLIB，不能修复对象布局冲突' }
+            ]},
+            { title: 'C++ 标准库', children: [
+              { title: 'MSVC STL：微软实现；不是 cl.exe 本身，也不是 UCRT' },
+              { title: 'libc++：LLVM 实现；默认 ABI namespace 通常为 std::__1' },
+              { title: 'libstdc++：GNU 实现' },
+              { title: 'string/vector 的布局、allocator、配置宏与符号必须匹配' }
+            ]},
+            { title: 'C / 平台运行时', children: [
+              { title: 'UCRT：ISO C、stdio、heap、locale 等通用能力' },
+              { title: 'VCRuntime：startup、EH、RTTI、runtime checks 等编译器相关支撑' },
+              { title: '/MT → 静态 libucrt + libvcruntime；/MD → DLL import libraries' }
+            ]},
+            { title: '编译器运行时与 SDK', children: [
+              { title: 'compiler-rt / clang_rt.builtins：LLVM 隐式生成的底层 helpers' },
+              { title: 'Windows SDK：Win32 头文件和 kernel32 等系统导入库' },
+              { title: 'compiler-rt 是补充，不是 UCRT/VCRuntime 的替代品' }
+            ]},
+            { title: '常见工具链组合', children: [
+              { title: 'GNU/Linux：GCC 或 Clang + ELF + libstdc++/libc++ + glibc + ld/lld' },
+              { title: 'MSVC：cl + Microsoft ABI + MSVC STL + UCRT/VCRuntime + link' },
+              { title: 'MinGW：GCC/Clang + GNU 环境 + libstdc++ + MinGW-w64 CRT' }
+            ]}
+          ]},
+          { title: '实例：Chromium 118 / client.dll', children: [
+            { title: '实际组合', children: [
+              { title: 'clang-cl 17 + Windows x86 + COFF + Microsoft ABI' },
+              { title: 'Chromium libc++ + ABI namespace std::__Cr + 匹配的 __config_site' },
+              { title: 'Microsoft CRT /MT + clang_rt.builtins-i386 + lld-link' }
+            ]},
+            { title: '为什么旧 client.lib 不兼容', children: [
+              { title: '旧库使用 MSVC STL；浏览器使用 Chromium libc++' },
+              { title: 'std::string 名称、布局、inline 实现和 allocator 约定可能不同' },
+              { title: '换成 clang-cl 默认仍可能包含 MSVC STL 头；必须控制 include 顺序' }
+            ]},
+            { title: '验证证据链', children: [
+              { title: '/showIncludes：确认 <string> 的真实来源' },
+              { title: 'dumpbin / llvm-nm：检查 __Cr 与 unresolved symbols' },
+              { title: '/VERBOSE:LIB：定位每个符号由哪个库提供' },
+              { title: '运行验证：覆盖创建、异常、回调、释放与长期心跳路径' }
+            ]}
+          ]},
+          { title: '跨 DLL 的工程约束', children: [
+            { title: '优先 C ABI；不直接暴露 STL、模板、异常和实现私有类型' },
+            { title: '固定结构体 size/version、packing、整数宽度、编码和 calling convention' },
+            { title: '谁分配谁释放：导出配套 create/destroy 或 release 函数' },
+            { title: 'Release/Debug 不是根因；真正边界是 ABI、CRT 与 _ITERATOR_DEBUG_LEVEL 等配置' }
+          ]},
+          { title: '听到“依赖 MSVC”时继续追问', children: [
+            { title: '指 cl.exe、Microsoft ABI、MSVC STL，还是 UCRT/VCRuntime？' },
+            { title: '指 link.exe、MSBuild，还是完整 Visual Studio Toolset？' },
+            { title: '库的 target、架构、CRT 模式、异常、RTTI、ABI flags 分别是什么？' }
+          ]}
+        ]
+      };
+
+      const svg = document.getElementById('mindmapSvg');
+      const viewport = document.getElementById('mindmapViewport');
+      const zoomLabel = document.getElementById('mapZoomLabel');
+      const collapsed = new Set();
+      let mapZoom = 1;
+      let naturalWidth = 1600;
+      let naturalHeight = 900;
+      let sequence = 0;
+
+      function indexMap(node, depth = 0) {
+        node.id = `mm-${sequence++}`;
+        node.depth = depth;
+        (node.children || []).forEach(child => indexMap(child, depth + 1));
+      }
+
+      function visibleTree(node, parent = null) {
+        const item = { node, parent, children: [] };
+        if (!collapsed.has(node.id)) item.children = (node.children || []).map(child => visibleTree(child, item));
+        return item;
+      }
+
+      function applyZoom() {
+        svg.style.width = `${naturalWidth * mapZoom}px`;
+        svg.style.height = `${naturalHeight * mapZoom}px`;
+        zoomLabel.textContent = `${Math.round(mapZoom * 100)}%`;
+      }
+
+      function renderMap() {
+        const tree = visibleTree(mapData);
+        let nextY = 44;
+        let maxDepth = 0;
+        const flat = [];
+        function layout(item) {
+          maxDepth = Math.max(maxDepth, item.node.depth);
+          item.children.forEach(layout);
+          item.y = item.children.length ? (item.children[0].y + item.children[item.children.length - 1].y) / 2 : nextY;
+          if (!item.children.length) nextY += 88;
+          item.x = 32 + item.node.depth * 286;
+          flat.push(item);
+        }
+        layout(tree);
+        naturalWidth = Math.max(980, 32 + (maxDepth + 1) * 286);
+        naturalHeight = Math.max(660, nextY + 30);
+        svg.setAttribute('viewBox', `0 0 ${naturalWidth} ${naturalHeight}`);
+        svg.replaceChildren();
+        const ns = 'http://www.w3.org/2000/svg';
+        const edges = document.createElementNS(ns, 'g');
+        flat.filter(item => item.parent).forEach(item => {
+          const path = document.createElementNS(ns, 'path');
+          const px = item.parent.x + (item.parent.node.depth === 0 ? 220 : 244);
+          const py = item.parent.y;
+          const x = item.x;
+          const bend = Math.max(32, (x - px) * .48);
+          path.setAttribute('d', `M ${px} ${py} C ${px + bend} ${py}, ${x - bend} ${item.y}, ${x} ${item.y}`);
+          path.setAttribute('class', 'mindmap-edge');
+          edges.appendChild(path);
+        });
+        svg.appendChild(edges);
+
+        const query = document.getElementById('mapSearch').value.trim().toLocaleLowerCase('zh-CN');
+        flat.forEach(item => {
+          const width = item.node.depth === 0 ? 220 : 244;
+          const height = item.node.depth === 0 ? 64 : 58;
+          const group = document.createElementNS(ns, 'g');
+          group.setAttribute('class', 'mindmap-node');
+          group.setAttribute('transform', `translate(${item.x}, ${item.y - height / 2})`);
+          group.setAttribute('tabindex', '0');
+          group.setAttribute('role', (item.node.children || []).length ? 'button' : 'group');
+          group.setAttribute('aria-label', item.node.title + ((item.node.children || []).length ? '，点击折叠或展开' : ''));
+          const foreign = document.createElementNS(ns, 'foreignObject');
+          foreign.setAttribute('width', width);
+          foreign.setAttribute('height', height);
+          const card = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+          const isBranch = item.node.depth === 1;
+          const isCase = /Chromium|client\.dll|__Cr/.test(item.node.title);
+          const isMatch = query && item.node.title.toLocaleLowerCase('zh-CN').includes(query);
+          card.setAttribute('class', `mm-card${item.node.depth === 0 ? ' root' : ''}${isBranch ? ' branch' : ''}${isCase ? ' case' : ''}${isMatch ? ' is-match' : ''}`);
+          if ((item.node.children || []).length) {
+            const toggle = document.createElementNS('http://www.w3.org/1999/xhtml', 'span');
+            toggle.setAttribute('class', 'mm-toggle');
+            toggle.textContent = collapsed.has(item.node.id) ? '+' : '−';
+            card.appendChild(toggle);
+          }
+          const label = document.createElementNS('http://www.w3.org/1999/xhtml', 'span');
+          label.textContent = item.node.title;
+          label.title = item.node.title;
+          card.appendChild(label);
+          foreign.appendChild(card);
+          group.appendChild(foreign);
+          const toggleNode = () => {
+            if (!(item.node.children || []).length) return;
+            collapsed.has(item.node.id) ? collapsed.delete(item.node.id) : collapsed.add(item.node.id);
+            renderMap();
+          };
+          group.addEventListener('click', toggleNode);
+          group.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleNode(); }
+          });
+          svg.appendChild(group);
+        });
+        applyZoom();
+      }
+
+      function walkMap(node, callback) {
+        callback(node);
+        (node.children || []).forEach(child => walkMap(child, callback));
+      }
+
+      indexMap(mapData);
+      document.getElementById('mapExpand').addEventListener('click', () => { collapsed.clear(); renderMap(); });
+      document.getElementById('mapCollapse').addEventListener('click', () => {
+        collapsed.clear();
+        mapData.children.forEach(node => collapsed.add(node.id));
+        renderMap();
+        viewport.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+      });
+      document.getElementById('mapZoomIn').addEventListener('click', () => { mapZoom = Math.min(1.5, mapZoom + .1); applyZoom(); });
+      document.getElementById('mapZoomOut').addEventListener('click', () => { mapZoom = Math.max(.6, mapZoom - .1); applyZoom(); });
+      document.getElementById('mapReset').addEventListener('click', () => {
+        collapsed.clear(); mapZoom = 1; document.getElementById('mapSearch').value = ''; renderMap(); viewport.scrollTo({ left: 0, top: 0 });
+      });
+      document.getElementById('mapSearch').addEventListener('input', event => {
+        if (event.target.value.trim()) collapsed.clear();
+        renderMap();
+      });
+      renderMap();
+
       const compiler = document.getElementById('labCompiler');
       const cpp = document.getElementById('labCpp');
       const crt = document.getElementById('labCrt');
