@@ -68,8 +68,8 @@
   <header class="hero">
     <div class="hero-inner">
       <p class="eyebrow">MODEL SELECTION FIELD GUIDE · 2026-09</p>
-      <h1>GPT-5.6：三种模型，怎样选才不浪费？</h1>
-      <p class="lede">把 Sol、Terra、Luna 看成同一代能力的三档工作引擎：不是“哪个永远更好”，而是用任务风险、规模、时延与预算，挑一套恰当的模型 × 思考强度组合。</p>
+      <h1>一次模型选择，往往从任务开始</h1>
+      <p class="lede">面对 Sol、Terra、Luna，真正需要回答的并不是“哪一个最强”，而是这次工作要处理多少不确定性、能承受多长等待、错误是否容易被发现。模型档位与思考强度正是围绕这些问题建立的两层选择。</p>
       <div class="meta"><span>GPT-5.6 Sol / Terra / Luna</span><span>模型选型</span><span>思考强度</span><span>官方资料核对：2026-09-15</span></div>
     </div>
   </header>
@@ -77,13 +77,13 @@
   <main class="layout">
     <nav class="toc" aria-label="文章目录">
       <strong>本页目录</strong>
-      <a href="#map">先给结论</a><a href="#models">三模型的分工</a><a href="#examples">任务怎么选</a><a href="#effort">什么是思考强度</a><a href="#pairing">如何组合</a><a href="#api">API 配置</a><a href="#checklist">速查表</a>
+      <a href="#map">选择从何开始</a><a href="#models">三模型的分工</a><a href="#examples">任务怎么选</a><a href="#effort">什么是思考强度</a><a href="#pairing">如何组合</a><a href="#api">API 配置</a><a href="#checklist">速查表</a>
     </nav>
     <article>
       <section id="map">
-        <h2>先给结论：把选择拆成两次</h2>
-        <p>第一次决定<strong>模型档位</strong>：任务是否复杂、是否高风险、是否海量；第二次决定<strong>思考强度</strong>：这一次具体请求是否真的需要更长的内部推理。模型决定“能力 / 单价”的基线，思考强度决定一次调用愿意花多少时间和推理预算来换可靠性。</p>
-        <div class="callout"><strong>最实用的默认值：</strong>不确定时先用 <strong>Terra + medium</strong>。复杂且错误代价高时升级到 <strong>Sol + high</strong>；大量规则清晰、可验证的请求则用 <strong>Luna + none / low</strong>。先用评测或线上指标验证收益，再上调强度，而不是一开始就把所有请求推到最高档。</div>
+        <h2>选择从何开始：先看任务，再看参数</h2>
+        <p>同一个应用里，模型选择也不必只有一种答案。批量为商品补全结构化字段，与分析一份彼此矛盾的经营报告，虽然都在“调用大模型”，但不确定性、失败成本和可验证性完全不同。把所有请求交给最高档模型，会掩盖这些差别；只按价格选择，也会把成本转移到返工与人工复核。</p>
+        <p>因此可以把选择拆成两层。先选<strong>模型档位</strong>，决定这类任务的能力与单价基线；再选<strong>思考强度</strong>，决定这次请求是否值得投入更多推理时间。没有上下文时，Terra + medium 是便于开始评测的中间点；真正的配置仍应由成功率、延迟、成本与人工复核结果共同决定。</p>
       </section>
 
       <section id="models">
@@ -156,6 +156,8 @@ print(response.output_text)</pre>
       <section id="checklist">
         <h2>关键概念速查表</h2>
         <div class="table-wrap"><table><thead><tr><th>问题</th><th>快速答案</th></tr></thead><tbody><tr><td>不知道该从哪里开始？</td><td>Terra + medium；用真实任务评测后再调整。</td></tr><tr><td>何时选 Sol？</td><td>复杂专业工作、失败代价高、难以自动验证、需要多步规划时。</td></tr><tr><td>何时选 Luna？</td><td>高量、成本敏感、模式稳定且可校验的任务；设计升级通道。</td></tr><tr><td>Terra 的角色？</td><td>大多数生产工作流的平衡档，而不是“低配版 Sol”。</td></tr><tr><td>思考强度越高越好吗？</td><td>不是。它换来潜在可靠性，也增加时间与成本；只在评测证明值得时升档。</td></tr><tr><td>默认思考强度？</td><td>三款 GPT-5.6 模型的默认值都是 medium。</td></tr><tr><td>三个模型支持音频吗？</td><td>不支持；音频场景应选 OpenAI 的专用音频 / 实时模型。</td></tr></tbody></table></div>
+        <h3>把选择做成可以被修正的系统</h3>
+        <p>模型选型并不在第一次上线时结束。为一小批有代表性的任务保存输入、期望结果与验收标准，观察不同组合的成功率、尾延迟、单次成本和人工复核量；当任务结构变化时，再重新比较。这样，Sol、Terra 与 Luna 不再是需要一次猜对的档位，而是可以在同一条工作流里各得其所的工具。</p>
         <h3>权威来源</h3>
         <ul class="source-list"><li><a href="https://developers.openai.com/api/docs/models" target="_blank" rel="noopener">OpenAI API Models</a>：模型定位、能力、价格与上下文规格。</li><li><a href="https://developers.openai.com/api/docs/models/gpt-5.6-sol" target="_blank" rel="noopener">GPT-5.6 Sol</a>、<a href="https://developers.openai.com/api/docs/models/gpt-5.6-terra" target="_blank" rel="noopener">Terra</a>、<a href="https://developers.openai.com/api/docs/models/gpt-5.6-luna" target="_blank" rel="noopener">Luna</a>：各模型官方页面。</li><li><a href="https://developers.openai.com/api/docs/guides/latest-model" target="_blank" rel="noopener">OpenAI Model Guidance</a>：思考强度的默认值与调节建议。</li></ul>
       </section>

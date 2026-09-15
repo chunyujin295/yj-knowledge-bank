@@ -421,8 +421,8 @@ body {
   <!-- Hero -->
   <div class="hero">
     <h1>大模型（LLM）完全入门指南</h1>
-    <p>从零开始，循序渐进地理解大语言模型是什么、怎么工作的、以及为什么它们正在改变世界。</p>
-    <p style="font-size:0.9rem;margin-top:4px;">专为非技术背景的同学设计 —— 不需要任何编程基础。</p>
+    <p>当我们向模型提问时，屏幕上出现的是一段自然语言；真正值得理解的是，这段语言如何被生成、它能可靠地完成什么，又为什么会在某些地方自信地出错。本篇从语言模型的输入与输出开始，逐步走到训练、Transformer、检索与智能体。</p>
+    <p style="font-size:0.9rem;margin-top:4px;">面向希望建立完整心智模型的读者，不预设机器学习或编程基础。</p>
     <div class="badge-row">
       <span class="badge">ChatGPT</span><span class="badge">GPT-4</span><span class="badge">Claude</span>
       <span class="badge">Gemini</span><span class="badge">文心一言</span><span class="badge">通义千问</span>
@@ -439,14 +439,17 @@ body {
   <!-- ==================== BEGINNER TAB ==================== -->
   <div class="tab-content active" id="tab-beginner">
 
+    <div class="section">
+      <h2><span class="icon-circle icon-green">◎</span>从一次回答，看到整套系统</h2>
+      <p>“模型回答了问题”并不是一个足够细的解释。回答能否出现，取决于输入如何被表示、模型参数如何计算下一个 token，以及应用是否在模型外接入检索、工具或业务规则。后文会先建立这条主线，再分别解释其中的部件；遇到术语时，优先问它在这条主线里负责什么。</p>
+      <div class="diagram-box"><svg width="680" height="130" viewBox="0 0 680 130" role="img" aria-labelledby="llm-map-title"><title id="llm-map-title">一次大模型回答的概念路径</title><g font-family="sans-serif" text-anchor="middle"><rect x="18" y="35" width="118" height="54" rx="10" fill="var(--primary-light)" stroke="var(--primary)"/><text x="77" y="67" fill="var(--text)">输入与上下文</text><path d="M136 62H180" stroke="var(--primary)" stroke-width="2"/><rect x="180" y="35" width="118" height="54" rx="10" fill="var(--secondary-light)" stroke="var(--secondary)"/><text x="239" y="67" fill="var(--text)">token 与表示</text><path d="M298 62H342" stroke="var(--primary)" stroke-width="2"/><rect x="342" y="35" width="118" height="54" rx="10" fill="var(--accent-light)" stroke="var(--accent)"/><text x="401" y="67" fill="var(--text)">Transformer</text><path d="M460 62H504" stroke="var(--primary)" stroke-width="2"/><rect x="504" y="35" width="158" height="54" rx="10" fill="var(--success-light)" stroke="var(--success)"/><text x="583" y="60" fill="var(--text)">逐 token 生成</text><text x="583" y="77" fill="var(--text-secondary)" font-size="11">回答 / 工具调用</text></g></svg><div class="diagram-caption">图：本文的主线。模型本身负责生成；检索、工具和业务约束属于围绕模型搭建的系统。</div></div>
+    </div>
+
     <!-- Section B1: What is a Model -->
     <div class="section">
       <h2><span class="icon-circle icon-blue">1</span> 什么是"模型"？</h2>
-      <p>先别想人工智能。我们先从生活中最常见的"模型"说起。</p>
-
-      <p>你见过地球仪吗？地球仪就是一个<strong>模型</strong>。它不是一个真正的地球，但它<strong>抓住了地球最关键的特征</strong>——大陆的形状、海洋的位置、各国的边界——然后用一种缩小的、你可以拿在手里的方式呈现出来。它忽略了很多细节（比如地形高度、地下结构），但它足够帮助你理解"地球长什么样"。</p>
-
-      <p>在计算机的世界里，<strong>"模型"的意思也差不多</strong>：它是一个从大量数据中学到了某种"规律"或"模式"的东西。给它一个输入，它能根据自己学到的规律，产生一个输出。</p>
+      <p>在机器学习中，<strong>模型</strong>是一组可计算的参数与规则：它接收输入，按训练得到的参数计算，再产生输出。训练的过程不是把资料原样存进一个可检索的档案柜，而是不断调整参数，使模型在相似任务上更擅长预测。</p>
+      <p>对语言模型而言，最核心的预测任务是：根据已经出现的 token，估计下一个 token 的概率分布。这里的 token 是模型处理文本的基本片段，可能是一个字、词的一部分，或一个标点。连续重复这一步，才形成我们看到的段落。</p>
 
       <div class="diagram-box">
         <svg width="500" height="130" viewBox="0 0 500 130">
@@ -487,7 +490,7 @@ body {
       </div>
 
       <div class="info-box">
-        <strong>关键理解：</strong>模型不是数据库，它不存储原文。它存储的是<strong>规律和模式</strong>。就像你学会了骑自行车之后，不是记住了每一次踩踏板的精确角度，而是掌握了"保持平衡"的感觉。模型也是如此——它学到的是语言背后的"感觉"。
+        <strong>关键理解：</strong>模型不是数据库：它不能按原文位置稳定地取回训练材料。训练信息被分散编码在大量参数中，参数共同影响后续 token 的概率；这使模型能泛化到相似表达，也意味着它不能把流畅生成当作事实检索。
       </div>
     </div>
 
@@ -496,8 +499,8 @@ body {
       <h2><span class="icon-circle icon-purple">2</span> 为什么叫"大"模型？</h2>
       <p>你可能会问：模型就模型，为什么要叫<strong>大</strong>模型？"大"是什么意思？</p>
 
-      <h3>参数：模型脑细胞的数量</h3>
-      <p>如果把模型比作一个大脑，那么<strong>参数（Parameter）</strong>就是它的脑细胞。参数是模型内部一个个可以调整的数字旋钮，它们共同决定了"输入什么样的信息，就会产生什么样的输出"。</p>
+      <h3>参数：可在训练中调整的数值</h3>
+      <p><strong>参数（Parameter）</strong>是模型内部可被训练过程调整的数值。它们共同决定输入经过每一层计算后如何变换，以及不同候选 token 的得分如何变化。参数量是模型规模的重要指标，但不是能力的唯一来源；训练数据、训练方法、架构与推理配置同样会改变结果。</p>
 
       <div class="diagram-box">
         <svg width="700" height="180" viewBox="0 0 700 180">
@@ -597,14 +600,14 @@ body {
       <h2><span class="icon-circle icon-green">4</span> 大模型是怎么"学会"知识的？</h2>
       <p>大模型的学习过程，其实和人类学习有一些相似之处。我们把它分为几个大的阶段来理解。</p>
 
-      <h3>第一步：喂数据（就像婴儿听大人说话）</h3>
+      <h3>第一步：准备与清洗训练数据</h3>
       <p>研究人员把互联网上公开的、海量的文字内容（网页、书籍、论文、百科、代码……）收集起来，经过清洗和整理，作为模型的"教材"。这个过程叫<strong>数据收集</strong>。</p>
 
       <div class="info-box">
         <strong>数据量有多大？</strong>训练一个大模型可能要用到几万亿个词——相当于把几百万本书的内容全部读一遍。而且是每一种语言、每一个领域都尽量覆盖。
       </div>
 
-      <h3>第二步：预训练（就像婴儿从"听"中学会语言）</h3>
+      <h3>第二步：预训练，学习文本中的统计关系</h3>
       <p>模型开始"阅读"这些文本。但它的阅读方式不是像我们一样逐字理解，而是玩一个<strong>"填字游戏"</strong>：</p>
 
       <div class="diagram-box">
@@ -693,7 +696,7 @@ body {
       <p>了解了模型是什么之后，我们来看一下：在实际项目中，人们是怎么使用这些模型的？</p>
 
       <h3>方式一：直接调用（API）</h3>
-      <p>最简单的方式。就像你打开 ChatGPT 的网页，输入问题，得到回答。开发者也可以通过<strong>API（应用程序编程接口）</strong>来做同样的事情——API 就像一个"技术服务窗口"，你把问题发给它，它把答案还给你。你不需要知道模型怎么运行，只需要知道怎么"提问"。</p>
+      <p>最直接的方式是调用<strong>API（应用程序编程接口）</strong>：应用把输入、模型配置与期望输出格式提交给服务，服务返回模型输出。调用方不需要参与模型内部计算，但需要定义输入边界、处理失败、验证结果，并控制数据权限与成本。</p>
 
       <h3>方式二：提示工程（Prompt Engineering）</h3>
       <p>向模型提问也是一门学问。好的提问方式能显著提高回答质量。比如：</p>
@@ -745,7 +748,7 @@ body {
       </div>
 
       <h3>方式五：Agent（智能体）</h3>
-      <p>这是更高级的用法。让模型不仅仅回答问题，还能<strong>采取行动</strong>——比如自动调用搜索引擎查资料、自动写代码并运行、自动发邮件、自动操作软件。模型就像一个有"手"有"脚"的助手，而不仅是一个"会说话的脑袋"。</p>
+      <p>Agent 让模型在回答之外还能<strong>调用工具并根据结果继续决策</strong>，例如搜索资料、运行代码、发送邮件或操作软件。模型负责选择下一步，工具负责执行受限的动作；可靠的 Agent 还需要权限边界、状态记录、失败处理与人工接管点。</p>
     </div>
 
     <!-- Beginner Summary -->

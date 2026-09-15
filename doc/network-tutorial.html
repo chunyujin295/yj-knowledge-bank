@@ -324,8 +324,8 @@ body {
 
   <div class="hero">
     <h1>互联网公司必备网络基础知识</h1>
-    <p>从零开始理解网络是如何运作的——IP、DNS、TCP、HTTP、CDN……这些每天都在用的东西到底是什么。</p>
-    <p style="font-size:0.9rem;margin-top:4px;">专为非技术背景的同学设计 —— 不需要任何编程或运维基础。</p>
+    <p>网页打开得很快时，网络几乎隐身；页面卡住、登录失效或接口超时时，它又突然变成问题的中心。本篇从一次请求实际经过的层次出发，逐步理解 IP、DNS、TCP、HTTP、CDN 与安全边界各自承担什么。</p>
+    <p style="font-size:0.9rem;margin-top:4px;">面向产品、开发与运营协作中的读者；不预设编程或运维经验。</p>
     <div class="badge-row">
       <span class="badge">TCP/IP</span><span class="badge">HTTP/HTTPS</span><span class="badge">DNS</span>
       <span class="badge">CDN</span><span class="badge">负载均衡</span><span class="badge">防火墙</span>
@@ -342,11 +342,18 @@ body {
   <div class="tab-content active" id="tab-beginner">
 
     <div class="section">
+      <h2><span class="icon-circle icon-green">◎</span>先建立一张可回来的地图</h2>
+      <p>网络知识之所以容易零散，是因为 DNS、IP、TCP 和 HTTP 常常被分别介绍，而它们在一次访问中其实前后衔接。本篇先说明“数据从哪里来、交给谁、如何抵达、如何确认”，再在后文把每一段拆开。阅读时不必急着记住缩写；只要能把一个现象放回这条路径，术语就会慢慢有位置。</p>
+      <ol class="step-list"><li><strong>应用</strong>决定要与哪个服务交换什么数据，例如浏览器准备请求一个页面。</li><li><strong>名称与地址</strong>把域名解析为可路由的 IP 地址，并决定本机先把数据交给哪个网关。</li><li><strong>传输与路由</strong>把数据切分、编号、转发；TCP 在需要时负责确认与重传。</li><li><strong>服务与呈现</strong>服务器返回响应，浏览器再把文档、样式与脚本组织成页面。</li></ol>
+      <div class="info-box"><strong>如何使用图表：</strong>后文的流程图描述“发生的先后”，对照表描述“概念的差别”。它们不是额外记忆负担，而是帮助你在排查问题时定位：故障发生在请求路径的哪一段。</div>
+    </div>
+
+    <div class="section">
       <h2><span class="icon-circle icon-blue">1</span> 什么是网络？互联网是怎么连起来的？</h2>
-      <p>在讨论任何技术细节之前，我们先搞清楚一个最基本的问题：当你打开一个网页时，究竟发生了什么？你的电脑是怎么和千里之外的服务器"对话"的？</p>
+      <p>当一个程序需要把数据交给另一台设备上的程序时，网络提供了传输介质、寻址规则和转发机制。它不是抽象的“云”，而是一组相互连接的设备、链路与协议。</p>
 
       <h3>网络就是"设备之间的通信线路"</h3>
-      <p>想象一下：你的手机、电脑、公司的服务器、微信的服务器、淘宝的服务器……这些都是<strong>设备</strong>。而<strong>网络</strong>，就是把这些设备连在一起的"通道"——有线的（光纤、网线）和无线的（Wi-Fi、4G/5G）。通过这些通道，设备之间可以互相发送数据。</p>
+      <p>手机、电脑、公司服务器和云主机都是<strong>设备</strong>。网络用光纤、网线、Wi‑Fi 或蜂窝无线等链路把它们连接起来，使设备能够按约定的格式收发数据。</p>
 
       <div class="diagram-box">
         <svg width="600" height="250" viewBox="0 0 600 250">
@@ -401,7 +408,7 @@ body {
         <div class="diagram-caption">图：互联网就是一个巨大的"设备互联网络"——你的设备通过路由器→运营商→互联网，连接到世界各地的服务器</div>
       </div>
 
-      <p>这其中有一个非常重要的角色：<strong>路由器（Router）</strong>。路由器就是网络的"交通指挥员"，它的工作是<strong>决定数据包该往哪个方向走</strong>——就像路口的交通指示牌，告诉每个数据包"去北京的往左，去上海的往右"。</p>
+      <p><strong>路由器（Router）</strong>连接不同网络。它查阅路由表，根据目的 IP 地址选择下一跳，并把数据包转发出去；一条端到端的通信通常会经过多台路由器。</p>
 
       <div class="info-box">
         <strong>关键理解：</strong>互联网不是一个神秘的大云朵，而是<strong>由成千上万台路由器通过光纤连接起来的物理网络</strong>。每台路由器都知道"邻居"在哪里，通过互相交换信息，逐渐形成了一张全球的"地图"。当你发送数据时，数据包就是在这张"地图"上一跳一跳地到达目的地的。
@@ -562,13 +569,13 @@ body {
         <div class="card">
           <div class="card-icon">🚚</div>
           <h4>带宽（Bandwidth）</h4>
-          <p><strong>单位时间内能传多少数据</strong>，单位是 Mbps（兆比特每秒）或 Gbps。带宽越大，传得越快。就像水管越粗，水流越大。</p>
+          <p><strong>链路在理想条件下单位时间可承载的数据量</strong>，单位是 Mbps（兆比特每秒）或 Gbps。它描述容量上限，不等于某次传输实际达到的速率。</p>
           <p style="margin-top:6px;font-size:0.82rem;">家里的宽带 100Mbps = 每秒最多传 12.5MB 数据</p>
         </div>
         <div class="card">
           <div class="card-icon">⏱️</div>
           <h4>延迟（Latency）</h4>
-          <p><strong>数据从发送到接收需要多长时间</strong>，单位是 ms（毫秒，千分之一秒）。延迟越低，响应越快。就像快递需要几天送达。</p>
+          <p><strong>数据从发送到接收经历的时间</strong>，单位是 ms（毫秒，千分之一秒）。它包括传播、排队、处理与传输等时间；交互式应用对它尤其敏感。</p>
           <p style="margin-top:6px;font-size:0.82rem;">本地机房延迟 1-5ms；同城 10-20ms；跨省 30-50ms；跨国 100-300ms</p>
         </div>
         <div class="card">
@@ -580,7 +587,7 @@ body {
       </div>
 
       <div class="info-box warn">
-        <strong>重要区分：</strong>带宽和延迟是两回事。高带宽不代表低延迟——就像一辆大卡车（高带宽）可以在高速公路上开很远（低延迟），也可能在拥堵的城市里慢慢挪（高延迟）。对于网页浏览和在线会议来说，<strong>低延迟通常比高带宽更重要</strong>。
+        <strong>重要区分：</strong>带宽和延迟测量的是不同性质。高带宽不保证低延迟：链路仍可能因为距离、排队或处理而响应缓慢。网页浏览与在线会议不仅需要足够的吞吐量，也依赖稳定且较低的延迟。
       </div>
     </div>
 
