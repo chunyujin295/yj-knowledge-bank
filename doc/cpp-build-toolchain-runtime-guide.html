@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="从 CMake、构建工具、编译器、ABI、C++ 标准库、CRT 与链接器逐层理解 C/C++ 构建，解释为什么 Clang 可以使用 Microsoft 运行时。">
+  <title>C/C++ 构建工具链与运行时完全指南 — YJ Knowledge Bank</title>
+  <link rel="icon" href="../img/icons/icon1.png">
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--kb-text); background: var(--kb-page); font-family: var(--kb-font-sans); }
+    a { color: var(--kb-brand); }
+    .hero { padding: 92px 24px 68px; border-bottom: 1px solid var(--kb-line); overflow: hidden; }
+    .hero-inner { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); gap: 64px; align-items: center; }
+    .eyebrow, .chapter-no, .mini-label { font-family: var(--kb-font-mono); text-transform: uppercase; letter-spacing: .12em; }
+    .eyebrow { margin-bottom: 20px; color: var(--kb-coral); font-size: .76rem; font-weight: 700; }
+    h1 { max-width: 760px; margin: 0; color: var(--kb-ink); font-size: clamp(2.35rem, 5.7vw, 4.9rem); line-height: 1.05; letter-spacing: -.045em; }
+    .hero-copy { max-width: 690px; margin: 26px 0 0; color: var(--kb-muted); font-size: 1.08rem; line-height: 1.85; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+    .tag { padding: 7px 11px; border: 1px solid var(--kb-line); border-radius: 999px; background: var(--kb-surface); color: var(--kb-muted); font: 700 .7rem/1 var(--kb-font-mono); }
+    .hero-stack { position: relative; padding: 25px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-xl); background: var(--kb-surface-strong); }
+    .hero-stack::before { content: "ONE PROGRAM, MANY LAYERS"; display: block; margin-bottom: 17px; color: var(--kb-muted); font: 700 .67rem/1 var(--kb-font-mono); letter-spacing: .1em; }
+    .stack-row { display: grid; grid-template-columns: 88px 1fr; gap: 12px; align-items: center; padding: 11px 13px; border-radius: var(--kb-radius-sm); }
+    .stack-row + .stack-row { margin-top: 7px; }
+    .stack-row span { color: var(--kb-muted); font: .68rem var(--kb-font-mono); }
+    .stack-row strong { color: var(--kb-ink); font-size: .89rem; }
+    .stack-row:nth-child(2), .stack-row:nth-child(5), .stack-row:nth-child(7) { background: var(--kb-brand-soft); }
+    .stack-row:nth-child(3), .stack-row:nth-child(4), .stack-row:nth-child(6) { border: 1px solid var(--kb-line); }
+    .stack-arrow { height: 13px; margin-left: 43px; border-left: 1px dashed var(--kb-muted); }
+    .layout { width: min(1200px, calc(100% - 40px)); margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 52px; padding: 56px 0 96px; }
+    .toc { position: sticky; top: 88px; align-self: start; max-height: calc(100vh - 112px); overflow: auto; padding: 16px 0; }
+    .toc-title { margin: 0 0 12px 13px; color: var(--kb-muted); font: 700 .68rem var(--kb-font-mono); letter-spacing: .12em; }
+    .toc a { display: block; padding: 8px 12px; border-left: 2px solid transparent; color: var(--kb-muted); text-decoration: none; font-size: .84rem; line-height: 1.35; }
+    .toc a:hover, .toc a.active { border-left-color: var(--kb-brand); background: var(--kb-brand-soft); color: var(--kb-brand); }
+    .content { min-width: 0; }
+    .chapter { scroll-margin-top: 90px; margin-bottom: 76px; }
+    .chapter-head { margin-bottom: 25px; }
+    .chapter-no { display: inline-block; margin-bottom: 8px; color: var(--kb-coral); font-size: .7rem; font-weight: 700; }
+    h2 { margin: 0; color: var(--kb-ink); font-size: clamp(1.65rem, 3vw, 2.25rem); line-height: 1.3; letter-spacing: -.025em; }
+    h3 { margin: 38px 0 13px; color: var(--kb-ink); font-size: 1.25rem; line-height: 1.45; }
+    p, li { line-height: 1.85; }
+    p { margin: 12px 0; }
+    code { padding: .14em .38em; border-radius: 5px; background: var(--kb-brand-soft); color: var(--kb-brand); font-family: var(--kb-font-mono); font-size: .9em; }
+    pre { overflow-x: auto; margin: 18px 0; padding: 21px 23px; border-radius: var(--kb-radius-md); background: var(--kb-code); color: #dce9e3; font: .86rem/1.75 var(--kb-font-mono); }
+    pre code { padding: 0; background: transparent; color: inherit; }
+    .lead { color: var(--kb-ink); font-size: 1.12rem; line-height: 1.9; }
+    .callout { margin: 22px 0; padding: 20px 22px; border: 1px solid var(--kb-line); border-left: 4px solid var(--kb-brand); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    .callout.warning { border-left-color: var(--kb-coral); }
+    .callout-title { margin-bottom: 7px; color: var(--kb-ink); font-weight: 800; }
+    .callout p { margin: 0; }
+    .table-wrap { overflow-x: auto; margin: 22px 0; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); }
+    table { width: 100%; border-collapse: collapse; background: var(--kb-surface-strong); font-size: .91rem; }
+    th, td { min-width: 120px; padding: 13px 15px; border-bottom: 1px solid var(--kb-line); text-align: left; vertical-align: top; line-height: 1.65; }
+    th { background: var(--kb-brand-soft); color: var(--kb-ink); }
+    tr:last-child td { border-bottom: 0; }
+    .layer-map { display: grid; gap: 11px; margin: 25px 0; }
+    .layer { display: grid; grid-template-columns: 138px 1fr auto; gap: 17px; align-items: center; padding: 17px 19px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    .layer-kicker { color: var(--kb-muted); font: 700 .68rem var(--kb-font-mono); letter-spacing: .08em; }
+    .layer strong { display: block; margin-bottom: 3px; color: var(--kb-ink); }
+    .layer p { margin: 0; color: var(--kb-muted); font-size: .86rem; line-height: 1.55; }
+    .layer-example { padding: 6px 9px; border-radius: 999px; background: var(--kb-brand-soft); color: var(--kb-brand); font: 700 .69rem var(--kb-font-mono); white-space: nowrap; }
+    .pipeline { display: grid; grid-template-columns: repeat(5, minmax(100px, 1fr)); gap: 18px; margin: 26px 0; }
+    .pipe-step { position: relative; padding: 18px 15px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); text-align: center; }
+    .pipe-step:not(:last-child)::after { content: "→"; position: absolute; right: -16px; top: 50%; transform: translateY(-50%); color: var(--kb-coral); font-weight: 900; }
+    .pipe-step span { display: block; color: var(--kb-muted); font: .65rem var(--kb-font-mono); }
+    .pipe-step strong { display: block; margin-top: 7px; color: var(--kb-ink); font-size: .88rem; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 22px 0; }
+    .concept-card { padding: 22px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-lg); background: var(--kb-surface-strong); }
+    .concept-card h3 { margin: 0 0 10px; }
+    .concept-card p { margin: 0; color: var(--kb-muted); font-size: .92rem; }
+    .abi-contract { display: grid; grid-template-columns: 1fr 100px 1fr; gap: 14px; align-items: stretch; margin: 25px 0; }
+    .abi-side, .abi-center { display: grid; place-items: center; min-height: 150px; padding: 20px; border-radius: var(--kb-radius-lg); text-align: center; }
+    .abi-side { border: 1px solid var(--kb-line); background: var(--kb-surface-strong); }
+    .abi-side strong { display: block; color: var(--kb-ink); }
+    .abi-side span { display: block; margin-top: 7px; color: var(--kb-muted); font: .72rem var(--kb-font-mono); }
+    .abi-center { background: var(--kb-brand); color: var(--kb-page); font: 800 .78rem/1.55 var(--kb-font-mono); }
+    .lab { margin: 25px 0; overflow: hidden; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-xl); background: var(--kb-surface-strong); }
+    .lab-head { padding: 22px 24px; border-bottom: 1px solid var(--kb-line); background: var(--kb-brand-soft); }
+    .lab-head h3 { margin: 0 0 5px; }
+    .lab-head p { margin: 0; color: var(--kb-muted); font-size: .9rem; }
+    .lab-controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 22px 24px; }
+    .lab-controls label { color: var(--kb-muted); font: 700 .7rem var(--kb-font-mono); letter-spacing: .05em; }
+    select { width: 100%; margin-top: 7px; padding: 11px 12px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-sm); background: var(--kb-surface); color: var(--kb-ink); font: .88rem var(--kb-font-sans); }
+    .lab-result { margin: 0 24px 24px; padding: 20px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-page); }
+    .verdict { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; color: var(--kb-ink); font-weight: 800; }
+    .verdict-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--kb-brand); box-shadow: 0 0 0 5px var(--kb-brand-soft); }
+    .verdict.is-warning .verdict-dot { background: var(--kb-coral); }
+    .lab-result p { margin: 0; color: var(--kb-muted); font-size: .9rem; }
+    .command { margin-top: 15px; color: #dce9e3; }
+    .ownership { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; margin: 24px 0; }
+    .heap { padding: 21px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    .heap strong { display: block; color: var(--kb-ink); }
+    .heap span { color: var(--kb-muted); font-size: .82rem; }
+    .ownership-arrow { color: var(--kb-coral); font-size: 1.6rem; font-weight: 800; }
+    .checklist { display: grid; gap: 10px; padding: 0; list-style: none; counter-reset: checks; }
+    .checklist li { position: relative; padding: 15px 17px 15px 48px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    .checklist li::before { counter-increment: checks; content: counter(checks); position: absolute; left: 15px; top: 15px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--kb-brand-soft); color: var(--kb-brand); font: 800 .68rem var(--kb-font-mono); }
+    .source-list { display: grid; gap: 12px; }
+    .source-list a { display: block; padding: 16px 18px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); text-decoration: none; }
+    .source-list strong { display: block; margin-bottom: 4px; color: var(--kb-ink); }
+    .source-list span { color: var(--kb-muted); font-size: .84rem; }
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 38px; }
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 16px; }
+      .toc-title { display: none; }
+      .toc a { flex: 0 0 auto; border: 1px solid var(--kb-line); border-radius: 999px; }
+      .pipeline { grid-template-columns: 1fr; }
+      .pipe-step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -18px; transform: translateX(50%); }
+    }
+    @media (max-width: 720px) {
+      .hero { padding: 62px 20px 48px; }
+      .hero-stack { padding: 17px; }
+      .stack-row { grid-template-columns: 74px 1fr; }
+      .layout { width: min(100% - 32px, 1200px); gap: 24px; padding-top: 32px; }
+      .split, .lab-controls { grid-template-columns: 1fr; }
+      .layer { grid-template-columns: 1fr; gap: 8px; }
+      .layer-example { justify-self: start; }
+      .abi-contract, .ownership { grid-template-columns: 1fr; }
+      .abi-center { min-height: auto; }
+      .ownership-arrow { transform: rotate(90deg); justify-self: center; }
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/css/kb-design-system.css">
+  <script defer src="../assets/js/kb-design-system.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">C / C++ Build Systems · Mental Model</div>
+        <h1>编译器不是一整套世界</h1>
+        <p class="hero-copy">从 CMake 一路下钻到机器码，拆开编译器、ABI、标准库、CRT 与链接器。读完你会真正理解：为什么 Clang 能使用 Microsoft 运行时，以及什么组合能链接、什么组合会崩。</p>
+        <div class="tag-row"><span class="tag">CLANG-CL</span><span class="tag">MSVC ABI</span><span class="tag">LIBC++</span><span class="tag">UCRT / VCRUNTIME</span><span class="tag">/MT · /MD</span><a class="tag" href="../assets/mindmaps/CMake工具层次-扩展版.xmind" download>下载配套 XMind ↓</a></div>
+      </div>
+      <div class="hero-stack" aria-label="实际项目的构建组件组合">
+        <div class="stack-row"><span>ORCHESTRATE</span><strong>CMake / Batch</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>BUILD</span><strong>Ninja / MSBuild</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>COMPILE</span><strong>Clang 17 · clang-cl</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>C++ LIB</span><strong>Chromium libc++ · std::__Cr</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>C RUNTIME</span><strong>Microsoft CRT · /MT</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="本页目录">
+      <p class="toc-title">CONTENTS</p>
+      <a href="#mental-model">01 重新画工具链</a>
+      <a href="#pipeline">02 源码如何变成程序</a>
+      <a href="#compiler-runtime">03 编译器与运行时</a>
+      <a href="#abi">04 ABI 是二进制合同</a>
+      <a href="#libraries">05 三种“运行库”</a>
+      <a href="#windows">06 Windows 的组合方式</a>
+      <a href="#case-study">07 Chromium 案例</a>
+      <a href="#mt-md">08 /MT 与 /MD</a>
+      <a href="#dll-boundary">09 DLL 边界安全</a>
+      <a href="#cmake">10 CMake 如何表达</a>
+      <a href="#diagnosis">11 排错方法</a>
+      <a href="#quick-ref">12 速查表</a>
+    </aside>
+
+    <main class="content">
+      <section class="chapter" id="mental-model">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 01</span><h2>把“工具链”从一个盒子拆成零件</h2></div>
+        <p class="lead">原来的三层模型——CMake、构建系统、工具链——是正确的，但最下面的“工具链”仍然太大。真正遇到二进制兼容问题时，必须继续拆。</p>
+        <div class="layer-map">
+          <div class="layer"><div class="layer-kicker">META BUILD</div><div><strong>元构建系统</strong><p>读取 CMakeLists.txt，生成下一层认识的构建文件。</p></div><span class="layer-example">CMake</span></div>
+          <div class="layer"><div class="layer-kicker">BUILD TOOL</div><div><strong>构建工具</strong><p>判断依赖和增量变化，按顺序调度编译、链接、复制、打包。</p></div><span class="layer-example">Ninja · MSBuild</span></div>
+          <div class="layer"><div class="layer-kicker">COMPILER</div><div><strong>编译器与驱动</strong><p>预处理、语义分析、优化并生成目标文件；驱动还负责拼装默认参数。</p></div><span class="layer-example">clang-cl · cl</span></div>
+          <div class="layer"><div class="layer-kicker">BINARY CONTRACT</div><div><strong>目标格式与 ABI</strong><p>规定目标文件格式、调用约定、类布局、名字修饰、异常模型。</p></div><span class="layer-example">COFF · MS ABI</span></div>
+          <div class="layer"><div class="layer-kicker">LIBRARIES</div><div><strong>标准库与运行时</strong><p>提供 std::vector、malloc、异常展开、启动代码与编译器辅助函数。</p></div><span class="layer-example">libc++ · UCRT</span></div>
+          <div class="layer"><div class="layer-kicker">LINKER</div><div><strong>链接器</strong><p>解析符号、重定位地址，把 .obj 与 .lib 组合为 EXE 或 DLL。</p></div><span class="layer-example">lld-link · link</span></div>
+        </div>
+        <div class="callout"><div class="callout-title">新的判断方式</div><p>不要只问“这个库是不是 MSVC 编的”，而要分别问：目标架构、对象格式、ABI、标准库、CRT、编译选项和依赖是否兼容。</p></div>
+      </section>
+
+      <section class="chapter" id="pipeline">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 02</span><h2>一份源码如何变成可执行程序</h2></div>
+        <div class="pipeline">
+          <div class="pipe-step"><span>01</span><strong>源文件 .cpp</strong></div>
+          <div class="pipe-step"><span>02</span><strong>预处理与编译</strong></div>
+          <div class="pipe-step"><span>03</span><strong>目标文件 .obj</strong></div>
+          <div class="pipe-step"><span>04</span><strong>链接库与符号</strong></div>
+          <div class="pipe-step"><span>05</span><strong>EXE / DLL</strong></div>
+        </div>
+        <pre><code>CMakeLists.txt
+   │  CMake -G Ninja
+   ▼
+build.ninja
+   │  Ninja 调度
+   ├── clang-cl /c a.cpp  ──► a.obj
+   ├── clang-cl /c b.cpp  ──► b.obj
+   └── lld-link a.obj b.obj libc++.lib ... ──► app.exe</code></pre>
+        <p>CMake 不编译代码，Ninja 也不理解 C++ 语义。CMake 生成规则，Ninja 执行规则，编译器生成目标文件，链接器才把它们组装起来。</p>
+      </section>
+
+      <section class="chapter" id="compiler-runtime">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 03</span><h2>编译器负责翻译，运行时负责支撑</h2></div>
+        <div class="split">
+          <article class="concept-card"><div class="mini-label">COMPILER</div><h3>编译器</h3><p>把语言结构翻译成机器指令。例如看到函数调用时，生成“按照某种调用约定跳过去”的代码。</p></article>
+          <article class="concept-card"><div class="mini-label">RUNTIME</div><h3>运行时</h3><p>提供现成的函数和基础设施，例如内存分配、进程启动、异常支持和安全检查。</p></article>
+        </div>
+        <pre><code>// 源代码
+void* p = malloc(128);
+
+// Clang 的任务（概念化）
+// 1. 按 Microsoft x64 调用约定准备参数
+// 2. 生成对 malloc 符号的调用
+
+// 链接与运行时的任务
+// 3. 从 Microsoft CRT 找到 malloc 的实现
+// 4. 在程序运行时真正执行内存分配</code></pre>
+        <p>编译器并不需要亲自实现 <code>malloc</code>。只要它生成的调用方式、符号和目标文件格式与运行时遵守同一份合同，就可以使用那个运行时。</p>
+      </section>
+
+      <section class="chapter" id="abi">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 04</span><h2>ABI：二进制世界里的合同</h2></div>
+        <div class="abi-contract">
+          <div class="abi-side"><div><strong>Clang 生成的 .obj</strong><span>CALLER / PRODUCER</span></div></div>
+          <div class="abi-center">同一份<br>ABI 合同</div>
+          <div class="abi-side"><div><strong>MSVC 生态的库</strong><span>CALLEE / CONSUMER</span></div></div>
+        </div>
+        <p>API 是源码层面的接口，ABI 是编译以后仍必须一致的规则。ABI 通常包括：</p>
+        <div class="table-wrap"><table><thead><tr><th>ABI 项目</th><th>不一致的结果</th></tr></thead><tbody>
+          <tr><td>调用约定</td><td>参数读错位置、栈失衡或直接崩溃</td></tr>
+          <tr><td>名称修饰</td><td>链接器找不到函数，出现 unresolved external</td></tr>
+          <tr><td>类与结构体布局</td><td>同一段内存被解释为不同字段</td></tr>
+          <tr><td>异常与 RTTI</td><td>异常无法跨模块传播，类型识别失败</td></tr>
+          <tr><td>目标文件格式</td><td>链接器无法读取目标文件</td></tr>
+        </tbody></table></div>
+        <p>Clang 在 Windows 的 MSVC target 下会生成 COFF，并努力兼容 Microsoft C++ ABI；<code>clang-cl</code> 还提供与 <code>cl.exe</code> 相似的命令行界面。这就是混用成为可能的基础。</p>
+      </section>
+
+      <section class="chapter" id="libraries">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 05</span><h2>“运行库”不是一个库：至少拆成三类</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>类别</th><th>提供什么</th><th>常见实现</th><th>典型符号</th></tr></thead><tbody>
+          <tr><td><strong>C++ 标准库</strong></td><td>容器、算法、字符串、流、线程抽象</td><td>MSVC STL、libc++、libstdc++</td><td><code>std::vector</code>、<code>std::string</code></td></tr>
+          <tr><td><strong>C / 平台运行时</strong></td><td>启动、堆、stdio、时间、locale、异常底座</td><td>UCRT、VCRuntime、glibc、musl</td><td><code>malloc</code>、<code>printf</code></td></tr>
+          <tr><td><strong>编译器运行时</strong></td><td>编译器生成的低层辅助操作、sanitizer 支撑</td><td>compiler-rt、libgcc</td><td>整数运算 helpers、builtins</td></tr>
+        </tbody></table></div>
+        <div class="callout warning"><div class="callout-title">最常见的概念误判</div><p><strong>Clang 不等于 libc++。</strong> Windows 上的 clang-cl 默认经常搭配 MSVC STL。更换编译器，并不自动更换 <code>&lt;string&gt;</code> 的实现。</p></div>
+      </section>
+
+      <section class="chapter" id="windows">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 06</span><h2>Windows 上这些组件可以怎样组合</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>编译器</th><th>C++ 标准库</th><th>C / 平台运行时</th><th>说明</th></tr></thead><tbody>
+          <tr><td><code>cl.exe</code></td><td>MSVC STL</td><td>UCRT + VCRuntime</td><td>Visual Studio 默认组合</td></tr>
+          <tr><td><code>clang-cl</code></td><td>MSVC STL</td><td>UCRT + VCRuntime</td><td>常见组合，替换编译器前端与代码生成</td></tr>
+          <tr><td><code>clang-cl</code></td><td>libc++</td><td>UCRT + VCRuntime</td><td>可行，但必须明确控制头文件、库和 ABI 配置</td></tr>
+          <tr><td>MinGW Clang/GCC</td><td>libstdc++ 或 libc++</td><td>MinGW-w64 CRT</td><td>属于另一套 Windows GNU 生态，不能只看“也是 Windows”</td></tr>
+        </tbody></table></div>
+
+        <div class="lab" id="combination-lab">
+          <div class="lab-head"><h3>构建组合实验台</h3><p>切换四个维度，观察它们各自负责什么。结果是心智模型演示，不代替实际 ABI 验证。</p></div>
+          <div class="lab-controls">
+            <label>编译器<select id="labCompiler"><option value="clang">clang-cl</option><option value="msvc">cl.exe</option><option value="mingw">MinGW GCC</option></select></label>
+            <label>C++ 标准库<select id="labCpp"><option value="libcxx">Chromium libc++</option><option value="msstl">MSVC STL</option><option value="libstdcxx">libstdc++</option></select></label>
+            <label>C / 平台运行时<select id="labCrt"><option value="mscrt">Microsoft UCRT / VCRuntime</option><option value="mingwcrt">MinGW-w64 CRT</option></select></label>
+            <label>链接器<select id="labLinker"><option value="lld">lld-link</option><option value="link">link.exe</option><option value="gnuld">GNU ld</option></select></label>
+          </div>
+          <div class="lab-result" aria-live="polite">
+            <div class="verdict" id="labVerdict"><span class="verdict-dot"></span><span id="labTitle"></span></div>
+            <p id="labReason"></p><pre class="command"><code id="labCommand"></code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" id="case-study">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 07</span><h2>你的 Chromium / client.dll 案例</h2></div>
+        <p class="lead">这套交付包不是“Clang 使用整套 MSVC C++ 库”，而是把多家组件拼成一套满足 Chromium 二进制约束的组合。</p>
+        <pre><code>build_client.bat
+      │
+      ├── 编译器：clang-cl 17
+      ├── 目标：Windows x86 / COFF / Microsoft ABI
+      ├── C++ 标准库：Chromium 同版本 libc++
+      │                 ABI namespace = std::__Cr
+      ├── C / 平台运行时：Microsoft CRT，/MT
+      ├── 编译器辅助运行时：clang_rt.builtins-i386.lib
+      └── 链接器：lld-link
+                         │
+                         ▼
+                  client.lib + client.dll</code></pre>
+        <h3>为什么 <code>std::__Cr</code> 很重要</h3>
+        <p>标准只规定源码里写 <code>std::string</code>，并不规定某一家标准库内部必须怎样布局。libc++ 可以使用内部 ABI 命名空间区分不兼容实现。Chromium 的构建配置把它表现为 <code>std::__Cr::basic_string</code>；这既是符号特征，也是“必须使用同一套头文件、配置宏与库”的警报器。</p>
+        <div class="split">
+          <article class="concept-card"><div class="mini-label">BROWSER SIDE</div><h3>Chromium libc++</h3><p>调用者按 Chromium 的 string 布局、内联实现和 ABI 配置生成代码。</p></article>
+          <article class="concept-card"><div class="mini-label">OLD CLIENT SIDE</div><h3>MSVC STL</h3><p>被调用方按另一套 string 布局生成代码。名字、尺寸和成员语义都可能不同。</p></article>
+        </div>
+        <div class="callout warning"><div class="callout-title">链接成功也不代表安全</div><p>如果接口暴露 <code>std::string</code>、<code>std::vector</code> 或模板类型，错误组合有时在链接期报错，有时却会把问题拖到运行期，表现为释放内存时崩溃或静默破坏堆。</p></div>
+      </section>
+
+      <section class="chapter" id="mt-md">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 08</span><h2><code>/MT</code> 与 <code>/MD</code> 选择的不是编译器</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>选项</th><th>含义</th><th>典型结果</th><th>关注点</th></tr></thead><tbody>
+          <tr><td><code>/MT</code></td><td>使用多线程静态 CRT</td><td>运行时代码进入各自模块</td><td>部署简单，但跨模块分配/释放尤其要小心</td></tr>
+          <tr><td><code>/MD</code></td><td>使用 DLL 版本 CRT</td><td>模块通过导入库使用共享 CRT DLL</td><td>模块应统一运行时版本和配置</td></tr>
+          <tr><td><code>/MTd</code> / <code>/MDd</code></td><td>相应的 Debug 运行时</td><td>额外调试设施</td><td>不要和 Release 运行时随意混链</td></tr>
+        </tbody></table></div>
+        <pre><code>clang-cl /MT source.cpp   // Clang 编译 + 静态 Microsoft CRT
+clang-cl /MD source.cpp   // Clang 编译 + DLL 版 Microsoft CRT
+
+// /MT 并不等于“用 cl.exe 编译”
+// /MD 也不等于“整个程序只有一个堆”</code></pre>
+        <p>Microsoft 文档要求同一次链接中的模块使用一致的运行时选项。工程上还要进一步约束 DLL 边界的所有权，因为独立构建的 DLL、插件与第三方分配器仍可能形成不同的内存域。</p>
+      </section>
+
+      <section class="chapter" id="dll-boundary">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 09</span><h2>稳定 DLL 边界：谁创建，谁销毁</h2></div>
+        <div class="ownership">
+          <div class="heap"><strong>client.dll 创建对象</strong><span>使用自己的 STL、allocator 与 CRT 配置</span></div>
+          <div class="ownership-arrow">→</div>
+          <div class="heap"><strong>client.dll 提供销毁函数</strong><span>把释放动作送回同一个内存域</span></div>
+        </div>
+        <pre><code>// 推荐：C ABI + 明确所有权
+extern "C" {
+  struct ClientResult {
+    int code;
+    const char* message;
+  };
+
+  ClientResult client_login(const char* username);
+  void client_release_message(const char* message);
+}
+
+// 高风险：跨 DLL 暴露标准库实现细节
+std::string client_login(std::vector&lt;User&gt; users);</code></pre>
+        <p>C ABI 不是绝对无风险，但它显著缩小了兼容面。仍需固定结构体对齐、整数宽度、字符编码、调用约定、版本字段和内存所有权。</p>
+      </section>
+
+      <section class="chapter" id="cmake">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 10</span><h2>CMake 在哪里表达这些选择</h2></div>
+        <p>CMake 的 Generator 决定生成哪种原生构建文件；编译器、运行时和具体参数是另一组选择。以 Ninja + clang-cl 为例：</p>
+        <pre><code># 首次配置构建目录时选择 Generator 和编译器
+cmake -S . -B build -G Ninja \
+  -DCMAKE_C_COMPILER=clang-cl \
+  -DCMAKE_CXX_COMPILER=clang-cl
+
+# CMakeLists.txt：选择 MSVC ABI 风格工具链下的 CRT 模式
+set(CMAKE_MSVC_RUNTIME_LIBRARY
+    "MultiThreaded$&lt;$&lt;CONFIG:Debug&gt;:Debug&gt;")
+
+# 使用非默认 libc++ 时，最好封装成专门的 toolchain/preset，
+# 集中管理 include 顺序、库目录、ABI 宏、默认库抑制和链接依赖。</code></pre>
+        <div class="callout"><div class="callout-title">为什么应使用全新 build 目录</div><p><code>CMAKE_CXX_COMPILER</code> 在一个构建树首次配置后便成为缓存的一部分。更换编译器、架构或关键运行时设置时，使用独立构建目录比在旧缓存上覆盖更可靠。</p></div>
+        <h3>一个更准确的配置坐标</h3>
+        <pre><code>Build Configuration = {
+  generator:      Ninja,
+  compiler:       clang-cl 17,
+  target:         i686-pc-windows-msvc,
+  object_format:  COFF,
+  cxx_abi:        Microsoft ABI,
+  cxx_library:    Chromium libc++ / std::__Cr,
+  c_runtime:      Microsoft CRT static (/MT),
+  compiler_rt:    compiler-rt builtins,
+  linker:         lld-link,
+  sdk:            Windows SDK,
+  flags_and_macros: exactly matched
+}</code></pre>
+      </section>
+
+      <section class="chapter" id="diagnosis">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 11</span><h2>遇到二进制问题时，按证据排查</h2></div>
+        <ol class="checklist">
+          <li><strong>先确认真实命令。</strong>开启 verbose 构建，看到底调用了哪个编译器、链接器和参数，不依据 IDE 页面猜测。</li>
+          <li><strong>确认头文件来源。</strong>使用 <code>/showIncludes</code> 检查 <code>&lt;string&gt;</code> 究竟来自 libc++ 还是 Visual Studio。</li>
+          <li><strong>确认目标三元组与架构。</strong>x86、x64、ARM64 不能混；MSVC target 与 MinGW target 也不是同一生态。</li>
+          <li><strong>检查符号风格。</strong><code>dumpbin /symbols</code>、<code>llvm-nm</code> 可帮助识别 <code>std::__Cr</code>、MSVC 名字修饰和缺失符号。</li>
+          <li><strong>检查默认链接库。</strong><code>/VERBOSE:LIB</code> 可以看到链接器为何选中某个库、符号由谁提供。</li>
+          <li><strong>核对 ABI 宏和配置头。</strong>标准库 ABI namespace、iterator debug、异常、RTTI、结构体对齐都可能改变合同。</li>
+          <li><strong>审查模块边界。</strong>搜索跨 DLL 的 STL 类型、异常、new/delete、FILE*、locale 和回调调用约定。</li>
+          <li><strong>最后做运行验证。</strong>符号检查只证明“看起来像”，不能代替真实调用路径、异常路径和内存释放测试。</li>
+        </ol>
+        <div class="callout warning"><div class="callout-title">关于 <code>_CxxFrameHandler3</code></div><p>它属于 Microsoft C++ 异常处理运行时相关符号。出现 unresolved external 往往意味着相应 VCRuntime/default library 没有正确进入链接，不能简单解释成“因为使用了 MSVC 运行时”。要结合链接命令与 <code>/VERBOSE:LIB</code> 判断。</p></div>
+      </section>
+
+      <section class="chapter" id="quick-ref">
+        <div class="chapter-head"><span class="chapter-no">CHAPTER 12</span><h2>关键概念速查表</h2></div>
+        <div class="table-wrap"><table><thead><tr><th>概念</th><th>一句话结论</th></tr></thead><tbody>
+          <tr><td>CMake</td><td>生成并调度构建，不亲自编译 C++。</td></tr>
+          <tr><td>Generator</td><td>决定生成 Ninja、Make、Visual Studio 等哪一种原生构建描述。</td></tr>
+          <tr><td>clang-cl</td><td>Clang 的 cl.exe 兼容驱动，面向 Windows/MSVC 生态。</td></tr>
+          <tr><td>MSVC ABI</td><td>Clang 与 MSVC 二进制互操作所遵守的关键合同。</td></tr>
+          <tr><td>MSVC STL</td><td>微软的 C++ 标准库实现，不等于 MSVC 编译器，也不等于 CRT。</td></tr>
+          <tr><td>libc++</td><td>LLVM 的 C++ 标准库实现；换用它需要同时控制头文件和链接库。</td></tr>
+          <tr><td>UCRT / VCRuntime</td><td>Microsoft 的 C 与平台运行时组成部分，可被 clang-cl 使用。</td></tr>
+          <tr><td>compiler-rt</td><td>LLVM 的编译器辅助运行时；可与平台运行时共同出现。</td></tr>
+          <tr><td><code>/MT</code></td><td>选择静态 Microsoft CRT，不代表使用 cl.exe。</td></tr>
+          <tr><td><code>/MD</code></td><td>选择 DLL 版 Microsoft CRT，不等于自动解决所有跨 DLL 内存问题。</td></tr>
+          <tr><td><code>std::__Cr</code></td><td>当前 Chromium libc++ 配置的 ABI 特征，提醒头、库、宏必须成套匹配。</td></tr>
+          <tr><td>最稳 DLL 接口</td><td>C ABI、固定宽度类型、显式版本与“谁分配谁释放”。</td></tr>
+        </tbody></table></div>
+
+        <h3>权威资料</h3>
+        <div class="source-list">
+          <a href="https://clang.llvm.org/docs/UsersManual.html#clang-cl" target="_blank" rel="noopener"><strong>Clang Compiler User’s Manual · clang-cl</strong><span>clang-cl 的定位、Windows 头文件与库查找，以及 CMake 配置示例。</span></a>
+          <a href="https://clang.llvm.org/docs/MSVCCompatibility.html" target="_blank" rel="noopener"><strong>Clang · MSVC compatibility</strong><span>Microsoft ABI、语言扩展与编译器兼容性的不同维度。</span></a>
+          <a href="https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library" target="_blank" rel="noopener"><strong>Microsoft Learn · /MD, /MT, /LD</strong><span>Microsoft 运行时链接模式及对应预处理定义。</span></a>
+          <a href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features" target="_blank" rel="noopener"><strong>Microsoft Learn · CRT and C++ standard library files</strong><span>区分基础 CRT 与 C++ 标准库，并查看相应库文件。</span></a>
+          <a href="https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html" target="_blank" rel="noopener"><strong>CMake · Generators</strong><span>Generator 与原生构建系统之间的正式定义。</span></a>
+          <a href="https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html" target="_blank" rel="noopener"><strong>CMake · CMAKE_&lt;LANG&gt;_COMPILER</strong><span>编译器选择、构建树缓存与 IDE Generator 的注意事项。</span></a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const compiler = document.getElementById('labCompiler');
+      const cpp = document.getElementById('labCpp');
+      const crt = document.getElementById('labCrt');
+      const linker = document.getElementById('labLinker');
+      const verdict = document.getElementById('labVerdict');
+      const title = document.getElementById('labTitle');
+      const reason = document.getElementById('labReason');
+      const command = document.getElementById('labCommand');
+
+      function updateLab() {
+        const values = [compiler.value, cpp.value, crt.value, linker.value];
+        const isMingw = values.includes('mingw') || values.includes('mingwcrt') || values.includes('gnuld') || values.includes('libstdcxx');
+        const pureMingw = compiler.value === 'mingw' && crt.value === 'mingwcrt' && linker.value === 'gnuld' && cpp.value === 'libstdcxx';
+        const windowsLlvm = compiler.value === 'clang' && crt.value === 'mscrt' && ['lld', 'link'].includes(linker.value) && ['libcxx', 'msstl'].includes(cpp.value);
+        const nativeMsvc = compiler.value === 'msvc' && cpp.value === 'msstl' && crt.value === 'mscrt' && linker.value === 'link';
+        const ok = pureMingw || windowsLlvm || nativeMsvc;
+        verdict.classList.toggle('is-warning', !ok);
+        title.textContent = ok ? '这是一个有明确生态归属的组合' : '警告：你正在跨生态拼接';
+        if (windowsLlvm && cpp.value === 'libcxx') {
+          reason.textContent = '正是本文案例：Clang 生成 Microsoft ABI / COFF，对接 libc++，同时使用 Microsoft CRT。成立的前提是 libc++ 本身也按相同目标、CRT 模式和 ABI 配置构建。';
+        } else if (windowsLlvm) {
+          reason.textContent = '这是常见的 clang-cl + MSVC STL 组合。编译器换成 Clang，但 Windows SDK、Microsoft ABI、STL 与 CRT 仍来自微软生态。';
+        } else if (nativeMsvc) {
+          reason.textContent = '这是 Visual Studio 最典型的原生组合。兼容风险最低，但第三方库仍需核对架构、运行时模式和 ABI 选项。';
+        } else if (pureMingw) {
+          reason.textContent = '这是完整的 MinGW/GNU 路线。它同样运行在 Windows，但目标 ABI、运行时和库生态不能被粗略当作 MSVC 路线。';
+        } else {
+          reason.textContent = isMingw ? '混入了 MinGW 与 MSVC 风格组件。并非理论上永远不可能，但默认不能假设兼容，需要明确的桥接层和逐项验证。' : '该组合偏离组件的常规搭配。先确认目标 ABI、对象格式、默认库与标准库构建配置。';
+        }
+        const cc = compiler.options[compiler.selectedIndex].text;
+        const cxx = cpp.options[cpp.selectedIndex].text;
+        const runtime = crt.options[crt.selectedIndex].text;
+        const ld = linker.options[linker.selectedIndex].text;
+        command.textContent = `${cc} → ${cxx} → ${runtime} → ${ld}`;
+      }
+      [compiler, cpp, crt, linker].forEach(el => el.addEventListener('change', updateLab));
+      updateLab();
+
+      const links = [...document.querySelectorAll('.toc a')];
+      const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+          const visible = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (!visible) return;
+          links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${visible.target.id}`));
+        }, { rootMargin: '-15% 0px -68% 0px', threshold: [0, .2, .5] });
+        sections.forEach(section => observer.observe(section));
+      }
+    })();
+  </script>
+</body>
+</html>
