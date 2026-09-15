@@ -441,7 +441,7 @@ body {
 
     <div class="section">
       <h2><span class="icon-circle icon-green">◎</span>从一次回答，看到整套系统</h2>
-      <p>“模型回答了问题”并不是一个足够细的解释。回答能否出现，取决于输入如何被表示、模型参数如何计算下一个 token，以及应用是否在模型外接入检索、工具或业务规则。后文会先建立这条主线，再分别解释其中的部件；遇到术语时，优先问它在这条主线里负责什么。</p>
+      <p>“模型回答了问题”并不是一个足够细的解释。我一开始也常把模型本身、训练数据和外部知识库混在一起；沿着一次回答往回追，才会看到它们处在不同的位置。回答能否出现，取决于输入如何被表示、模型参数如何计算下一个 token，以及应用是否在模型外接入检索、工具或业务规则。后文会先建立这条主线，再分别解释其中的部件；遇到术语时，优先问它在这条主线里负责什么。</p>
       <div class="diagram-box"><svg width="680" height="130" viewBox="0 0 680 130" role="img" aria-labelledby="llm-map-title"><title id="llm-map-title">一次大模型回答的概念路径</title><g font-family="sans-serif" text-anchor="middle"><rect x="18" y="35" width="118" height="54" rx="10" fill="var(--primary-light)" stroke="var(--primary)"/><text x="77" y="67" fill="var(--text)">输入与上下文</text><path d="M136 62H180" stroke="var(--primary)" stroke-width="2"/><rect x="180" y="35" width="118" height="54" rx="10" fill="var(--secondary-light)" stroke="var(--secondary)"/><text x="239" y="67" fill="var(--text)">token 与表示</text><path d="M298 62H342" stroke="var(--primary)" stroke-width="2"/><rect x="342" y="35" width="118" height="54" rx="10" fill="var(--accent-light)" stroke="var(--accent)"/><text x="401" y="67" fill="var(--text)">Transformer</text><path d="M460 62H504" stroke="var(--primary)" stroke-width="2"/><rect x="504" y="35" width="158" height="54" rx="10" fill="var(--success-light)" stroke="var(--success)"/><text x="583" y="60" fill="var(--text)">逐 token 生成</text><text x="583" y="77" fill="var(--text-secondary)" font-size="11">回答 / 工具调用</text></g></svg><div class="diagram-caption">图：本文的主线。模型本身负责生成；检索、工具和业务约束属于围绕模型搭建的系统。</div></div>
     </div>
 
@@ -630,7 +630,7 @@ body {
       <p>当这个过程重复了几万亿次之后（对，你没看错，几万亿次），模型就对语言的结构、词汇之间的关系、甚至一些常识和推理规则有了深刻的理解。</p>
 
       <div class="info-box tip">
-        <strong>关键点：</strong>这个阶段模型学到的是"语言本身"——语法、词汇关系、常识、推理模式。它还没有学会"和人类对话"。这就像一个孩子学会了说话，但还不知道怎么有礼貌地和别人聊天。
+        <strong>关键点：</strong>预训练优化的是“根据前文预测后续 token”的目标。它会让模型形成语法、词汇关系和部分世界知识的统计表示，却没有直接规定回答应当有帮助、诚实或安全；这些交互行为需要在后续的指令微调与偏好训练中继续塑形。
       </div>
     </div>
 
@@ -683,10 +683,10 @@ body {
 
       <h3>重点：什么是"世界模型"？</h3>
       <p>这是一个比较前沿的概念，但理解它并不难：</p>
-      <p><strong>世界模型（World Model）</strong>是一种试图理解"世界是如何运作的"的 AI 模型。它不只是处理文字或图片，而是尝试建立一个<strong>对物理世界规律的内部表示（Internal Representation）</strong>——可以把它理解为模型在"脑袋里"构建了一个模拟真实世界的沙盘。</p>
+      <p><strong>世界模型（World Model）</strong>指模型用内部状态表示环境，并据此预测状态会如何随动作与时间变化。它关注的不是某个句子是否像训练文本，而是环境中的对象、约束与因果关系能否支持预测；不同论文和系统对这一术语的具体范围并不完全一致。</p>
 
       <div class="info-box">
-        <strong>举个例子：</strong>你问一个普通的语言模型"如果我松手，手里的杯子会怎样？"，它可能回答"会掉在地上"——因为它在文本中读到过这个描述。但一个世界模型要做的是，它内部有一个对"重力"的理解，能<strong>推理出</strong>这个结果，而不只是"背诵"答案。世界模型是走向通用人工智能（AGI）的重要方向之一。
+        <strong>应该观察什么：</strong>若系统能在不同初始位置、速度或障碍条件下，预测“松手”后物体的下一状态，并把预测用于规划动作，它才体现了环境状态建模的能力。仅能复述“杯子会落下”并不足以证明这一点。
       </div>
     </div>
 
@@ -1206,17 +1206,17 @@ body {
         <div class="card">
           <div class="card-icon">🔍</div>
           <h4>Query（查询，Q）</h4>
-          <p>"我在找什么？"<br>当前词的一个"搜索请求"。就像你在百度搜索框里输入的关键词，代表了当前词想要寻找的信息类型。</p>
+          <p>由当前位置的表示经过线性变换得到。它参与和所有 Key 的相似度计算，决定当前位置从其他位置取信息时的关注方向。</p>
         </div>
         <div class="card">
           <div class="card-icon">🔑</div>
           <h4>Key（键，K）</h4>
-          <p>"我是什么？"<br>每个词的一个"标签"。就像每篇文章的关键词标签，代表了这个词能提供什么类型的信息。</p>
+          <p>同样由每个位置的表示经过另一组线性变换得到。Key 与 Query 相乘得到匹配分数；它不是人工填写的标签，而是训练中形成的向量表示。</p>
         </div>
         <div class="card">
           <div class="card-icon">📦</div>
           <h4>Value（值，V）</h4>
-          <p>"我的实际内容是什么？"<br>每个词携带的"实际信息"。当注意力确定了要关注哪些词之后，就从这些词的Value中提取实际内容。</p>
+          <p>由每个位置经过第三组线性变换得到。归一化后的注意力权重作用在 Value 上，得到当前位置聚合后的输出表示。</p>
         </div>
       </div>
 
@@ -1286,7 +1286,7 @@ body {
         <li style="margin-bottom: 4px;">另一个"头"可能关注<strong>位置关系</strong>（谁在谁前面）</li>
         <li style="margin-bottom: 4px;">还有一个"头"可能关注<strong>语义关系</strong>（谁是动作的发出者）</li>
       </ul>
-      <p>这就像让多个专家同时从不同角度分析同一句话，最后综合所有专家的意见。</p>
+      <p>多头注意力不是人为给每个头指定职责，而是让多组独立的 Q、K、V 投影并行学习不同的关系模式，再把结果拼接并投影回模型维度。观察到某个头偏向语法或位置关系，是训练结果，不应把它当作固定分工。</p>
     </div>
 
     <!-- Section A2: Scaling Laws -->
