@@ -112,15 +112,15 @@ function MapView({ onNavigate, onSelect }: { onNavigate: (view: View) => void; o
       <SectionHeading
         eyebrow="START HERE · 先看全局"
         title="先别背产品名，先看它在安全体系中的位置"
-        description="这份清单不是 30 个互不相干的盒子。它们组成一条链：底层硬件安全保存密钥，中间平台把能力服务化，上层产品把密码能力嵌入网络、数据、身份和业务流程。"
+        description="产品目录最容易让人陷入“记名称”的误区。这里先沿着一条真实的责任链阅读：密钥在哪里生成和保存，密码能力如何被调用，数据在传输、存储和访问时分别由谁保护，最后再回到具体产品。"
       />
 
       <section className="rounded-[26px] border border-border bg-primary p-5 text-primary-foreground shadow-xl shadow-primary/10 sm:p-7">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
             <p className="text-xs font-bold tracking-[0.16em] text-[var(--signal)]">一张图读懂四条产品线</p>
-            <h2 className="mt-2 font-heading text-2xl font-black">造能力 → 护通道 → 护数据 → 信身份</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-primary-foreground/70">四条线是产品目录的分类方式，不是四座孤岛。一个完整项目往往同时使用四条线里的产品。</p>
+            <h2 className="mt-2 font-heading text-2xl font-black">先问保护对象，再看产品落点</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-primary-foreground/70">四条线只是阅读入口，不是四座孤岛。一个完整项目通常同时需要密码能力、传输保护、数据保护与身份控制；产品的输入、输出和部署边界决定了它能承担哪一段责任。</p>
           </div>
           <button onClick={() => onNavigate('learn')} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[var(--signal)] px-4 text-sm font-bold text-[#123c47] transition hover:-translate-y-0.5">开始 15 分钟入门 <ArrowRight className="size-4" /></button>
         </div>
@@ -171,7 +171,7 @@ function MapView({ onNavigate, onSelect }: { onNavigate: (view: View) => void; o
 
       <section className="mt-8 rounded-[24px] border border-cyan-700/20 bg-cyan-500/[0.06] p-5 sm:p-6">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div><p className="text-xs font-bold text-cyan-800">新增 · 知识与产品双向照应</p><h2 className="mt-1 font-heading text-xl font-black">不再把“原理课”和“产品手册”分开看</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">知识专题解释算法、密钥和协议怎样工作，并列出相关产品；产品详情反向显示它依赖哪些知识，以及这些知识在产品里承担什么作用。</p></div><button onClick={() => onNavigate('learn')} className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground">进入密码知识库 <ArrowRight className="size-4" /></button></div>
-        <div className="mt-5 grid gap-3 md:grid-cols-3">{[['1', '先读知识', '看白话解释、工作步骤、具体例子和常见误区。'], ['2', '打开相关产品', '理解同一个知识点为什么会出现在多种产品中。'], ['3', '从产品返回知识', '在产品详情的“知识照应”中继续补齐原理。']].map(([step, title, body]) => <article key={step} className="rounded-2xl border border-border bg-card p-4"><span className="font-mono text-[10px] font-bold text-cyan-800">STEP {step}</span><p className="mt-2 text-sm font-black">{title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{body}</p></article>)}</div>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">{[['1', '先定问题', '确认要保护的是密钥、链路、存储数据、身份还是操作过程。'], ['2', '再看机制', '辨认加密、签名、认证、访问控制、审计各自解决什么，不把它们混成一个“安全能力”。'], ['3', '最后落到产品', '用部署位置、输入输出、依赖关系和失效边界判断产品是否适合场景。']].map(([step, title, body]) => <article key={step} className="rounded-2xl border border-border bg-card p-4"><span className="font-mono text-[10px] font-bold text-cyan-800">STEP {step}</span><p className="mt-2 text-sm font-black">{title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{body}</p></article>)}</div>
       </section>
 
       <section className="mt-8 rounded-[24px] border border-amber-700/20 bg-amber-500/[0.08] p-5 sm:p-6">
@@ -192,10 +192,10 @@ function LearnView({ onNavigate, onSelect, focusedId }: { onNavigate: (view: Vie
     ['可用性', '需要时服务能工作', '集群 / 容灾 / 监控', Activity],
   ] as const;
   const primitives = [
-    { name: 'SM4 / AES', type: '对称加密', role: '大量数据加密', metaphor: '同一把钥匙锁门和开门', caution: '速度快，但密钥如何安全送达是难点' },
-    { name: 'SM2 / RSA / ECC', type: '公钥密码', role: '签名、密钥交换、小数据加密', metaphor: '公开的锁 + 私有的钥匙', caution: '不适合直接加密超大文件' },
-    { name: 'SM3 / SHA-256', type: '密码杂凑', role: '生成数据指纹', metaphor: '文件的防伪指纹', caution: '只有摘要不证明是谁生成的' },
-    { name: '真随机数', type: '随机源', role: '生成密钥、随机因子、挑战值', metaphor: '安全系统的“不可预测原料”', caution: '随机数可预测会让好算法也失效' },
+    { name: 'SM4 / AES', type: '对称加密', role: '大量数据加密', boundary: '加密与解密使用关联的同一密钥或可相互推导的密钥', caution: '速度快，但密钥如何分发、存放和轮换是难点' },
+    { name: 'SM2 / RSA / ECC', type: '公钥密码', role: '签名、密钥交换、小数据加密', boundary: '公钥用于验证或加密，私钥用于签名或解密；私钥必须处于受控边界内', caution: '不适合直接处理超大数据，常用于协商密钥或签名' },
+    { name: 'SM3 / SHA-256', type: '密码杂凑', role: '生成数据摘要', boundary: '输入变化会导致摘要显著变化，但摘要不能还原原文', caution: '摘要本身不说明由谁生成，也不等同于签名' },
+    { name: '真随机数', type: '随机源', role: '生成密钥、随机因子、挑战值', boundary: '安全性取决于输出是否难以预测，而不只是看起来“随机”', caution: '随机数可预测会让后续算法和协议失去安全前提' },
   ];
   const filteredModules = knowledgeModules.filter((module) => {
     const matchesLevel = level === '全部' || module.level === level;
@@ -227,8 +227,8 @@ function LearnView({ onNavigate, onSelect, focusedId }: { onNavigate: (view: Vie
         <div className="flex items-start justify-between gap-5"><div><p className="text-xs font-bold text-primary/70">第二层 · 四种基础原料</p><h2 className="mt-1 font-heading text-2xl font-black">算法不是产品，算法要被正确地装进系统</h2></div><Sparkles className="size-6 text-amber-600" /></div>
         <div className="mt-5 overflow-x-auto">
           <table className="w-full min-w-[760px] border-separate border-spacing-0 text-left text-sm">
-            <thead><tr className="text-xs text-muted-foreground"><th className="border-b border-border px-3 py-3">例子</th><th className="border-b border-border px-3 py-3">类型</th><th className="border-b border-border px-3 py-3">主要工作</th><th className="border-b border-border px-3 py-3">小白类比</th><th className="border-b border-border px-3 py-3">最容易踩的坑</th></tr></thead>
-            <tbody>{primitives.map((item) => <tr key={item.name} className="align-top"><td className="border-b border-border/60 px-3 py-4 font-mono text-xs font-bold text-primary">{item.name}</td><td className="border-b border-border/60 px-3 py-4 font-bold">{item.type}</td><td className="border-b border-border/60 px-3 py-4 text-muted-foreground">{item.role}</td><td className="border-b border-border/60 px-3 py-4 text-muted-foreground">{item.metaphor}</td><td className="border-b border-border/60 px-3 py-4 text-muted-foreground">{item.caution}</td></tr>)}</tbody>
+            <thead><tr className="text-xs text-muted-foreground"><th className="border-b border-border px-3 py-3">例子</th><th className="border-b border-border px-3 py-3">类型</th><th className="border-b border-border px-3 py-3">主要工作</th><th className="border-b border-border px-3 py-3">使用边界</th><th className="border-b border-border px-3 py-3">最容易踩的坑</th></tr></thead>
+            <tbody>{primitives.map((item) => <tr key={item.name} className="align-top"><td className="border-b border-border/60 px-3 py-4 font-mono text-xs font-bold text-primary">{item.name}</td><td className="border-b border-border/60 px-3 py-4 font-bold">{item.type}</td><td className="border-b border-border/60 px-3 py-4 text-muted-foreground">{item.role}</td><td className="border-b border-border/60 px-3 py-4 text-muted-foreground">{item.boundary}</td><td className="border-b border-border/60 px-3 py-4 text-muted-foreground">{item.caution}</td></tr>)}</tbody>
           </table>
         </div>
       </section>
@@ -248,7 +248,7 @@ function LearnView({ onNavigate, onSelect, focusedId }: { onNavigate: (view: Vie
               </summary>
               <div className="border-t border-border px-5 pb-6 pt-5 sm:px-6">
                 <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-                  <div className="space-y-4"><article className="rounded-2xl border border-border p-4"><p className="flex items-center gap-2 text-xs font-bold text-primary"><BookOpen className="size-4" /> 先用白话理解</p><p className="mt-2 text-sm leading-7 text-muted-foreground">{module.plain}</p></article><article className="rounded-2xl bg-primary p-4 text-primary-foreground"><p className="flex items-center gap-2 text-xs font-bold text-[var(--signal)]"><Lightbulb className="size-4" /> 心智模型</p><p className="mt-2 text-sm leading-7 text-primary-foreground/80">{module.mentalModel}</p></article><article className="rounded-2xl border border-border p-4"><p className="text-xs font-bold">具体例子</p><p className="mt-2 text-sm leading-7 text-muted-foreground">{module.example}</p></article></div>
+                  <div className="space-y-4"><article className="rounded-2xl bg-primary p-4 text-primary-foreground"><p className="flex items-center gap-2 text-xs font-bold text-[var(--signal)]"><Lightbulb className="size-4" /> 从这个问题进入</p><p className="mt-2 text-sm leading-7 text-primary-foreground/85">{module.articleLead}</p></article><article className="rounded-2xl border border-border p-4"><p className="flex items-center gap-2 text-xs font-bold text-primary"><BookOpen className="size-4" /> 先厘清对象与边界</p><p className="mt-2 text-sm leading-7 text-muted-foreground">{module.plain}</p></article><article className="rounded-2xl border border-border p-4"><p className="text-xs font-bold">把它放回一个实际过程</p><p className="mt-2 text-sm leading-7 text-muted-foreground">{module.example}</p></article><article className="rounded-2xl border border-cyan-700/20 bg-cyan-500/[0.06] p-4"><p className="text-xs font-bold text-cyan-800">回到开头</p><p className="mt-2 text-sm leading-7 text-muted-foreground">{module.takeaway}</p></article></div>
                   <div className="rounded-2xl border border-border bg-background/50 p-4"><p className="text-xs font-bold text-primary">它是怎样工作的</p><div className="mt-4 space-y-3">{module.mechanics.map((step, stepIndex) => <div key={step} className="flex gap-3"><span className="grid size-6 shrink-0 place-items-center rounded-lg bg-primary font-mono text-[10px] text-primary-foreground">{stepIndex + 1}</span><p className="text-xs leading-5 text-muted-foreground">{step}</p></div>)}</div></div>
                 </div>
                 <div className="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]"><article className="rounded-2xl border border-amber-700/20 bg-amber-500/[0.07] p-4"><p className="flex items-center gap-2 text-xs font-bold text-amber-800"><AlertTriangle className="size-4" /> 常见误区</p><ul className="mt-3 space-y-2">{module.pitfalls.map((pitfall) => <li key={pitfall} className="flex gap-2 text-xs leading-5 text-muted-foreground"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-amber-600" />{pitfall}</li>)}</ul></article><article className="rounded-2xl border border-border p-4"><p className="text-xs font-bold">这些产品如何使用本知识</p><div className="mt-3 space-y-3">{module.productLinks.map((link) => <div key={link.ids.join('-')} className="rounded-xl bg-muted/55 p-3"><div className="flex flex-wrap gap-2">{link.ids.map((productId) => { const product = products.find((item) => item.id === productId); return product ? <button key={productId} onClick={() => onSelect(product)} className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-[11px] font-bold shadow-sm hover:border-primary/30">{product.name}</button> : null; })}</div><p className="mt-2 text-[11px] leading-5 text-muted-foreground">{link.relation}</p></div>)}</div></article></div>
@@ -281,7 +281,7 @@ function ProductsView({ query, setQuery, onSelect }: { query: string; setQuery: 
 
   return (
     <>
-      <SectionHeading eyebrow="PRODUCT ATLAS · 产品图鉴" title="30 类产品，按“位置—输入—输出—依赖”重新讲一遍" description="每张卡片都保留原资料页码和型号，同时补上小白类比、部署位置、上下游关系和容易混淆的相邻产品。点击任一产品查看完整拆解。" />
+      <SectionHeading eyebrow="PRODUCT ATLAS · 产品图鉴" title="30 类产品，按“位置—输入—输出—依赖”重新讲一遍" description="每张卡片保留原资料页码和型号，并明确部署位置、输入输出、上下游关系、适用边界与易混淆产品。点击任一产品查看完整拆解。" />
       <div className="sticky top-[64px] z-10 -mx-2 mb-6 rounded-2xl border border-border bg-background/90 p-2 shadow-sm backdrop-blur-xl">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
           <label className="relative flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索产品、型号、SDF、密钥、TLS…" className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10" /></label>
@@ -384,7 +384,7 @@ function ProductDialog({ product, onClose, onKnowledge }: { product: Product | n
           <DialogDescription className="mt-1 text-sm leading-6">{product.oneLiner}</DialogDescription>
         </DialogHeader>
         <div className="space-y-6 p-6 sm:p-7">
-          <div className="rounded-2xl bg-primary p-5 text-primary-foreground"><p className="flex items-center gap-2 text-xs font-bold text-[var(--signal)]"><Lightbulb className="size-4" /> 小白类比</p><p className="mt-2 text-sm leading-6 text-primary-foreground/85">{product.analogy}</p></div>
+          <div className="rounded-2xl bg-primary p-5 text-primary-foreground"><p className="flex items-center gap-2 text-xs font-bold text-[var(--signal)]"><Lightbulb className="size-4" /> 它在体系中承担什么</p><p className="mt-2 text-sm leading-6 text-primary-foreground/85">{product.oneLiner} 它位于“{product.layer}”，主要保护 {product.protects}</p></div>
           <section className="rounded-[20px] border border-cyan-700/20 bg-cyan-500/[0.06] p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold text-cyan-800">知识照应 · 为什么这个产品需要密码知识</p><h3 className="mt-1 font-heading text-lg font-black">{relatedKnowledge.length} 个知识专题共同解释这个产品</h3></div><BookOpen className="size-5 shrink-0 text-cyan-700" /></div>
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
