@@ -1,0 +1,59 @@
+# 知识库的内容一致性检查。
+#
+# 这个仓库没有编译产物，所以 CI 不构建任何东西，只守住两条容易悄悄坏掉的约定：
+#   1. doc/cicd/*.html 是生成物，必须和它的 Markdown 源保持同步
+#   2. 页面里的站内链接必须指向真实存在的文件
+#
+# 两条都不是"代码正确性"，而是"仓库一致性"——它们不会让网站报错，
+# 只会让读者点进一个空白页或 404，所以特别需要机器来盯。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 同一分支连续推送时取消上一次未跑完的运行，省时间也省额度
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 只读代码，其余 scope 全部为 none
+permissions:
+  contents: read
+
+jobs:
+  # ── 生成页面是否与 Markdown 同步 ────────────────────────────────
+  page-sync:
+    name: 生成页面与正文同步
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # CI 用 ci 而不是 install：严格按 package-lock.json 安装，
+      # lock 与 package.json 不一致时会直接失败，避免"本地能跑 CI 不能跑"
+      - run: npm ci
+
+      - name: 校验生成页面与 Markdown 同步
+        run: npm run check:cicd
+
+  # ── 站内链接是否可达 ──────────────────────────────────────────
+  site-links:
+    name: 站内链接可达
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      # 纯 Node 实现，没有第三方依赖，不需要 npm ci
+      - name: 校验站内链接
+        run: node scripts/check-site-links.js --verbose
