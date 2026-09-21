@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "description": "个人计算机知识查缺补漏的 AI 知识库",
   "scripts": {
-    "start": "serve -s . -p 5004"
+    "start": "serve -s . -p 5004",
+    "build:cicd": "node scripts/build-cicd-page.js",
+    "check:cicd": "node scripts/build-cicd-page.js --check"
   },
   "dependencies": {
     "serve": "^14.2.6"
+  },
+  "devDependencies": {
+    "markdown-it": "^15.0.2"
   },
   "license": "MIT"
 }

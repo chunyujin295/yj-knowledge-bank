@@ -1,0 +1,188 @@
+<!--
+  页面外壳模板 —— doc/cicd/github-actions-完全指南.html 由 build-cicd-page.js 生成。
+  这个文件不是可直接打开的页面：它含有三个占位符，必须由构建脚本填充。
+  占位符分别是“目录”“正文”“日期”，名称定义在 build-cicd-page.js 的 MARKERS 里。
+
+  ⚠ 不要在这段注释里写出占位符本身。占位符按首次出现替换，写在这里会让
+    整个正文被注入到注释内部，页面看起来一片空白（构建脚本现在会拦住这种情况）。
+
+  改这里的样式或 hero 文案之后，跑一次 `npm run build:cicd` 重新生成页面。
+  正文内容仍然只在 .md 里改，不要直接编辑生成出来的 .html。
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="沿一次 git push 逐层拆解 GitHub Actions：ref 如何变成事件、workflow 文件读哪个 commit、任务如何加密后送到 Runner、GITHUB_TOKEN 与 OIDC 的权限模型，以及把一个真实项目从手工 git pull 改成自动部署的完整做法。">
+  <title>GitHub Actions 完全指南 — YJ Knowledge Bank</title>
+  <link rel="icon" href="../../img/icons/icon1.png">
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--kb-text); background: var(--kb-page); font-family: var(--kb-font-sans); }
+    a { color: var(--kb-brand); }
+
+    /* ---- Hero ---- */
+    .hero { padding: 92px 24px 68px; border-bottom: 1px solid var(--kb-line); overflow: hidden; }
+    .hero-inner { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr); gap: 64px; align-items: center; }
+    .eyebrow, .chapter-no { font-family: var(--kb-font-mono); text-transform: uppercase; letter-spacing: .12em; }
+    .eyebrow { margin-bottom: 20px; color: var(--kb-coral); font-size: .76rem; font-weight: 700; }
+    h1 { max-width: 760px; margin: 0; color: var(--kb-ink); font-size: clamp(2.3rem, 5.4vw, 4.7rem); line-height: 1.06; letter-spacing: -.045em; }
+    .hero-copy { max-width: 690px; margin: 26px 0 0; color: var(--kb-muted); font-size: 1.06rem; line-height: 1.85; }
+    .hero-copy code { font-size: .88em; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+    .tag { padding: 7px 11px; border: 1px solid var(--kb-line); border-radius: 999px; background: var(--kb-surface); color: var(--kb-muted); font: 700 .7rem/1 var(--kb-font-mono); }
+    .hero-stack { position: relative; padding: 25px; border: 1px solid var(--kb-line); border-radius: var(--kb-radius-xl); background: var(--kb-surface-strong); }
+    .hero-stack::before { content: "ONE PUSH, FIVE STAGES"; display: block; margin-bottom: 17px; color: var(--kb-muted); font: 700 .67rem/1 var(--kb-font-mono); letter-spacing: .1em; }
+    .stack-row { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; padding: 11px 13px; border-radius: var(--kb-radius-sm); }
+    .stack-row + .stack-row { margin-top: 7px; }
+    .stack-row span { color: var(--kb-muted); font: .66rem var(--kb-font-mono); }
+    .stack-row strong { color: var(--kb-ink); font-size: .87rem; }
+    .stack-row:nth-child(2), .stack-row:nth-child(5), .stack-row:nth-child(8) { background: var(--kb-brand-soft); }
+    .stack-row:nth-child(3), .stack-row:nth-child(4), .stack-row:nth-child(6), .stack-row:nth-child(7) { border: 1px solid var(--kb-line); }
+    .stack-arrow { height: 13px; margin-left: 47px; border-left: 1px dashed var(--kb-muted); }
+
+    /* ---- Layout + TOC ---- */
+    .layout { width: min(1200px, calc(100% - 40px)); margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 52px; padding: 56px 0 96px; }
+    .toc { position: sticky; top: 88px; align-self: start; max-height: calc(100vh - 112px); overflow: auto; padding: 16px 0; }
+    .toc-title { margin: 0 0 12px 13px; color: var(--kb-muted); font: 700 .68rem var(--kb-font-mono); letter-spacing: .12em; }
+    .toc a { display: block; padding: 8px 12px; border-left: 2px solid transparent; color: var(--kb-muted); text-decoration: none; font-size: .83rem; line-height: 1.35; }
+    .toc a:hover, .toc a.active { border-left-color: var(--kb-brand); background: var(--kb-brand-soft); color: var(--kb-brand); }
+    .content { min-width: 0; }
+
+    /* ---- Chapters ---- */
+    .chapter { scroll-margin-top: 90px; margin-bottom: 76px; }
+    .chapter-head { margin-bottom: 25px; }
+    .chapter-no { display: inline-block; margin-bottom: 8px; color: var(--kb-coral); font-size: .7rem; font-weight: 700; }
+    h2 { margin: 0; color: var(--kb-ink); font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.3; letter-spacing: -.025em; }
+    h3 { margin: 42px 0 13px; color: var(--kb-ink); font-size: 1.22rem; line-height: 1.45; scroll-margin-top: 88px; }
+    h4 { margin: 32px 0 11px; color: var(--kb-ink); font-size: 1.06rem; line-height: 1.5; letter-spacing: -.01em; }
+    p, li { line-height: 1.85; }
+    p { margin: 12px 0; }
+    ul, ol { margin: 12px 0; padding-left: 22px; }
+    li { margin: 6px 0; }
+    strong { color: var(--kb-ink); }
+
+    /* ---- Code ---- */
+    code { padding: .14em .38em; border-radius: 5px; background: var(--kb-brand-soft); color: var(--kb-brand); font-family: var(--kb-font-mono); font-size: .9em; }
+    pre { overflow-x: auto; margin: 18px 0; padding: 21px 23px; border-radius: var(--kb-radius-md); background: var(--kb-code); color: var(--kb-code-text); font: .855rem/1.72 var(--kb-font-mono); }
+    pre code { padding: 0; background: transparent; color: inherit; font-size: 1em; }
+
+    /* ---- Callouts ---- */
+    .callout { margin: 22px 0; padding: 20px 22px; border: 1px solid var(--kb-line); border-left: 4px solid var(--kb-brand); border-radius: var(--kb-radius-md); background: var(--kb-surface-strong); }
+    /* Two classes so this outranks the shared "html.kb-system p" colour rule. */
+    .callout .callout-title { margin: 0 0 8px; color: var(--kb-ink); font-weight: 800; }
+    .callout > *:last-child { margin-bottom: 0; }
+    .callout pre:last-child { margin-bottom: 0; }
+    .callout.warning { border-left-color: var(--kb-warning); background: var(--kb-warning-soft); }
+
+    /* ---- Tables ----
+       The shared stylesheet already gives every table its own border + radius,
+       so the wrapper carries no border of its own (that would double it up). */
+    .table-wrap { overflow-x: auto; margin: 22px 0; }
+    table { width: 100%; border-collapse: collapse; background: var(--kb-surface-strong); font-size: .9rem; }
+    th, td { min-width: 108px; padding: 13px 15px; border-bottom: 1px solid var(--kb-line); text-align: left; vertical-align: top; line-height: 1.65; }
+    th { background: var(--kb-brand-soft); color: var(--kb-ink); }
+    tr:last-child td { border-bottom: 0; }
+
+    /* ---- Footer ---- */
+    .footer { padding: 34px 24px; border-top: 1px solid var(--kb-line); }
+    .footer-inner { width: min(1180px, 100%); margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: center; font-size: .84rem; }
+    .footer strong { color: var(--kb-ink); }
+
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 38px; }
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 16px; max-height: none; }
+      .toc-title { display: none; }
+      .toc a { flex: 0 0 auto; border: 1px solid var(--kb-line); border-radius: 999px; }
+    }
+    @media (max-width: 720px) {
+      .hero { padding: 62px 20px 48px; }
+      .hero-stack { padding: 17px; }
+      .stack-row { grid-template-columns: 82px 1fr; }
+      .stack-arrow { margin-left: 41px; }
+      .layout { width: min(100% - 32px, 1200px); gap: 24px; padding-top: 32px; }
+      .chapter { margin-bottom: 58px; }
+      pre { padding: 17px 15px; font-size: .8rem; }
+      .callout { padding: 17px 16px; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../assets/css/kb-design-system.css">
+  <script defer src="../../assets/js/kb-design-system.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">CI / CD · GitHub Actions · Mental Model</div>
+        <h1>从一次 git push，<br>到一台机器替你跑测试</h1>
+        <p class="hero-copy">你按下回车，代码离开你的键盘没有多久，远端已经有人替你拉取、装依赖、编译、测试、发布。本文沿着这条链路自底向上拆开 GitHub Actions：ref 是怎么变成事件的、workflow 文件读的是哪个 commit 的版本、任务被加密后送到了哪台机器上执行、<code>GITHUB_TOKEN</code> 到底是谁的什么身份。最后落回一个真实项目——把手工的 <code>git pull</code> 换成自动部署。</p>
+        <div class="tag-row">
+          <span class="tag">WORKFLOW</span>
+          <span class="tag">RUNNER</span>
+          <span class="tag">GITHUB_TOKEN</span>
+          <span class="tag">OIDC</span>
+          <span class="tag">截至 2026-09 核对</span>
+        </div>
+      </div>
+      <div class="hero-stack" aria-label="一次推送触发的五个阶段">
+        <div class="stack-row"><span>REF UPDATE</span><strong>git push 更新 refs/heads/main</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>EVENT</span><strong>服务端生成 push 事件</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>RESOLVE</span><strong>选定某个 commit 的 workflow 文件</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>MATCH</span><strong>on: 过滤器匹配成功</strong></div><div class="stack-arrow"></div>
+        <div class="stack-row"><span>SCHEDULE</span><strong>拆分 job → 入队 → Runner 长轮询领走</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="本页目录">
+      <p class="toc-title">CONTENTS</p>
+<!--TOC-->
+    </aside>
+
+    <main class="content">
+<!--CONTENT-->
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div><strong>YJ Knowledge Bank</strong> · 内容核对于 <!--DATE--></div>
+      <div><a href="../../index.html">返回知识库</a></div>
+    </div>
+  </footer>
+
+  <script>
+    /* TOC scroll-highlighting. Enhancement only: the page reads fine without it. */
+    (function () {
+      var links = [].slice.call(document.querySelectorAll('.toc a'));
+      var sections = links
+        .map(function (a) { return document.querySelector(a.getAttribute('href')); })
+        .filter(Boolean);
+      if (!sections.length || !('IntersectionObserver' in window)) return;
+
+      var visible = new Set();
+      function sync() {
+        var current = null;
+        for (var i = 0; i < sections.length; i++) {
+          if (visible.has(sections[i])) { current = sections[i]; break; }
+        }
+        links.forEach(function (a) {
+          a.classList.toggle('active', !!current && a.getAttribute('href') === '#' + current.id);
+        });
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) visible.add(e.target);
+          else visible.delete(e.target);
+        });
+        sync();
+      }, { rootMargin: '-88px 0px -60% 0px', threshold: 0 });
+      sections.forEach(function (s) { observer.observe(s); });
+    })();
+  </script>
+</body>
+</html>
